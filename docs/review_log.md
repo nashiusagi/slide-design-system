@@ -23,7 +23,7 @@
 |---|---|---|---|---|---|
 | `contract/design-data-duplicated` | 設計契約 | デザインの値が正本以外へ複製された | 1 | PR #13 | PR #13 |
 | `contract/value-outside-source-of-truth` | 設計契約 | 正本に置くと決めた値が、正本を参照できない場所にも必要になる | 1 | PR #13 | PR #13 |
-| `contract/source-of-truth-ambiguous` | 設計契約 | 「正本」がどのファイルを指すか一意でない | 1 | PR #13 | PR #13 |
+| `contract/source-of-truth-ambiguous` | 設計契約 | 「正本」がどのファイルを指すか一意でない | 2 | PR #13 | PR #17 |
 | `contract/contract-structure-duplicated` | 設計契約 | 正本の中身の一覧が、別の文書へ構造ごと複製された | 1 | PR #13 | PR #13 |
 | `inspection/rule-scope-inconsistent` | 検査 | 同じルールIDの守備範囲が文書間で食い違う | 1 | PR #13 | PR #13 |
 | `inspection/rule-has-bypass` | 検査 | 検査ルールに抜け道があり、書き方を変えると素通りする | 1 | PR #13 | PR #13 |
@@ -46,10 +46,11 @@
 | `decisions/dr-restates-canonical-value` | 決定記録 | DR が正本の値を本文に書き写した | 1 | PR #17 | PR #17 |
 | `decisions/index-section-mismatch` | 決定記録 | DR の索引登録が、内容と合わない節に置かれた | 1 | PR #17 | PR #17 |
 | `code/rereview-overwrites-prior-review` | コード品質 | 再レビューが前周のレビュー記録を上書きする | 1 | PR #17 | PR #17 |
+| `code/review-history-row-update-undefined` | コード品質 | レビュー履歴の行の更新方法が書式定義と食い違う | 1 | PR #17 | PR #17 |
 
 ## レビュー履歴
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #17 | 2026-09-06 | 0 | 12 | 7 | [pr-17.md](./reviews/pr-17.md) |
+| #17 | 2026-09-06 | 0 | 18 | 10 | [pr-17.md](./reviews/pr-17.md) |
 | #13 | 2026-09-06 | 1 | 8 | 6 | [pr-13.md](./reviews/pr-13.md) |
