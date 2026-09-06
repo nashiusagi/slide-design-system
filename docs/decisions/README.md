@@ -67,6 +67,7 @@
 | # | 決定 |
 |---|---|
 | [0024](./0024-decision-records-not-adr.md) | 決定記録は `docs/decisions/` に置き、「DR」と呼ぶ |
+| [0025](./0025-issue-driven-development-flow.md) | Issue 起点の開発フローを Agent Skill として固定する |
 
 ## 新しい決定を追加するとき
 
