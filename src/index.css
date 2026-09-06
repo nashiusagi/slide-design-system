@@ -1,0 +1,12 @@
+/*
+ * 足場のための最小限のスタイル。
+ * デザイントークン（--dh-*）とレイアウトの実装は design/ を正本として後続の Issue で入れる。
+ */
+:root {
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+}
+
+body {
+  margin: 0;
+}

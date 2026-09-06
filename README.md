@@ -17,6 +17,19 @@ AI が生成したスライドの妥当性を、印象ではなく**機械判定
 
 根拠は [DR-0001](./docs/decisions/0001-phase-1-is-ai-harness.md)。
 
+## 開発
+
+Node.js 22 以上と pnpm が要る。
+
+```bash
+pnpm install
+pnpm dev        # 開発サーバ
+pnpm build      # dist/index.html + dist/assets/ を出力（DR-0022）
+pnpm check      # typecheck → lint → test → build
+```
+
+`pnpm check` が受け入れの入口になる。契約に基づく検査（lint / measure）は、この枠の中へ後から足していく。
+
 ## 正本の在り処
 
 | パス | 内容 |

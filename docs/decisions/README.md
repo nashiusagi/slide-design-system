@@ -34,6 +34,7 @@
 | [0003](./0003-custom-slide-runtime.md) | スライド機構は自作の薄いランタイムで持つ |
 | [0018](./0018-plain-css-with-tokens.md) | スタイルは素の CSS + トークン変数で書き、Tailwind を使わない |
 | [0022](./0022-plain-vite-build-output.md) | 最終出力は `vite build` の素の成果物とする |
+| [0026](./0026-typescript-5-for-eslint-ast.md) | TypeScript は 5 系に留め、7 系へは上げない |
 
 ### 契約の構造
 
