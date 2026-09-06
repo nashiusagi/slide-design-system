@@ -1,0 +1,67 @@
+# slide-design-system
+
+スライドを「デザイン契約 → AI 生成 → 機械検査 → 修正」のループで作る環境。
+
+[デザインハーネス](https://design-harness.com/)の方法論を、業務画面（[Atlas Design System](https://github.com/lumilinks-hq/atlas-design-system)）からスライド領域へ移植する。同じお題を「設計契約なし」と「契約あり」で AI に生成させ、その差と修正過程を比較する。
+
+## 何を確かめるか
+
+AI が生成したスライドの妥当性を、印象ではなく**機械判定**で担保できるか。
+
+スライドには、業務画面には無い検査可能性がある。1280x720 の固定キャンバスを使うため、**要素がキャンバスからはみ出したかを実測で判定できる**。プレゼンで最も多い事故（文字が枠外へ出る、表が切れる）を、生成のたびに自動で検出できる。
+
+## 進め方
+
+- Phase 1 — AI に書かせる Harness。契約・検査・修正ループを作る
+- Phase 2 — 人間がオーサリングする環境。人間は deck 契約を書き、実装は AI が生成する
+
+根拠は [DR-0001](./docs/decisions/0001-phase-1-is-ai-harness.md)。
+
+## 正本の在り処
+
+| パス | 内容 |
+| --- | --- |
+| `DESIGN.md` | AI が最初に読む設計方針。北極星、Do / Don't、衝突時の優先順位 |
+| `design/tokens.json` | color / space / type / radius / shadow / canvas |
+| `design/layouts/` | スライドのレイアウト契約 |
+| `design/components/` | スライド内部品の契約 |
+| `design/decks/` | 発表ごとの構成（deck 契約） |
+| `design/rules.json` | 検査ルール（lint / measure / review） |
+| `design/schemas/` | 契約自体を検証する JSON Schema |
+| `docs/decisions/` | 決定記録（DR）。なぜそう決めたか、何を却下したか |
+| `experiments/` | お題、共通 starter、保存済み Run |
+| `skills/slide-harness/` | AI が契約に従って実装するための Agent Skill |
+
+設計データは正本にのみ置く。Skill やドキュメントへ複製しない。
+
+## 検査
+
+| 系統 | 手段 | 見るもの |
+| --- | --- | --- |
+| lint | ESLint（自作プラグイン） | 契約外の layout / component、生の色値・px、deck 契約との不一致 |
+| measure | Playwright（ビルド出力に対して実測） | キャンバスからのはみ出し、フォントサイズ下限、コントラスト |
+| review | 人 | 1 枚 1 メッセージか、話の順序が通っているか |
+
+`review` とされた項目は自動合否にせず、画面を見て人が判断する。
+
+根拠は [DR-0011](./docs/decisions/0011-lint-and-measure.md)。
+
+## 実験
+
+生成は Claude Code のサブエージェントを明示的に起動して行う。**スクリプトは AI を起動しない。** 担当はワークスペースの用意、Run の保存、検査、採点、比較まで。
+
+生成は 1 回だけ、採点は何度でも再実行できる。ルールを追加したとき、保存済み Run へ遡って効き目を確認できる。
+
+根拠は [DR-0019](./docs/decisions/0019-claude-only-runner.md) / [DR-0020](./docs/decisions/0020-scripts-do-not-invoke-ai.md)。
+
+## 公開時の注意
+
+保存 Run にはプロンプト、AI の行動ログ、生成ソース、検証ログが含まれる。保存時に絶対パスと OS ユーザー名をマスクし、audit で再検査する。audit は文字列検査であり公開承認ではない。最終判断は人が行う。
+
+根拠は [DR-0023](./docs/decisions/0023-public-repo-with-audit.md)。
+
+## 決定記録
+
+このプロジェクトの意思決定は [`docs/decisions/`](./docs/decisions/) に記録している。索引は [`docs/decisions/README.md`](./docs/decisions/README.md)。
+
+デザインの値（色、閾値）は DR に複製せず、`DESIGN.md` / `design/tokens.json` / `design/rules.json` を正本とする。
