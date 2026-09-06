@@ -1,0 +1,22 @@
+node_modules/
+*.tsbuildinfo
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# ビルドと検査の出力。実験の保存 Run はコミットする方針のため（DR-0023）、
+# 無名パターンで全階層を無視すると Run の成果物が無言で欠落する。
+# git は警告を出さないので、出力先を明示して無視する。
+/dist/
+/coverage/
+/.vite/
+/playwright-report/
+/test-results/
+/*.log
+experiments/*/starter/dist/
+experiments/*/starter/coverage/
+experiments/*/starter/node_modules/
+
+# 保存 Run 配下は追跡する（DR-0023）
+!experiments/*/runs/**
