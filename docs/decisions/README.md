@@ -61,13 +61,13 @@
 | [0020](./0020-scripts-do-not-invoke-ai.md) | 実験スクリプトは AI を起動しない |
 | [0021](./0021-starter-contains-runtime-only.md) | starter にはスライド機構のみを入れ、契約は Harness 側だけに渡す |
 | [0023](./0023-public-repo-with-audit.md) | public リポジトリで公開し、sanitize と audit を実装する |
+| [0025](./0025-issue-driven-development-flow.md) | Issue 起点の開発フローを Agent Skill として固定する |
 
 ### メタ
 
 | # | 決定 |
 |---|---|
 | [0024](./0024-decision-records-not-adr.md) | 決定記録は `docs/decisions/` に置き、「DR」と呼ぶ |
-| [0025](./0025-issue-driven-development-flow.md) | Issue 起点の開発フローを Agent Skill として固定する |
 
 ## 新しい決定を追加するとき
 
