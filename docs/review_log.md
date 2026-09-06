@@ -34,7 +34,7 @@
 | `contract/value-outside-source-of-truth` | 設計契約 | 正本に置くと決めた値が、正本を参照できない場所にも必要になる | 1 | PR #13 | PR #13 |
 | `contract/source-of-truth-ambiguous` | 設計契約 | 「正本」がどのファイルを指すか一意でない | 2 | PR #13 | PR #17 |
 | `contract/contract-structure-duplicated` | 設計契約 | 正本の中身の一覧が、別の文書へ構造ごと複製された | 2 | PR #13 | PR #18 |
-| `inspection/rule-scope-inconsistent` | 検査 | 同じルールIDの守備範囲が文書間で食い違う | 1 | PR #13 | PR #13 |
+| `inspection/rule-scope-inconsistent` | 検査 | 同じルールIDの守備範囲が文書間で食い違う | 2 | PR #13 | PR #18 |
 | `inspection/rule-has-bypass` | 検査 | 検査ルールに抜け道があり、書き方を変えると素通りする | 2 | PR #13 | PR #18 |
 | `inspection/rule-id-mapping-incomplete` | 検査 | ルールIDと実装の対応検査が一部の系統しか覆っていない | 1 | PR #13 | PR #13 |
 | `inspection/measure-state-unspecified` | 検査 | measure がどの表示状態で測るか規定されていない | 1 | PR #13 | PR #13 |
@@ -45,7 +45,7 @@
 | `writing/notation-inconsistency` | 日本語 | 表記の不統一 | 3 | PR #13 | PR #18 |
 | `phase/out-of-scope-addition` | フェーズ | フェーズのスコープ外、または DR に接続しないものが混入した | 3 | PR #13 | PR #18 |
 | `decisions/undocumented-decision` | 決定記録 | DR に無い判断が、PR説明やIssueにだけ書かれている | 3 | PR #13 | PR #18 |
-| `contract/workflow-constant-duplicated` | 設計契約 | 他スキルが持つ取り決め（パス・上限値）が書き写された | 1 | PR #17 | PR #17 |
+| `contract/workflow-constant-duplicated` | 設計契約 | 他スキルが持つ取り決め（パス・上限値）が書き写された | 2 | PR #17 | PR #18 |
 | `code/review-loop-double-counts-log` | コード品質 | 同一 PR の再レビューが指摘ログを二重に計上する | 1 | PR #17 | PR #17 |
 | `code/review-artifact-handling-undefined` | コード品質 | レビュー成果物をコミットするかどうかが未定義 | 1 | PR #17 | PR #17 |
 | `code/undefined-command-input` | コード品質 | 手順のコマンドが要求する入力の用意が未定義 | 1 | PR #17 | PR #17 |
@@ -64,6 +64,6 @@
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #18 | 2026-09-06 | 0 | 4 | 7 | [pr-18.md](./reviews/pr-18.md) |
+| #18 | 2026-09-06 | 0 | 5 | 9 | [pr-18.md](./reviews/pr-18.md) |
 | #17 | 2026-09-06 | 0 | 18 | 10 | [pr-17.md](./reviews/pr-17.md) |
 | #13 | 2026-09-06 | 1 | 8 | 6 | [pr-13.md](./reviews/pr-13.md) |
