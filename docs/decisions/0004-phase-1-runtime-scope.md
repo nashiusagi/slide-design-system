@@ -3,6 +3,7 @@
 - **状態**: 承認済み
 - **日付**: 2026-09-06
 - **関連**: [DR-0003](./0003-custom-slide-runtime.md), [DR-0001](./0001-phase-1-is-ai-harness.md)
+- **正本**: `design/tokens.json`（`canvas`）
 
 ## 文脈
 
@@ -10,7 +11,7 @@
 
 ## 決定
 
-Phase 1 では `Deck` / `Slide` / `Fragment` と、1280x720 固定キャンバスのスケーリング、URL による現在位置の同期のみを実装する。`Slide` は `notes` を props として受け取るが表示はしない。
+Phase 1 では `Deck` / `Slide` / `Fragment` と、固定キャンバスのスケーリング、URL による現在位置の同期のみを実装する。キャンバスの寸法は `design/tokens.json` の `canvas` を正本とする。`Slide` は `notes` を props として受け取るが表示はしない。
 
 ## 理由
 
@@ -34,3 +35,4 @@ Phase 1 では `Deck` / `Slide` / `Fragment` と、1280x720 固定キャンバ�
 
 - 発表者ビュー、ノート表示、PDF 出力は Phase 1.5 以降の Issue として起こす
 - `notes` の受け取り口だけは最初から作る
+- URL には現在のスライドに加えて Fragment の段階も含める（`#/3/2` の形）。measure が全段階を巡回できるようにするため（[DR-0011](./0011-lint-and-measure.md)）

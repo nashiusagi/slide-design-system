@@ -10,7 +10,7 @@ Atlas は Tailwind v4 + HeroUI という構成で、`atlas/no-raw-color` は CSS
 
 ## 決定
 
-`design/layout.css`（レイアウト実装の正本）と、`tokens.json` から生成した `--dh-*` 変数で書く。Tailwind は使わない。クラス名は契約が定める。
+`design/layout.css`（レイアウトの実装。クラス名と値は `design/layouts/` の契約に従う）と、`tokens.json` から生成した `--dh-*` 変数で書く。Tailwind は使わない。クラス名は契約が定める。
 
 ## 理由
 

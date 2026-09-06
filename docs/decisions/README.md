@@ -24,7 +24,7 @@
 |---|---|---|
 | [0007](./0007-north-star.md) | 北極星は「白い紙面と黒い文字。強調は赤紫の一色だけ」 | `DESIGN.md`, `design/tokens.json` |
 | [0008](./0008-accent-hue-purple.md) | アクセントの赤紫はパープル寄りにする | `design/tokens.json` |
-| [0012](./0012-min-font-size.md) | 本文の最小フォントサイズは 18px とする | `design/rules.json` |
+| [0012](./0012-min-font-size.md) | 本文の最小フォントサイズに下限を設ける | `design/rules.json` |
 
 ### 技術スタック
 

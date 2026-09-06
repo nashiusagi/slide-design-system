@@ -7,7 +7,7 @@
 
 ## 文脈
 
-Atlas は 28 ルールを `method: lint | eval | review` に分類し、lint を ESLint で自動実行、review は人が判断していた。スライド領域では、Atlas に無い検査が可能になる。1280x720 の固定キャンバスを使うため（[DR-0004](./0004-phase-1-runtime-scope.md)）、要素が枠外へ出たかを実測で判定できる。
+Atlas は 28 ルールを `method: lint | eval | review` に分類し、lint を ESLint で自動実行、review は人が判断していた。スライド領域では、Atlas に無い検査が可能になる。固定キャンバスを使うため（[DR-0004](./0004-phase-1-runtime-scope.md)）、要素が枠外へ出たかを実測で判定できる。
 
 ## 決定
 
@@ -15,17 +15,18 @@ Atlas は 28 ルールを `method: lint | eval | review` に分類し、lint を
 
 **lint（ESLint / 静的）**
 - `no-raw-color` — JSX・CSS に生の色値を書かない
-- `no-raw-scale` — 生の px（余白・文字サイズ）を書かない
+- `no-raw-scale` — トークン変数（`--dh-*`）以外の長さリテラルを書かない。単位ではなく、リテラルか変数参照かで判定する
 - `layout-approved` — 契約外の layout 名を使わない
 - `component-approved` — 承認外の独自 HTML で部品を再実装しない
-- `deck-conformance` — deck 契約の枚数・順序・layout 割当と一致する
+- `deck-conformance` — deck 契約の枚数・順序・layout 割当と一致する。静的に判定できるのはここまで
 
 **measure（Playwright / ビルド出力に対して実測）**
 - `no-overflow` — キャンバスから要素がはみ出していない
 - `min-font-size` — computed fontSize が下限を割っていない
-- `contrast` — 実測の前景 / 背景コントラストが 4.5:1 以上
+- `contrast` — 実測の前景 / 背景コントラストが基準を満たす
+- `deck-body-fidelity` — deck 契約に `body` があるとき、レンダリング後のテキストが素材を欠落・改変していない
 
-判断が分かれるもの（1 枚 1 メッセージか、話の順序が通っているか）は `review` として人が判断する。
+判断が分かれるもの（1 枚 1 メッセージか、話の順序が通っているか）は `review` として人が判断する。`review` も `design/rules.json` の `method` の一つだが、自動判定を持たないため、ここでの「2 系統」には数えない。
 
 ## 理由
 
@@ -51,4 +52,8 @@ Atlas は 28 ルールを `method: lint | eval | review` に分類し、lint を
 
 - Playwright が devDependency に入る
 - measure はビルド出力（`dist/`）に対して実行する。本番と同一の物を検査することになる（[DR-0022](./0022-plain-vite-build-output.md)）
-- `design/rules.json` のルール ID と lint 実装の 1 対 1 対応を検査する仕組みが要る
+- `design/rules.json` のルール ID と、lint 実装 / measure 実装 / `review` のチェックリストの 1 対 1 対応を検査する仕組みが要る。lint だけを対象にすると、本命である measure のルールが未実装のまま「全ルール pass」になる
+- 採点結果には「実際に実行されたルール ID の集合」を残し、`design/rules.json` との差集合が空でないときは採点を fail にする。未実行を pass と区別するため
+- measure は各スライドの全 Fragment 段階について測る。最終段階が最も要素が詰まった状態になるため、初期状態だけを測ると `no-overflow` が本命の事故を見逃す
+- measure はビューポートを `design/tokens.json` の `canvas` と同じ寸法（スケール倍率 1.0）に固定して実行する。判定はキャンバス座標系で行い、許容誤差は `design/rules.json` に置く。条件を固定しないと、同じ Run を別環境で採点し直したときに結果が変わる
+- `no-raw-scale` が例外的に許す長さリテラル（`0`、`100%`、ヘアラインの `1px` など）は `design/rules.json` に列挙する

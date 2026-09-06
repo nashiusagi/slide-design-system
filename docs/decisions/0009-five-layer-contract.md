@@ -15,7 +15,7 @@ Atlas は設計契約を `DESIGN.md` / `tokens.json` / `patterns/` / `components
 | Atlas | スライド版 | 内容 |
 |---|---|---|
 | `DESIGN.md` | 同じ | 北極星、Do / Don't、衝突時の優先順位、Global Constraints |
-| `tokens.json` | 同じ + canvas | color / space / type / radius / shadow / canvas(1280x720) |
+| `tokens.json` | 同じ + canvas | color / space / type / radius / shadow / canvas |
 | `patterns/` | `layouts/` | スライドのレイアウト variant と余白・配置 |
 | `components/` | 同じ | スライド内部品の使用可否と props |
 | `examples/` | `decks/` | 発表ごとの構成（枚数・順序・各枚の役割） |
