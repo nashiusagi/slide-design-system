@@ -31,10 +31,10 @@
 
 `pnpm check` が速いまま保たれる。
 
-**却下理由**: 「受け入れの判定」から本命の検査（`no-overflow`）が外れる。速さが問題になったら、`check` の中で段を分ける方法を先に検討する。
+**却下理由**: Issue を終えてよいかの判定から、本命の検査（`no-overflow`）が外れる。速さが問題になったら、`check` の中で段を分ける方法を先に検討する。
 
 ## 帰結
 
 - 検査を足す Issue は、**`pnpm check` のどの段に入るかを併せて決める。** lint 系は lint 段、実測系は build より後段
-- `pnpm check` が緑であることは、どの Issue でも共通の必要条件にすぎない。個々の受け入れは Issue の完了条件で判定する（`.claude/skills/issue-workflow/SKILL.md`）
+- `pnpm check` が緑であることは、どの Issue でも共通の必要条件にすぎない。個々の Issue を終えてよいかは、Issue の完了条件で判定する（`.claude/skills/issue-workflow/SKILL.md`）
 - 新しく作ったコードの置き場所が `check` の各段の対象に入っているかを確かめる。対象から外れた検査コードは、壊れていても緑を返す（[DR-0027](./0027-build-scaffold-workspace-and-test-stack.md) の帰結）

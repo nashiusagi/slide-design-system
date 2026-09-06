@@ -27,11 +27,16 @@ export default tseslint.config(
   },
   {
     // 開発用パッケージ（契約検査プラグインなど）。ここは Node で動く。
+    // src と違い noInlineConfig は掛けない。人が書き、レビューを通るコードなので、
+    // 局所的な抑止を認める。ただし効かなくなった抑止コメントは残さない。
     files: ['packages/**/*.{ts,tsx}'],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     languageOptions: {
       ecmaVersion: 2022,
       globals: globals.node,
+    },
+    linterOptions: {
+      reportUnusedDisableDirectives: 'error',
     },
   },
   {
