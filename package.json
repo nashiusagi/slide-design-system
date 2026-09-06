@@ -12,7 +12,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings=0",
     "test": "vitest run",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"
   },

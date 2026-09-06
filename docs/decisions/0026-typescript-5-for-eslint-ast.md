@@ -3,16 +3,17 @@
 - **状態**: 承認済み
 - **日付**: 2026-09-06
 - **関連**: [DR-0002](./0002-source-format-jsx-react.md), [DR-0011](./0011-lint-and-measure.md)
+- **正本**: `package.json`（`devDependencies.typescript`）
 
 ## 文脈
 
-足場（#2）を組む時点で TypeScript は 7 系（ネイティブ移植版）が最新だった。しかし `typescript-eslint` が対応する範囲は `>=4.8.4 <6.1.0` であり、7 系を入れると peer dependency が満たされない。
+足場（#2）を組む時点で TypeScript は 7 系（ネイティブ移植版）が最新だった。しかし `typescript-eslint` の `peerDependencies` は 5 系までしか受け付けず（2026-09-06 時点）、7 系を入れると満たされない。
 
-このプロジェクトでは lint が飾りではない。契約違反の検出（`no-raw-color` / `no-raw-scale` / `layout-approved` / `component-approved` / `deck-conformance`）はすべて TypeScript の AST を読む自作 ESLint プラグインで実装する（[DR-0011](./0011-lint-and-measure.md)）。パーサが動かないことは、Harness の半分が動かないことと同じである。
+このプロジェクトでは lint が飾りではない。契約違反の検出は、すべて TypeScript の AST を読む自作 ESLint プラグインで実装する（[DR-0011](./0011-lint-and-measure.md)。ルールの一覧と severity の正本は `design/rules.json`）。パーサが動かないことは、Harness の半分が動かないことと同じである。
 
 ## 決定
 
-TypeScript は 5 系（`^5`）に固定する。`typescript-eslint` が対応するまで 7 系へは上げない。
+TypeScript のバージョンは `package.json` で 5 系に固定する。`typescript-eslint` が対応するまで 7 系へは上げない。
 
 ## 理由
 
@@ -34,4 +35,4 @@ TypeScript は 5 系（`^5`）に固定する。`typescript-eslint` が対応す
 ## 帰結
 
 - `typescript-eslint` が 7 系に対応した時点で、この DR を見直す Issue を起こす
-- バージョンの上げ下げを検討するときは、まず `pnpm lint` が動くかを基準にする
+- **上げてよいかの判定は「lint が違反を検出できるか」で行う。** 自作プラグインができた後は、意図的に契約違反を含む fixture を使った検出テストが、すべて期待どおり違反を報告することを条件にする。プラグインが無い現時点では「`pnpm lint` が正常終了し、かつ `typescript-eslint` の `peerDependencies` を満たすこと」までを条件とする。`eslint .` の終了コードだけを見ると、パーサ変更でルールが1件も発火しなくなった状態を「合格」と読んでしまう

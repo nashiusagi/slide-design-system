@@ -10,9 +10,12 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
 
+    "allowJs": true,
+    "checkJs": true,
+
     "noEmit": true,
     "skipLibCheck": true,
     "isolatedModules": true
   },
-  "include": ["vite.config.ts", "eslint.config.js"]
+  "include": ["vite.config.ts", "eslint.config.js", "packages/**/*.ts", "packages/**/*.tsx"]
 }
