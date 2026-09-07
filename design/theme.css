@@ -2,7 +2,10 @@
  * design/tokens.json から生成している。直接編集しない。
  * 生成: pnpm theme:generate / 突き合わせ: pnpm theme:check
  *
- * 色の sRGB 換算（8bit へ丸めた後の値。実測はここを基準にしている）:
+ * 以下の数値は読みやすさのための写しで、記録の正本は design/tokens.json の
+ * $measured（DR-0033）。ここを書き換えても pnpm theme:check が落とす。
+ *
+ * 色の sRGB 換算（8bit へ丸めた後の値。算出はここを基準にしている）:
  *   background   oklch(1 0 0)           #ffffff
  *   surface      oklch(0.97 0 0)        #f5f5f5
  *   text         oklch(0.21 0 0)        #181818
@@ -12,7 +15,7 @@
  *   accentSoft   oklch(0.95 0.025 305)  #f2ebfc
  *   danger       oklch(0.53 0.2 27)     #c51e21
  *   warning      oklch(0.52 0.1 70)     #8d5d1c
- *   success      oklch(0.52 0.13 150)   #1d7d3e
+ *   success      oklch(0.51 0.13 150)   #187a3b
  *
  * 全色ペアのコントラスト比（WCAG 2.1、小数第2位で切り捨て）:
  *   background|surface         1.09:1
@@ -23,7 +26,7 @@
  *   background|accentSoft      1.16:1
  *   background|danger          5.86:1
  *   background|warning         5.65:1
- *   background|success         5.17:1
+ *   background|success         5.40:1
  *   surface|text               16.28:1
  *   surface|textMuted          5.03:1
  *   surface|border             3.33:1
@@ -31,35 +34,35 @@
  *   surface|accentSoft         1.06:1
  *   surface|danger             5.37:1
  *   surface|warning            5.18:1
- *   surface|success            4.74:1
+ *   surface|success            4.95:1
  *   text|textMuted             3.23:1
  *   text|border                4.87:1
  *   text|accent                2.29:1
  *   text|accentSoft            15.27:1
  *   text|danger                3.02:1
  *   text|warning               3.14:1
- *   text|success               3.42:1
+ *   text|success               3.28:1
  *   textMuted|border           1.50:1
  *   textMuted|accent           1.40:1
  *   textMuted|accentSoft       4.72:1
  *   textMuted|danger           1.06:1
  *   textMuted|warning          1.02:1
- *   textMuted|success          1.06:1
+ *   textMuted|success          1.01:1
  *   border|accent              2.12:1
  *   border|accentSoft          3.13:1
  *   border|danger              1.61:1
  *   border|warning             1.55:1
- *   border|success             1.42:1
+ *   border|success             1.48:1
  *   accent|accentSoft          6.64:1
  *   accent|danger              1.31:1
  *   accent|warning             1.36:1
- *   accent|success             1.49:1
+ *   accent|success             1.42:1
  *   accentSoft|danger          5.04:1
  *   accentSoft|warning         4.86:1
- *   accentSoft|success         4.45:1
+ *   accentSoft|success         4.64:1
  *   danger|warning             1.03:1
- *   danger|success             1.13:1
- *   warning|success            1.09:1
+ *   danger|success             1.08:1
+ *   warning|success            1.04:1
  *
  * 色相を持つ色どうしの色相角の差:
  *   accent|accentSoft          0 度
@@ -83,7 +86,7 @@
   --dh-color-accent-soft: oklch(0.95 0.025 305);
   --dh-color-danger: oklch(0.53 0.2 27);
   --dh-color-warning: oklch(0.52 0.1 70);
-  --dh-color-success: oklch(0.52 0.13 150);
+  --dh-color-success: oklch(0.51 0.13 150);
 
   --dh-space-2xs: 4px;
   --dh-space-xs: 8px;
@@ -96,7 +99,6 @@
   --dh-space-4xl: 96px;
 
   --dh-type-family-sans: system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
-  --dh-type-family-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Noto Sans Mono', monospace;
   --dh-type-size-deck-title: 64px;
   --dh-type-size-statement: 44px;
   --dh-type-size-slide-title: 40px;

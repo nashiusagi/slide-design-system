@@ -13,6 +13,8 @@
 
 **ajv を devDependency に入れ、draft 2020-12 のエントリ（`ajv/dist/2020.js`）を strict モードで使う。** 検証の呼び出しは `scripts/validate-design.mjs` に集約し、契約ファイルとスキーマの対応表を持つ。
 
+[DR-0009](./0009-five-layer-contract.md) と [DR-0030](./0030-slide-class-derived-from-layout.md) が `pnpm design:check` と名指ししている口は、これのことである。実行口の名前はその通りにし、実装ファイルだけ `scripts/validate-design.mjs` とする。
+
 ## 理由
 
 - **strict モードがスキーマ自身の書き間違いを落とす。** 型を伴わない `exclusiveMinimum` や綴りを間違えたキーワードは、緩い検証器では「制約が無い」として黙って通る。契約を検証する仕組みが自分の書き間違いで空振りするのが一番まずい
@@ -36,4 +38,5 @@
 ## 帰結
 
 - 契約を足す Issue は、`design/schemas/` へスキーマを置き、`scripts/validate-design.mjs` の対応表へ 1 行足す
+- 検査関数は引数で契約を受け取る純関数として書き、ファイルの読み込みは `main()` に寄せる。壊れた入力を渡して「必ず 1 件返る」ことをテストで固定できる形にしておかないと、何も検出しないルールでも緑のまま通る
 - スキーマは「単一テーマ」（[DR-0005](./0005-single-theme-personal.md)）を前提に、キー名を列挙して `additionalProperties: false` で閉じる。名前が増えることは `--dh-*` の増減を意味するので、意図的な契約変更として扱う

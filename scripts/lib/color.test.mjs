@@ -26,6 +26,14 @@ describe('oklchToHex', () => {
     expect(oklchToHex('oklch(0 0 0)')).toBe('#000000')
   })
 
+  it('彩度のある色を固定する。無彩色だけだと行列の入れ替えを検出できない', () => {
+    // 無彩色では 3 行の係数和が等しいため、R 行と B 行を入れ替えても白・黒・灰は
+    // 変わらない。紫が青緑へ転ぶ改変を捕まえるには、彩度のある色の期待値が要る。
+    expect(oklchToHex('oklch(0.47 0.22 305)')).toBe('#791fba')
+    expect(oklchToHex('oklch(0.53 0.2 27)')).toBe('#c51e21')
+    expect(oklchToHex('oklch(0.51 0.13 150)')).toBe('#187a3b')
+  })
+
   it('無彩色は 3 成分が揃う', () => {
     const hex = oklchToHex('oklch(0.52 0 0)')
 
@@ -44,6 +52,10 @@ describe('relativeLuminance', () => {
 describe('contrastRatio', () => {
   it('白と黒で 21:1 になる', () => {
     expect(contrastRatio('oklch(0 0 0)', 'oklch(1 0 0)')).toBe(21)
+  })
+
+  it('彩度のある色の比を固定する。相対輝度の係数と変換行列の両方を締める', () => {
+    expect(contrastRatio('oklch(0.47 0.22 305)', 'oklch(1 0 0)')).toBe(7.72)
   })
 
   it('前景と背景を入れ替えても同じ', () => {

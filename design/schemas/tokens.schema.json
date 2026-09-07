@@ -4,7 +4,7 @@
   "title": "design/tokens.json",
   "$comment": "契約自体を検証するスキーマ（DR-0009）。単一テーマなので（DR-0005）トークン名は列挙して固定し、余分なキーを拒む。名前が増減したら theme.css の --dh-* も変わるので、追加は意図的な契約変更として扱う。",
   "type": "object",
-  "required": ["color", "space", "type", "radius", "shadow", "canvas"],
+  "required": ["color", "space", "type", "radius", "shadow", "canvas", "$measured"],
   "additionalProperties": false,
   "properties": {
     "$schema": { "type": "string" },
@@ -64,10 +64,10 @@
         "family": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["sans", "mono"],
+          "required": ["sans"],
           "properties": {
-            "sans": { "type": "string", "minLength": 1 },
-            "mono": { "type": "string", "minLength": 1 }
+            "$comment": { "type": "string" },
+            "sans": { "type": "string", "minLength": 1 }
           }
         },
         "size": {
@@ -142,7 +142,7 @@
       }
     },
     "$measured": {
-      "$comment": "generate-theme.mjs が書き戻す実測値。値の正しさは pnpm theme:check が再計算で見る。ここでは形だけを見る。",
+      "$comment": "generate-theme.mjs が書き戻す算出値。値の正しさは pnpm theme:check が再計算で見る。ここでは形だけを見る。",
       "type": "object",
       "additionalProperties": false,
       "required": ["contrast", "hueDistance"],
@@ -155,7 +155,7 @@
   },
   "$defs": {
     "oklch": {
-      "$comment": "oklch(L C H) のみ。別記法を混ぜると実測とブラウザの描画がずれる余地ができる。",
+      "$comment": "oklch(L C H) のみ。別記法を混ぜると算出値とブラウザの描画がずれる余地ができる。",
       "type": "string",
       "pattern": "^oklch\\(\\d+(\\.\\d+)? \\d+(\\.\\d+)? \\d+(\\.\\d+)?\\)$"
     },

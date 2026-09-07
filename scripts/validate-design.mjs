@@ -11,7 +11,7 @@
  * 今は tokens だけがある。layouts / components / decks / rules は後続の Issue で入る。
  */
 import { readFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import Ajv2020 from 'ajv/dist/2020.js'
 
@@ -27,27 +27,26 @@ const readJson = (relativePath) => JSON.parse(readFileSync(resolve(relativePath)
 const CONTRACTS = [{ data: 'design/tokens.json', schema: 'design/schemas/tokens.schema.json' }]
 
 /**
+ * 面として使える色。前景はこのすべての上で水準を満たす必要がある。
+ *
+ * 集合として持つのは、前景ごとに背景を書き並べると片方だけ書き忘れても検査が通って
+ * しまうため。背景を1つ足したら、全前景がその上でも検査される。
+ */
+const SURFACES = ['background', 'surface', 'accentSoft']
+
+/**
  * コントラストの必要水準。本文は 4.5:1、UI の境界とフォーカスは 3:1。
  *
  * この表は暫定で、正本は design/rules.json の `contrast` へ移す（DR-0008 / DR-0011）。
  * rules.json を作る Issue（#7 / #8）で、ここは読み込みへ置き換えて消すこと。値を
- * 二箇所に置いたまま放置すると、閾値を上げたときに片方だけが上がる。
+ * 二箇所に置いたまま放置すると、閾値を上げたときに片方だけが上がる。移すときは
+ * 「前景 × SURFACES」という展開の形も一緒に持っていくこと。
  */
 const CONTRAST_REQUIREMENTS = [
-  { foreground: 'text', background: 'background', minimum: 4.5, role: '本文' },
-  { foreground: 'text', background: 'surface', minimum: 4.5, role: '本文' },
-  { foreground: 'text', background: 'accentSoft', minimum: 4.5, role: '本文' },
-  { foreground: 'textMuted', background: 'background', minimum: 4.5, role: '補助文' },
-  { foreground: 'textMuted', background: 'surface', minimum: 4.5, role: '補助文' },
-  { foreground: 'accent', background: 'background', minimum: 4.5, role: '強調' },
-  { foreground: 'accent', background: 'surface', minimum: 4.5, role: '強調' },
-  { foreground: 'accent', background: 'accentSoft', minimum: 4.5, role: '強調' },
-  { foreground: 'danger', background: 'background', minimum: 4.5, role: '状態色' },
-  { foreground: 'warning', background: 'background', minimum: 4.5, role: '状態色' },
-  { foreground: 'success', background: 'background', minimum: 4.5, role: '状態色' },
-  { foreground: 'border', background: 'background', minimum: 3, role: 'UI 境界' },
-  { foreground: 'border', background: 'surface', minimum: 3, role: 'UI 境界' },
-  { foreground: 'accent', background: 'background', minimum: 3, role: 'フォーカス' },
+  { role: '本文', foregrounds: ['text', 'textMuted'], minimum: 4.5 },
+  { role: '強調', foregrounds: ['accent'], minimum: 4.5 },
+  { role: '状態色', foregrounds: ['danger', 'warning', 'success'], minimum: 4.5 },
+  { role: 'UI 境界とフォーカス', foregrounds: ['border'], minimum: 3 },
 ]
 
 /**
@@ -73,13 +72,12 @@ function checkSchemas() {
 
 /**
  * 色が sRGB の色域に収まっているか。外れた色はブラウザがクリップするため、
- * 実測したコントラストと実際の描画がずれる。
+ * 算出したコントラストと実際の描画がずれる。
  *
+ * @param {Record<string, string>} colors
  * @returns {string[]}
  */
-function checkGamut() {
-  const colors = readJson('design/tokens.json').color
-
+export function checkGamut(colors) {
   return Object.entries(colors)
     .filter(([name]) => !name.startsWith('$'))
     .filter(([, value]) => !isInSrgbGamut(/** @type {string} */ (value)))
@@ -90,22 +88,25 @@ function checkGamut() {
  * 用途ごとのコントラストが水準を満たしているか。値は記録を読まずに計算し直す。
  * 記録を信じると、記録の側が古いときに検査ごと素通りする。
  *
+ * @param {Record<string, string>} colors
  * @returns {string[]}
  */
-function checkContrast() {
-  const colors = readJson('design/tokens.json').color
+export function checkContrast(colors) {
+  return CONTRAST_REQUIREMENTS.flatMap(({ role, foregrounds, minimum }) =>
+    foregrounds.flatMap((foreground) =>
+      SURFACES.filter((background) => background !== foreground).flatMap((background) => {
+        const ratio = contrastRatio(colors[foreground], colors[background])
 
-  return CONTRAST_REQUIREMENTS.flatMap(({ foreground, background, minimum, role }) => {
-    const ratio = contrastRatio(colors[foreground], colors[background])
+        if (ratio >= minimum) {
+          return []
+        }
 
-    if (ratio >= minimum) {
-      return []
-    }
-
-    return [
-      `design/tokens.json: ${role}（${foreground} on ${background}）が ${ratio}:1 で、${minimum}:1 を満たさない`,
-    ]
-  })
+        return [
+          `design/tokens.json: ${role}（${foreground} on ${background}）が ${ratio}:1 で、${minimum}:1 を満たさない`,
+        ]
+      }),
+    ),
+  )
 }
 
 /**
@@ -116,11 +117,12 @@ function checkContrast() {
  * TypeScript を解析せず正規表現で読むのは、この検査のためにビルド系を持ち込まない
  * ため。定数の書き方が変わって読めなくなったときは、素通りせず失敗として出す。
  *
+ * @param {string} source src/runtime/canvas.ts の中身
+ * @param {{ width: number, height: number }} canvas
  * @returns {string[]}
  */
-function checkCanvasMatchesRuntime() {
-  const source = readFileSync(resolve('src/runtime/canvas.ts'), 'utf8')
-  const { width, height } = readJson('design/tokens.json').canvas
+export function checkCanvasMatchesRuntime(source, canvas) {
+  const { width, height } = canvas
 
   return [
     ['CANVAS_WIDTH', width],
@@ -142,15 +144,21 @@ function checkCanvasMatchesRuntime() {
   })
 }
 
-const CHECKS = [
-  { name: '契約が JSON Schema を満たす', run: checkSchemas },
-  { name: '色が sRGB 色域に収まる', run: checkGamut },
-  { name: 'コントラストが水準を満たす', run: checkContrast },
-  { name: 'キャンバス寸法がランタイムと一致する', run: checkCanvasMatchesRuntime },
-]
-
 function main() {
-  const problems = CHECKS.flatMap(({ name, run }) => {
+  const tokens = readJson('design/tokens.json')
+  const canvasSource = readFileSync(resolve('src/runtime/canvas.ts'), 'utf8')
+
+  const checks = [
+    { name: '契約が JSON Schema を満たす', run: () => checkSchemas() },
+    { name: '色が sRGB 色域に収まる', run: () => checkGamut(tokens.color) },
+    { name: 'コントラストが水準を満たす', run: () => checkContrast(tokens.color) },
+    {
+      name: 'キャンバス寸法がランタイムと一致する',
+      run: () => checkCanvasMatchesRuntime(canvasSource, tokens.canvas),
+    },
+  ]
+
+  const problems = checks.flatMap(({ name, run }) => {
     const found = run()
 
     console.log(`${found.length === 0 ? 'ok  ' : 'NG  '}${name}`)
@@ -164,4 +172,7 @@ function main() {
   }
 }
 
-main()
+// テストから読み込むときは走らせない。process.exit と標準出力を持つため。
+if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main()
+}

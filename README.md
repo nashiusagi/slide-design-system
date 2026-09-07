@@ -26,15 +26,19 @@ pnpm install
 pnpm dev              # 開発サーバ
 pnpm build            # dist/index.html + dist/assets/ を出力
 pnpm theme:generate   # design/tokens.json から design/theme.css を生成
-pnpm check            # design:validate → theme:check → typecheck → lint → test → build
+pnpm check            # design:check → theme:check → typecheck → lint → test → build
 ```
 
 `design/theme.css` は生成物なので直接編集しない。トークンを変えたら `pnpm theme:generate` を実行する。
-`pnpm check` の `theme:check` が、theme.css とトークンの乖離、および記録済みのコントラスト実測値と再計算の乖離を検出する。
+`pnpm check` の `theme:check` が、theme.css とトークンの乖離、および記録済みのコントラスト算出値と再計算の乖離を検出する。
 
 出力形式の根拠は [DR-0022](./docs/decisions/0022-plain-vite-build-output.md)、足場の構成は [DR-0027](./docs/decisions/0027-build-scaffold-workspace-and-test-stack.md)。
 
-検査の実行口は `pnpm check` に一本化する。契約に基づく検査は、この並びの中へ足していく。契約自体の検証は先頭の `design:validate` / `theme:check` 段へ、lint は `lint` 段へ、measure はビルド出力に対して実測するため `build` より後段へ置く。`pnpm check` が通ることは、どの Issue でも共通の必要条件であり、個々の Issue を終えてよいかは Issue の完了条件で判定する。
+検査の実行口は `pnpm check` に一本化する。契約に基づく検査は、この並びの中へ足していく。契約自体の検証は先頭の `design:check` / `theme:check` 段へ、lint は `lint` 段へ、measure はビルド出力に対して実測するため `build` より後段へ置く。
+
+**「実測」はビルド出力をブラウザ上で測ること（measure 系）を指す。** トークンの数値から計算して求めるコントラストや色相差は「算出値」と呼び、区別する。算出値はビルドを要さないので先頭の段に置く。
+
+`pnpm check` が通ることは、どの Issue でも共通の必要条件であり、個々の Issue を終えてよいかは Issue の完了条件で判定する。
 
 根拠は [DR-0028](./docs/decisions/0028-single-check-entry-point.md)。
 
