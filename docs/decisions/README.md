@@ -34,6 +34,8 @@
 | [0003](./0003-custom-slide-runtime.md) | スライド機構は自作の薄いランタイムで持つ |
 | [0018](./0018-plain-css-with-tokens.md) | スタイルは素の CSS + トークン変数で書き、Tailwind を使わない |
 | [0022](./0022-plain-vite-build-output.md) | 最終出力は `vite build` の素の成果物とする |
+| [0026](./0026-typescript-5-for-eslint-ast.md) | TypeScript は 5 系に留め、7 系へは上げない |
+| [0027](./0027-build-scaffold-workspace-and-test-stack.md) | 足場は pnpm workspace とし、テストは Vitest で書く |
 
 ### 契約の構造
 
@@ -49,6 +51,7 @@
 | # | 決定 |
 |---|---|
 | [0011](./0011-lint-and-measure.md) | 検査は lint（静的）と measure（実測）の 2 系統で行う |
+| [0028](./0028-single-check-entry-point.md) | 検査の実行口を `pnpm check` に一本化する |
 
 ### 実験と運用
 

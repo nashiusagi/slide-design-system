@@ -17,6 +17,23 @@ AI が生成したスライドの妥当性を、印象ではなく**機械判定
 
 根拠は [DR-0001](./docs/decisions/0001-phase-1-is-ai-harness.md)。
 
+## 開発
+
+Node.js 22 以上と pnpm が要る。
+
+```bash
+pnpm install
+pnpm dev        # 開発サーバ
+pnpm build      # dist/index.html + dist/assets/ を出力
+pnpm check      # typecheck → lint → test → build
+```
+
+出力形式の根拠は [DR-0022](./docs/decisions/0022-plain-vite-build-output.md)、足場の構成は [DR-0027](./docs/decisions/0027-build-scaffold-workspace-and-test-stack.md)。
+
+検査の実行口は `pnpm check` に一本化する。契約に基づく検査は、この並びの中へ足していく。lint は `lint` 段へ、measure はビルド出力に対して実測するため `build` より後段へ置く。`pnpm check` が通ることは、どの Issue でも共通の必要条件であり、個々の Issue を終えてよいかは Issue の完了条件で判定する。
+
+根拠は [DR-0028](./docs/decisions/0028-single-check-entry-point.md)。
+
 ## 正本の在り処
 
 | パス | 内容 |
