@@ -9,8 +9,15 @@ export type SlideProps = {
    */
   layout: string
   /**
-   * スピーカーノート。受け取るが表示しない（DR-0004）。
-   * 表示 UI は Phase 1.5 以降で足す。
+   * スピーカーノート。受け取り口だけを持ち、表示も DOM への出力もしない（DR-0004）。
+   *
+   * DOM へ出すと、素のビルド出力（DR-0022）を公開したときにページのソースから読める。
+   * ただしデッキ自体が JSX（DR-0002）なので、文字列としては JS バンドルに残る。
+   * ここで避けているのは「DOM に出す」ところまでで、公開物からノートを完全に
+   * 消したいなら別の手当てが要る。
+   *
+   * 発表者ビューは Phase 1.5 以降で足す。そのとき DOM 属性から読むのか React の
+   * state で持つのかを決める。
    */
   notes?: string
   children: ReactNode
@@ -35,7 +42,7 @@ function maxIndex(fragments: Map<string, number>): number {
  * クラス名は `slide slide--<layout>` の形（DR-0030）。実装は `design/layout.css`（#5）が持ち、
  * ここでは名前を導出するだけ。トークンもレイアウト CSS も無い状態で壊れないこと（DR-0021）。
  */
-export function Slide({ layout, notes, children }: SlideProps) {
+export function Slide({ layout, children }: SlideProps) {
   const deck = useContext(DeckContext)
   const fragmentsRef = useRef<Map<string, number>>(new Map())
   const [stepCount, setStepCount] = useState(0)
@@ -51,13 +58,15 @@ export function Slide({ layout, notes, children }: SlideProps) {
   }, [])
 
   const step = deck?.step ?? 0
+  const slideIndex = deck?.slideIndex ?? 0
   const reportStepCount = deck?.reportStepCount
 
   // 描画前に段階数を確定させる。paint 後に報告すると、直後のキー入力が
-  // 段階を飛ばして次のスライドへ進んでしまう。
+  // 段階を飛ばして次のスライドへ進んでしまう。Fragment 側の登録も
+  // layout effect なので、この effect が読む stepCount は paint 前に揃っている。
   useLayoutEffect(() => {
-    reportStepCount?.(stepCount)
-  }, [reportStepCount, stepCount])
+    reportStepCount?.(slideIndex, stepCount)
+  }, [reportStepCount, slideIndex, stepCount])
 
   const context = useMemo<SlideContextValue>(
     () => ({ step, registerFragment }),
@@ -66,7 +75,7 @@ export function Slide({ layout, notes, children }: SlideProps) {
 
   return (
     <SlideContext.Provider value={context}>
-      <section className={`slide slide--${layout}`} data-layout={layout} data-notes={notes}>
+      <section className={`slide slide--${layout}`} data-layout={layout}>
         {children}
       </section>
     </SlideContext.Provider>

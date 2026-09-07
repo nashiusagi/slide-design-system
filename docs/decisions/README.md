@@ -17,6 +17,7 @@
 | [0004](./0004-phase-1-runtime-scope.md) | Phase 1 のランタイムはスケーリングと URL 同期のみとする |
 | [0005](./0005-single-theme-personal.md) | 自分専用の単一テーマとし、primitive 層を持たない |
 | [0006](./0006-online-sharing-first.md) | オンライン共有を優先する |
+| [0031](./0031-navigation-keys-and-no-history.md) | ページ送りは → ← Space とクリックで行い、履歴を積まない |
 
 ### デザイン方針
 
@@ -32,7 +33,6 @@
 |---|---|
 | [0002](./0002-source-format-jsx-react.md) | AI が生成するソースは JSX / React とし、静的出力へビルドする |
 | [0003](./0003-custom-slide-runtime.md) | スライド機構は自作の薄いランタイムで持つ |
-| [0029](./0029-position-in-url-and-explicit-fragment-index.md) | 現在位置は URL の `#/<スライド>/<段階>` で表し、Fragment の段階は明示する |
 | [0018](./0018-plain-css-with-tokens.md) | スタイルは素の CSS + トークン変数で書き、Tailwind を使わない |
 | [0022](./0022-plain-vite-build-output.md) | 最終出力は `vite build` の素の成果物とする |
 | [0026](./0026-typescript-5-for-eslint-ast.md) | TypeScript は 5 系に留め、7 系へは上げない |
@@ -44,9 +44,10 @@
 |---|---|
 | [0009](./0009-five-layer-contract.md) | 契約は Atlas の 5 層をフル写像する |
 | [0010](./0010-three-layouts.md) | レイアウト variant は 3 種から始める |
-| [0030](./0030-slide-class-derived-from-layout.md) | Slide のクラス名は `slide slide--<layout>` として layout から導く |
 | [0016](./0016-deck-contract-markdown.md) | deck 契約は Markdown + frontmatter で書く |
 | [0017](./0017-key-message-required-body-optional.md) | deck 契約は keyMessage を必須、body を任意とする |
+| [0029](./0029-position-in-url-and-explicit-fragment-index.md) | 現在位置は URL の `#/<スライド>/<段階>` で表し、Fragment の段階は明示する |
+| [0030](./0030-slide-class-derived-from-layout.md) | Slide のクラス名は `slide slide--<layout>` として layout から導く |
 
 ### 検査
 
@@ -79,6 +80,6 @@
 1. 連番で `NNNN-slug.md` を作る
 2. 「文脈 / 決定 / 理由 / 検討した他の選択肢と却下理由 / 帰結」を書く
 3. 値を含む決定なら `**正本**:` 行を置き、値そのものは書かない
-4. この索引に追記する
+4. この索引に追記する。節の中は DR 番号の昇順に置く
 
 既存の決定を覆す場合は、新しい DR を立てて旧 DR の状態を「置き換え済み」に変える。旧 DR は削除しない。

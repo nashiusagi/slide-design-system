@@ -215,6 +215,49 @@ describe('Deck', () => {
     })
   })
 
+  it('同じスライド内で URL を書き換えても、そのあと段階送りが効く', async () => {
+    render(<ThreeSlides />)
+
+    pressNext()
+    expect(screen.getByRole('heading', { name: '2枚目' })).toBeInTheDocument()
+
+    window.location.hash = '#/2/1'
+    await waitFor(() => {
+      expect(screen.getByText('一つ目')).toBeInTheDocument()
+    })
+
+    pressNext()
+
+    expect(screen.getByText('二つ目')).toBeInTheDocument()
+    expect(screen.queryByText('3枚目')).not.toBeInTheDocument()
+  })
+
+  it('表示中に書式外の hash を書かれても表示は動かさず、URL を現在位置へ戻す', async () => {
+    render(<ThreeSlides />)
+
+    pressNext()
+    expect(window.location.hash).toBe('#/2')
+
+    window.location.hash = '#/nowhere'
+
+    await waitFor(() => {
+      expect(window.location.hash).toBe('#/2')
+    })
+    expect(screen.getByRole('heading', { name: '2枚目' })).toBeInTheDocument()
+  })
+
+  it('段階数を DOM へ出す', () => {
+    const { container } = render(<ThreeSlides />)
+
+    const deck = container.querySelector<HTMLElement>('.slide-deck')!
+
+    expect(deck.dataset.stepCount).toBe('0')
+
+    pressNext()
+
+    expect(deck.dataset.stepCount).toBe('2')
+  })
+
   it('キャンバスは固定寸法を持ち、倍率を transform で当てる', () => {
     const { container } = render(<ThreeSlides />)
 

@@ -30,6 +30,12 @@ function clampPosition(position: Position, slideCount: number): Position {
   }
 }
 
+/** どのスライドが報告した段階数か。位置が変わると自動的に無効になる。 */
+type StepCountReport = {
+  slideIndex: number
+  count: number
+}
+
 /** 読み込み時の位置。hash が無い、または書式に合わなければ先頭。 */
 function initialPosition(slideCount: number): Position {
   return clampPosition(parseHash(window.location.hash) ?? { slideIndex: 0, step: 0 }, slideCount)
@@ -40,24 +46,30 @@ function initialPosition(slideCount: number): Position {
  *
  * 現在位置の状態管理、キーボードとクリックでの移動、URL hash との同期、
  * 固定キャンバスのスケーリングを持つ。Phase 1 のランタイムはここまで（DR-0004）。
+ * 操作の割り当てと履歴の扱いは DR-0031、URL の書式は DR-0029。
  */
 export function Deck({ children }: DeckProps) {
   const slides = useMemo(() => Children.toArray(children), [children])
   const slideCount = slides.length
 
   const [position, setPosition] = useState<Position>(() => initialPosition(slideCount))
-  const [stepCount, setStepCount] = useState(0)
+  const [reported, setReported] = useState<StepCountReport>({ slideIndex: -1, count: 0 })
   const [scale, setScale] = useState(1)
   const viewportRef = useRef<HTMLDivElement>(null)
 
-  // 段階数は表示中のスライドが報告する。スライドを移ったら報告を待たずに 0 へ戻す。
-  // 前のスライドの段階数のまま進めると、存在しない段階を指してしまう。
-  const reportStepCount = useCallback((count: number) => {
-    setStepCount(count)
+  // 段階数は表示中のスライドが報告する。報告をリセットせず、現在位置と一致するものだけを採る。
+  // リセットする作りにすると、リセットする経路の数だけ「戻し忘れ」の穴ができる。
+  const stepCount = reported.slideIndex === position.slideIndex ? reported.count : 0
+
+  const reportStepCount = useCallback((slideIndex: number, count: number) => {
+    setReported((current) =>
+      current.slideIndex === slideIndex && current.count === count
+        ? current
+        : { slideIndex, count },
+    )
   }, [])
 
   const goToSlide = useCallback((slideIndex: number) => {
-    setStepCount(0)
     setPosition({ slideIndex, step: 0 })
   }, [])
 
@@ -107,7 +119,7 @@ export function Deck({ children }: DeckProps) {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [goNext, goPrevious])
 
-  // 状態 → URL。履歴を積まずに書き換える。ページ送りのたびに履歴が伸びると、
+  // 状態 → URL。履歴を積まずに書き換える（DR-0031）。ページ送りのたびに履歴が伸びると、
   // 戻るボタンが「1 手前のスライド」ではなく「1 手前の操作」を辿ることになる。
   useEffect(() => {
     const hash = formatHash(position)
@@ -122,14 +134,15 @@ export function Deck({ children }: DeckProps) {
     function handleHashChange() {
       const parsed = parseHash(window.location.hash)
 
+      // 書式に合わない hash が来ても表示は動かさない。ただし URL は現在位置で
+      // 書き戻す。URL と表示が食い違ったままだと、URL を現在位置の表現として
+      // 巡回する measure が別のスライドを測ってしまう（DR-0029）。
       if (!parsed) {
+        setPosition((current) => ({ ...current }))
         return
       }
 
-      const next = clampPosition(parsed, slideCount)
-
-      setStepCount(0)
-      setPosition(next)
+      setPosition(clampPosition(parsed, slideCount))
     }
 
     window.addEventListener('hashchange', handleHashChange)
@@ -168,8 +181,8 @@ export function Deck({ children }: DeckProps) {
   }, [])
 
   const context = useMemo<DeckContextValue>(
-    () => ({ step: position.step, reportStepCount }),
-    [position.step, reportStepCount],
+    () => ({ slideIndex: position.slideIndex, step: position.step, reportStepCount }),
+    [position.slideIndex, position.step, reportStepCount],
   )
 
   return (
@@ -180,6 +193,7 @@ export function Deck({ children }: DeckProps) {
       data-slide-count={slideCount}
       data-slide-index={position.slideIndex}
       data-step={position.step}
+      data-step-count={stepCount}
     >
       <div
         className="slide-canvas"

@@ -18,6 +18,13 @@
   /* 倍率は Deck が算出して当てる。中心から拡縮し、grid の中央寄せと噛み合う。 */
   transform-origin: center center;
   position: relative;
+
+  /*
+   * ここでクリップする。だから no-overflow（DR-0011）は必ずレイアウト矩形
+   * （getBoundingClientRect）で比較すること。可視性やスクリーンショットで
+   * 判定すると、はみ出した要素はクリップで消えているので「収まっている」と
+   * 誤って通る。本命のルールが丸ごと空振りする。
+   */
   overflow: hidden;
 }
 

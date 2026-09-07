@@ -6,10 +6,17 @@ import { createContext } from 'react'
  * Deck は表示中のスライドだけを描画するので、ここに現れる Slide は常に 1 枚。
  */
 export type DeckContextValue = {
+  /** 表示中のスライドの位置。0 始まり。報告の出所を示すために Slide へ渡す。 */
+  slideIndex: number
   /** 現在の段階。0 は Fragment を 1 つも表示していない状態。 */
   step: number
-  /** そのスライドが持つ段階数を Deck へ報告する。 */
-  reportStepCount: (count: number) => void
+  /**
+   * そのスライドが持つ段階数を Deck へ報告する。
+   *
+   * どのスライドの段階数かを添える。Deck は現在位置と一致する報告だけを採るので、
+   * スライドを移った直後の古い報告は自動的に無視される。
+   */
+  reportStepCount: (slideIndex: number, count: number) => void
 }
 
 export const DeckContext = createContext<DeckContextValue | null>(null)

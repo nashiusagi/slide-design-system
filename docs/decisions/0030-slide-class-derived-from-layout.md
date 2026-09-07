@@ -9,13 +9,15 @@
 
 [DR-0018](./0018-plain-css-with-tokens.md) により、レイアウトはクラス名で当てる。クラス名は契約（`design/layouts/`）が定め、`design/layout.css` がその名前で実装を持つ。
 
-一方でランタイムの `Slide` は、契約がまだ無い状態でも `layout` props からクラスを当てなければならない（[DR-0021](./0021-starter-contains-runtime-only.md)：ランタイムは設計契約から独立して動く）。`Slide` がクラス名を**どうやって決めるか**を、契約側の `layout.classes` と衝突しない形で決める必要がある。
+一方でランタイムの `Slide` は、契約がまだ無い状態でも `layout` props からクラスを当てなければならない（[DR-0021](./0021-starter-contains-runtime-only.md)：ランタイムは設計契約から独立して動く）。`Slide` がクラス名を**どうやって決めるか**を、契約側が持つクラス名と衝突しない形で決める必要がある。
 
 ## 決定
 
 `Slide` は `slide` と `slide--<layout>` の 2 つを当てる。`<layout>` は props の値をそのまま使い、ランタイムは値を検査しない。
 
-契約側（`design/layouts/<name>.json`）が持つクラス名は、この規則で導かれる名前と一致していなければならない。一致は `pnpm design:check`（#5）で検査する。
+`design/layouts/` の契約が持つクラス名は、この規則で導かれる名前と一致していなければならない。一致は `pnpm design:check`（#5）で検査する。
+
+契約のファイル形式とクラス名を持つフィールドの名前は、この DR では決めない。`design/layouts/` を作る #5 が決める。
 
 ## 理由
 
@@ -25,7 +27,7 @@
 
 ## 検討した他の選択肢
 
-### 契約の `layout.classes` を `Slide` に props として渡す
+### 契約が持つクラス名を `Slide` に props として渡す
 
 契約が正本であることが構造として明らかになる。
 
@@ -39,6 +41,6 @@
 
 ## 帰結
 
-- `design/layout.css`（#5）は `.slide--title` / `.slide--bullets` / `.slide--statement` を実装する
+- `design/layout.css`（#5）は、`design/layouts/` にある各 variant について `slide--<layout>` を実装する。variant の一覧は正本が持つ（[DR-0010](./0010-three-layouts.md) の 3 種から始まり、Phase 1.5 で増える）
 - `.slide` の最低限の性質（キャンバスいっぱいに広がる箱）は `src/runtime/runtime.css` が持つ。見た目は持たない
 - `Slide` は `data-layout` も併せて出す。実測検査（[DR-0011](./0011-lint-and-measure.md)）がレイアウト別に判定を切り替えるための手掛かりで、スタイルはここに当てない

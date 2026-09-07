@@ -46,4 +46,5 @@ starter にはビルド設定とスライド機構（ランタイム + 16:9 キ�
 
 - starter に含まれるランタイムは、設計契約とは独立して動く必要がある。トークン変数が未定義でも壊れない設計にする
 - baseline のワークスペースに設計契約と Agent Skill のどちらも混入していないことを検査する仕組みを持つ
-- starter のキャンバス CSS は寸法を持つが、正本は `design/tokens.json` の `canvas` である（[DR-0004](./0004-phase-1-runtime-scope.md)）。starter の CSS を tokens から生成するか、両者の一致を検査する。ずれると `no-overflow` の基準面が条件ごとに変わり、lint では検出できない
+- starter のキャンバス寸法は `src/runtime/canvas.ts` の定数が持つが、正本は `design/tokens.json` の `canvas` である（[DR-0004](./0004-phase-1-runtime-scope.md)）。両者の一致を #4 で検査する。ずれると `no-overflow` の基準面が条件ごとに変わり、lint では検出できない
+  - 当初は「starter のキャンバス CSS が寸法を持つ」前提で書いていたが、#3 でランタイムを実装した時点で CSS ではなく TS 定数へ置いた。スケールの倍率を算出するのに数値が要り、CSS 変数からは取れないため。検査の対象も CSS ではなくこの定数になる
