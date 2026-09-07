@@ -21,6 +21,10 @@ export type FragmentProps = {
  *
  * 包む要素を足さないのは、`<li>` や表のセルごと Fragment で囲めるようにするため。
  * 中間に要素が挟まると、親（`<ul>` や `<tr>`）との組み合わせが壊れる。
+ *
+ * 入れ子にはしない（DR-0029）。未到達の Fragment は描画されないので、その内側の
+ * Fragment は登録されず段階数に入らない。静的に読める段階数とランタイムが報告する
+ * 段階数が食い違い、measure が最終段階へ到達しないまま緑を返す。検査は lint（#7）が持つ。
  */
 export function Fragment({ index, children }: FragmentProps) {
   const context = useContext(SlideContext)

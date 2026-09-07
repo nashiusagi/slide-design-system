@@ -268,12 +268,15 @@ describe('Deck', () => {
     expect(canvas.style.transform).toMatch(/^scale\([\d.]+\)$/)
   })
 
-  it('layout に対応するクラスを当て、notes は表示しない', () => {
+  it('layout に対応するクラスを当て、notes は DOM へ出さない', () => {
     const { container } = render(<ThreeSlides />)
 
     const slide = container.querySelector('.slide')!
 
     expect(slide.className).toBe('slide slide--title')
     expect(screen.queryByText('発表者向けの覚書')).not.toBeInTheDocument()
+    // テキストとして出ていないだけでなく、DOM 属性にも出ていないこと。素のビルド出力
+    // （DR-0022）を公開したときにページのソースから読めては意味が無い（DR-0004）。
+    expect(slide.outerHTML).not.toContain('発表者向けの覚書')
   })
 })

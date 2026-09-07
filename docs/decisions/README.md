@@ -17,7 +17,6 @@
 | [0004](./0004-phase-1-runtime-scope.md) | Phase 1 のランタイムはスケーリングと URL 同期のみとする |
 | [0005](./0005-single-theme-personal.md) | 自分専用の単一テーマとし、primitive 層を持たない |
 | [0006](./0006-online-sharing-first.md) | オンライン共有を優先する |
-| [0031](./0031-navigation-keys-and-no-history.md) | ページ送りは → ← Space とクリックで行い、履歴を積まない |
 
 ### デザイン方針
 
@@ -48,6 +47,7 @@
 | [0017](./0017-key-message-required-body-optional.md) | deck 契約は keyMessage を必須、body を任意とする |
 | [0029](./0029-position-in-url-and-explicit-fragment-index.md) | 現在位置は URL の `#/<スライド>/<段階>` で表し、Fragment の段階は明示する |
 | [0030](./0030-slide-class-derived-from-layout.md) | Slide のクラス名は `slide slide--<layout>` として layout から導く |
+| [0031](./0031-navigation-keys-and-no-history.md) | ページ送りは → ← Space とクリックで行い、履歴を積まない |
 
 ### 検査
 
@@ -79,7 +79,7 @@
 
 1. 連番で `NNNN-slug.md` を作る
 2. 「文脈 / 決定 / 理由 / 検討した他の選択肢と却下理由 / 帰結」を書く
-3. 値を含む決定なら `**正本**:` 行を置き、値そのものは書かない
+3. 値を含む決定なら `**正本**:` 行を置き、値そのものは書かない。正本に取れるのは、運用上どこかが持たなければならない値（設定ファイル、契約データ、Skill の手順値）に限る。DR が決めた規則をそのまま実装したコードは正本ではない——それを正本にすると、コードを書き換えた時点で DR ではなくコードが正しいことになり、実装が DR に従っているかを検査する足場が消える。実装の在り処を示したいときは `**実装**:` 行を使う
 4. この索引に追記する。節の中は DR 番号の昇順に置く
 
 既存の決定を覆す場合は、新しい DR を立てて旧 DR の状態を「置き換え済み」に変える。旧 DR は削除しない。
