@@ -40,7 +40,7 @@ const SURFACES = ['background', 'surface', 'accentSoft']
  * この表は暫定で、正本は design/rules.json の `contrast` へ移す（DR-0008 / DR-0011）。
  * rules.json を作る Issue（#7 / #8）で、ここは読み込みへ置き換えて消すこと。値を
  * 二箇所に置いたまま放置すると、閾値を上げたときに片方だけが上がる。移すときは
- * 「前景 × SURFACES」という展開の形も一緒に持っていくこと。
+ * 「前景 × SURFACES」という展開の形と、下の未分類の検査も一緒に持っていくこと。
  */
 const CONTRAST_REQUIREMENTS = [
   { role: '本文', foregrounds: ['text', 'textMuted'], minimum: 4.5 },
@@ -92,6 +92,38 @@ export function checkGamut(colors) {
  * @returns {string[]}
  */
 export function checkContrast(colors) {
+  return [...checkEveryColorHasRole(colors), ...checkRatios(colors)]
+}
+
+/**
+ * どの色にも役割が割り当てられているか。
+ *
+ * 前景の一覧を手で並べているので、色を足して CONTRAST_REQUIREMENTS へ書き忘れると、
+ * その色だけ無検査のまま緑で通る。背景側は SURFACES との総当たりで塞がっているが、
+ * 前景側は列挙のままなので、未分類そのものを検査して塞ぐ。
+ *
+ * @param {Record<string, string>} colors
+ * @returns {string[]}
+ */
+function checkEveryColorHasRole(colors) {
+  const assigned = new Set([...SURFACES, ...CONTRAST_REQUIREMENTS.flatMap(({ foregrounds }) => foregrounds)])
+
+  return Object.keys(colors)
+    .filter((name) => !name.startsWith('$'))
+    .filter((name) => !assigned.has(name))
+    .map(
+      (name) =>
+        `scripts/validate-design.mjs: color.${name} がどの役割にも割り当てられておらず、コントラストが検査されない`,
+    )
+}
+
+/**
+ * 割り当てられた役割ごとに、面の上での比が水準を満たしているか。
+ *
+ * @param {Record<string, string>} colors
+ * @returns {string[]}
+ */
+function checkRatios(colors) {
   return CONTRAST_REQUIREMENTS.flatMap(({ role, foregrounds, minimum }) =>
     foregrounds.flatMap((foreground) =>
       SURFACES.filter((background) => background !== foreground).flatMap((background) => {

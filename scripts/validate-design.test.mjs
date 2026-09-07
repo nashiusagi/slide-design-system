@@ -49,9 +49,26 @@ describe('checkContrast', () => {
     expect(found.join('\n')).toContain('本文（text on background）')
   })
 
-  it('UI 境界は 3:1 で測る。本文の 4.5:1 を割っても境界としては通る', () => {
-    // border on background は 3.64:1。本文水準なら落ちるが、境界水準なので通る。
-    expect(checkContrast(validColors)).toEqual([])
+  it('UI 境界は本文より緩い水準で測る。役割ごとに閾値が分かれている', () => {
+    // 3:1 は満たすが 4.5:1 は割る明度。border としては通り、同じ色を text に
+    // 置くと落ちる。両方が通る形だと、役割ごとの閾値が 1 つに潰れても気付けない。
+    const borderline = 'oklch(0.62 0 0)'
+
+    expect(checkContrast({ ...validColors, border: borderline })).toEqual([])
+
+    const asBodyText = checkContrast({ ...validColors, text: borderline })
+
+    expect(asBodyText.length).toBeGreaterThan(0)
+    expect(asBodyText.join('\n')).toContain('本文（text on background）')
+  })
+
+  it('役割に割り当てられていない色を捕まえる', () => {
+    // 前景の一覧は手書きなので、色を足して役割へ書き忘れると、その色だけ
+    // 無検査のまま緑で通る。未分類そのものを検査して塞いでいることを固定する。
+    const found = checkContrast({ ...validColors, info: 'oklch(0.9 0.05 305)' })
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('color.info がどの役割にも割り当てられておらず')
   })
 
   it('面をすべて回る。background だけ通る色は見逃さない', () => {

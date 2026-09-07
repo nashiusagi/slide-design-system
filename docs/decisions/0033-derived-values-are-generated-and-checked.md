@@ -43,7 +43,7 @@
 ## 帰結
 
 - `design/theme.css` を直接編集しない。編集は `design/tokens.json` に対して行い、`pnpm theme:generate` で反映する
-- 生成物と実測値の突き合わせは `pnpm check` の `design:check` の直後、`typecheck` より前に置く（[DR-0028](./0028-single-check-entry-point.md)）
+- 生成物と算出値の突き合わせは `pnpm check` の `design:check` の直後、`typecheck` より前に置く（[DR-0028](./0028-single-check-entry-point.md)）
 - 今後トークンから導かれるものを足すときは、生成と突き合わせを同じスクリプトに実装する
 - ランタイムが設計契約から独立して持つ値（`src/runtime/canvas.ts` のキャンバス寸法）は例外で、生成ではなく突き合わせで守る。starter のランタイムは契約を読まずに動く必要があるため（[DR-0021](./0021-starter-contains-runtime-only.md) / [DR-0004](./0004-phase-1-runtime-scope.md)）
 - 突き合わせの判定は、契約を引数で受け取る純関数として書く。壊れた入力に対して必ず 1 件返ることをテストで固定する。判定とファイルの読み込みが同じ関数に入っていると、判定側の抜け道がテストから見えない

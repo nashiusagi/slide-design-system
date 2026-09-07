@@ -73,12 +73,13 @@
 | `inspection/checked-artifact-not-in-build` | 検査 | 検査した生成物がビルド出力へ入っておらず、緑が実物を保証しない | 1 | PR #20 | PR #20 |
 | `code/test-misses-core-path` | コード品質 | 中核の変換経路がテストで固定されていない | 1 | PR #20 | PR #20 |
 | `code/dead-check-entry` | コード品質 | より強い条件に覆われ、単独では決して落ちない検査項目がある | 1 | PR #20 | PR #20 |
+| `code/test-duplicates-prior-assertion` | コード品質 | 追加したテストが直前のテストと完全に重複し、検出力を持たない | 1 | PR #20 | PR #20 |
 
 ## レビュー履歴
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #20 | 2026-09-08 | 1 | 8 | 8 | [pr-20.md](./reviews/pr-20.md) |
+| #20 | 2026-09-08 | 1 | 11 | 8 | [pr-20.md](./reviews/pr-20.md) |
 | #19 | 2026-09-07 | 1 | 15 | 7 | [pr-19.md](./reviews/pr-19.md) |
 | #18 | 2026-09-07 | 0 | 9 | 9 | [pr-18.md](./reviews/pr-18.md) |
 | #17 | 2026-09-06 | 0 | 18 | 10 | [pr-17.md](./reviews/pr-17.md) |
