@@ -21,7 +21,7 @@ Atlas は 28 ルールを `method: lint | eval | review` に分類し、lint を
 - `deck-conformance` — deck 契約の枚数・順序・layout 割当と一致する。静的に判定できるのはここまで
 
 **measure（Playwright / ビルド出力に対して実測）**
-- `no-overflow` — キャンバスから要素がはみ出していない
+- `no-overflow` — キャンバスから要素がはみ出していない。判定はレイアウト矩形（`getBoundingClientRect`）で行う。キャンバスは `overflow: hidden` でクリップするため、可視性やスクリーンショットで判定すると違反が描画結果に現れず、検査が丸ごと空振りする
 - `min-font-size` — computed fontSize が下限を割っていない
 - `contrast` — 実測の前景 / 背景コントラストが基準を満たす
 - `deck-body-fidelity` — deck 契約に `body` があるとき、レンダリング後のテキストが素材を欠落・改変していない
