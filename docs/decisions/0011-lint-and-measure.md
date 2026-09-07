@@ -57,3 +57,4 @@ Atlas は 28 ルールを `method: lint | eval | review` に分類し、lint を
 - measure は各スライドの全 Fragment 段階について測る。最終段階が最も要素が詰まった状態になるため、初期状態だけを測ると `no-overflow` が本命の事故を見逃す
 - measure はビューポートを `design/tokens.json` の `canvas` と同じ寸法（スケール倍率 1.0）に固定して実行する。判定はキャンバス座標系で行い、許容誤差は `design/rules.json` に置く。条件を固定しないと、同じ Run を別環境で採点し直したときに結果が変わる
 - `no-raw-scale` が例外的に許す長さリテラル（`0`、`100%`、ヘアラインの `1px` など）は `design/rules.json` に列挙する
+- ESLint の `noInlineConfig` は `src/**` にのみ掛ける。`src/**` は AI が無人の生成ループで書く検査対象であり、生成物に混ざった抑止コメントで契約検査を無効化されては実効性が失われる。`packages/**`（契約検査プラグイン本体、[DR-0027](./0027-build-scaffold-workspace-and-test-stack.md)）は PR レビューを経て変更されるため、局所的な `eslint-disable` を許容する。ただし両者とも `reportUnusedDisableDirectives` を `error` にし、効かなくなった抑止コメントを残さない

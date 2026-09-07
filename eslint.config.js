@@ -27,8 +27,9 @@ export default tseslint.config(
   },
   {
     // 開発用パッケージ（契約検査プラグインなど）。ここは Node で動く。
-    // src と違い noInlineConfig は掛けない。人が書き、レビューを通るコードなので、
-    // 局所的な抑止を認める。ただし効かなくなった抑止コメントは残さない。
+    // src と違い noInlineConfig は掛けない。src は無人の生成ループで書かれ実測される
+    // 検査対象だが、packages は PR レビューを経て変更されるコードなので、局所的な抑止を
+    // 認める。ただし効かなくなった抑止コメントは残さない（DR-0011）。
     files: ['packages/**/*.{ts,tsx}'],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     languageOptions: {
