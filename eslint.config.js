@@ -41,6 +41,19 @@ export default tseslint.config(
     },
   },
   {
+    // 契約を生成・検証するスクリプト（DR-0028 の check に載る）。Node で動く。
+    // ここも検査対象に入れておかないと、検査する側のコードだけが素通りする（DR-0027）。
+    files: ['scripts/**/*.mjs'],
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    languageOptions: {
+      ecmaVersion: 2022,
+      globals: globals.node,
+    },
+    linterOptions: {
+      reportUnusedDisableDirectives: 'error',
+    },
+  },
+  {
     // ビルド・lint の設定ファイル。
     files: ['*.{js,ts}'],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],

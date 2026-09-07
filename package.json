@@ -12,9 +12,12 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b",
+    "theme:generate": "node scripts/generate-theme.mjs",
+    "theme:check": "node scripts/generate-theme.mjs --check",
+    "design:validate": "node scripts/validate-design.mjs",
     "lint": "eslint . --max-warnings=0",
     "test": "vitest run",
-    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"
+    "check": "pnpm design:validate && pnpm theme:check && pnpm typecheck && pnpm lint && pnpm test && pnpm build"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -24,6 +27,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
+    "ajv": "^8.20.0",
     "eslint": "^10.10.0",
     "globals": "^17.12.0",
     "jsdom": "^30.0.1",

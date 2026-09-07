@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nashiusagi/slide-design-system/design/schemas/tokens.schema.json",
+  "title": "design/tokens.json",
+  "$comment": "契約自体を検証するスキーマ（DR-0009）。単一テーマなので（DR-0005）トークン名は列挙して固定し、余分なキーを拒む。名前が増減したら theme.css の --dh-* も変わるので、追加は意図的な契約変更として扱う。",
+  "type": "object",
+  "required": ["color", "space", "type", "radius", "shadow", "canvas"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "$comment": { "type": "string" },
+    "color": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "background",
+        "surface",
+        "text",
+        "textMuted",
+        "border",
+        "accent",
+        "accentSoft",
+        "danger",
+        "warning",
+        "success"
+      ],
+      "properties": {
+        "$comment": { "type": "string" },
+        "background": { "$ref": "#/$defs/oklch" },
+        "surface": { "$ref": "#/$defs/oklch" },
+        "text": { "$ref": "#/$defs/oklch" },
+        "textMuted": { "$ref": "#/$defs/oklch" },
+        "border": { "$ref": "#/$defs/oklch" },
+        "accent": { "$ref": "#/$defs/oklch" },
+        "accentSoft": { "$ref": "#/$defs/oklch" },
+        "danger": { "$ref": "#/$defs/oklch" },
+        "warning": { "$ref": "#/$defs/oklch" },
+        "success": { "$ref": "#/$defs/oklch" }
+      }
+    },
+    "space": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["2xs", "xs", "sm", "md", "lg", "xl", "2xl", "3xl", "4xl"],
+      "properties": {
+        "$comment": { "type": "string" },
+        "2xs": { "$ref": "#/$defs/px" },
+        "xs": { "$ref": "#/$defs/px" },
+        "sm": { "$ref": "#/$defs/px" },
+        "md": { "$ref": "#/$defs/px" },
+        "lg": { "$ref": "#/$defs/px" },
+        "xl": { "$ref": "#/$defs/px" },
+        "2xl": { "$ref": "#/$defs/px" },
+        "3xl": { "$ref": "#/$defs/px" },
+        "4xl": { "$ref": "#/$defs/px" }
+      }
+    },
+    "type": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["family", "size", "lineHeight", "weight"],
+      "properties": {
+        "$comment": { "type": "string" },
+        "family": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sans", "mono"],
+          "properties": {
+            "sans": { "type": "string", "minLength": 1 },
+            "mono": { "type": "string", "minLength": 1 }
+          }
+        },
+        "size": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "deckTitle",
+            "statement",
+            "slideTitle",
+            "bodyLarge",
+            "body",
+            "caption"
+          ],
+          "properties": {
+            "deckTitle": { "$ref": "#/$defs/fontSize" },
+            "statement": { "$ref": "#/$defs/fontSize" },
+            "slideTitle": { "$ref": "#/$defs/fontSize" },
+            "bodyLarge": { "$ref": "#/$defs/fontSize" },
+            "body": { "$ref": "#/$defs/fontSize" },
+            "caption": { "$ref": "#/$defs/fontSize" }
+          }
+        },
+        "lineHeight": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tight", "normal"],
+          "properties": {
+            "tight": { "type": "number", "minimum": 1, "maximum": 2 },
+            "normal": { "type": "number", "minimum": 1, "maximum": 2 }
+          }
+        },
+        "weight": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["regular", "bold"],
+          "properties": {
+            "regular": { "$ref": "#/$defs/fontWeight" },
+            "bold": { "$ref": "#/$defs/fontWeight" }
+          }
+        }
+      }
+    },
+    "radius": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["none", "sm", "md"],
+      "properties": {
+        "$comment": { "type": "string" },
+        "none": { "$ref": "#/$defs/px" },
+        "sm": { "$ref": "#/$defs/px" },
+        "md": { "$ref": "#/$defs/px" }
+      }
+    },
+    "shadow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["none", "raised"],
+      "properties": {
+        "$comment": { "type": "string" },
+        "none": { "type": "string", "minLength": 1 },
+        "raised": { "type": "string", "minLength": 1 }
+      }
+    },
+    "canvas": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height"],
+      "properties": {
+        "$comment": { "type": "string" },
+        "width": { "type": "integer", "exclusiveMinimum": 0 },
+        "height": { "type": "integer", "exclusiveMinimum": 0 }
+      }
+    },
+    "$measured": {
+      "$comment": "generate-theme.mjs が書き戻す実測値。値の正しさは pnpm theme:check が再計算で見る。ここでは形だけを見る。",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contrast", "hueDistance"],
+      "properties": {
+        "$comment": { "type": "string" },
+        "contrast": { "$ref": "#/$defs/measurements" },
+        "hueDistance": { "$ref": "#/$defs/measurements" }
+      }
+    }
+  },
+  "$defs": {
+    "oklch": {
+      "$comment": "oklch(L C H) のみ。別記法を混ぜると実測とブラウザの描画がずれる余地ができる。",
+      "type": "string",
+      "pattern": "^oklch\\(\\d+(\\.\\d+)? \\d+(\\.\\d+)? \\d+(\\.\\d+)?\\)$"
+    },
+    "px": {
+      "$comment": "px で解釈する整数。値に単位を書かないのは、生成側が単位を付けるため。",
+      "type": "integer",
+      "minimum": 0
+    },
+    "fontSize": {
+      "$comment": "下限そのものは design/rules.json の min-font-size を正本とする（DR-0012）。ここでは桁を間違えた値だけを弾く。",
+      "type": "integer",
+      "minimum": 8,
+      "maximum": 200
+    },
+    "fontWeight": { "type": "integer", "minimum": 100, "maximum": 900 },
+    "measurements": {
+      "type": "object",
+      "additionalProperties": { "type": "number" },
+      "propertyNames": { "pattern": "^[A-Za-z]+\\|[A-Za-z]+$" }
+    }
+  }
+}
