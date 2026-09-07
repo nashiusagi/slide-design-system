@@ -21,7 +21,7 @@
 | カテゴリID | 要約 | 累計 | 最終指摘 | 状態 |
 |---|---|---|---|---|
 | `writing/ambiguous-criterion` | 判断基準が曖昧で、契約として実行できない | 4 | PR #19 | 未着手 |
-| `writing/term-inconsistency` | 同じものが複数の呼び名を持ち、外延も揺れる | 3 | PR #18 | 未着手 |
+| `writing/term-inconsistency` | 同じものが複数の呼び名を持ち、外延も揺れる | 4 | PR #19 | 未着手 |
 | `writing/notation-inconsistency` | 表記の不統一（DR 参照がリンクになっていない等） | 4 | PR #19 | 未着手 |
 | `phase/out-of-scope-addition` | フェーズのスコープ外、または DR に接続しないものが混入した | 4 | PR #19 | 未着手 |
 | `decisions/undocumented-decision` | DR に無い判断が、PR説明やIssueにだけ書かれている | 4 | PR #19 | 未着手 |
@@ -44,7 +44,7 @@
 | `inspection/measure-viewport-unspecified` | 検査 | measure の測定条件が未規定で結果が再現しない | 1 | PR #13 | PR #13 |
 | `code/gitignore-hides-tracked-artifacts` | コード品質 | .gitignore が、追跡する方針の成果物を無言で除外する | 1 | PR #13 | PR #13 |
 | `writing/ambiguous-criterion` | 日本語 | 判断基準が曖昧で、契約として実行できない | 4 | PR #13 | PR #19 |
-| `writing/term-inconsistency` | 日本語 | 同じものが複数の呼び名を持ち、外延も揺れる | 3 | PR #13 | PR #18 |
+| `writing/term-inconsistency` | 日本語 | 同じものが複数の呼び名を持ち、外延も揺れる | 4 | PR #13 | PR #19 |
 | `writing/notation-inconsistency` | 日本語 | 表記の不統一 | 4 | PR #13 | PR #19 |
 | `phase/out-of-scope-addition` | フェーズ | フェーズのスコープ外、または DR に接続しないものが混入した | 4 | PR #13 | PR #19 |
 | `decisions/undocumented-decision` | 決定記録 | DR に無い判断が、PR説明やIssueにだけ書かれている | 4 | PR #13 | PR #19 |
@@ -64,12 +64,13 @@
 | `code/tsconfig-include-no-op` | コード品質 | tsconfig の include が実際には対象を拾っていない | 1 | PR #18 | PR #18 |
 | `code/state-reset-not-recovered` | コード品質 | 状態を防御的にリセットしたが、復帰の経路が無く値が戻らない | 1 | PR #19 | PR #19 |
 | `code/effect-timing-mismatch` | コード品質 | effect の実行時期がコメントの主張と食い違う | 1 | PR #19 | PR #19 |
+| `code/fix-lacks-regression-test` | コード品質 | 指摘を受けた修正に、それを守る回帰テストが無い | 1 | PR #19 | PR #19 |
 
 ## レビュー履歴
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #19 | 2026-09-07 | 1 | 8 | 3 | [pr-19.md](./reviews/pr-19.md) |
+| #19 | 2026-09-07 | 1 | 13 | 7 | [pr-19.md](./reviews/pr-19.md) |
 | #18 | 2026-09-07 | 0 | 9 | 9 | [pr-18.md](./reviews/pr-18.md) |
 | #17 | 2026-09-06 | 0 | 18 | 10 | [pr-17.md](./reviews/pr-17.md) |
 | #13 | 2026-09-06 | 1 | 8 | 6 | [pr-13.md](./reviews/pr-13.md) |
