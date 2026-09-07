@@ -32,6 +32,7 @@
 |---|---|
 | [0002](./0002-source-format-jsx-react.md) | AI が生成するソースは JSX / React とし、静的出力へビルドする |
 | [0003](./0003-custom-slide-runtime.md) | スライド機構は自作の薄いランタイムで持つ |
+| [0029](./0029-position-in-url-and-explicit-fragment-index.md) | 現在位置は URL の `#/<スライド>/<段階>` で表し、Fragment の段階は明示する |
 | [0018](./0018-plain-css-with-tokens.md) | スタイルは素の CSS + トークン変数で書き、Tailwind を使わない |
 | [0022](./0022-plain-vite-build-output.md) | 最終出力は `vite build` の素の成果物とする |
 | [0026](./0026-typescript-5-for-eslint-ast.md) | TypeScript は 5 系に留め、7 系へは上げない |
@@ -43,6 +44,7 @@
 |---|---|
 | [0009](./0009-five-layer-contract.md) | 契約は Atlas の 5 層をフル写像する |
 | [0010](./0010-three-layouts.md) | レイアウト variant は 3 種から始める |
+| [0030](./0030-slide-class-derived-from-layout.md) | Slide のクラス名は `slide slide--<layout>` として layout から導く |
 | [0016](./0016-deck-contract-markdown.md) | deck 契約は Markdown + frontmatter で書く |
 | [0017](./0017-key-message-required-body-optional.md) | deck 契約は keyMessage を必須、body を任意とする |
 
