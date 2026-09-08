@@ -5,8 +5,8 @@
 | スクリプト | 役割 |
 | --- | --- |
 | `generate-theme.mjs` | `design/tokens.json` から `design/theme.css` の `--dh-*` を生成する。`--check` で乖離を検出する |
-| `validate-design.mjs` | 契約自体を検証する（スキーマ、色域、コントラスト、キャンバス寸法とランタイムの一致） |
-| `lib/` | 上の 2 つが共有する純粋な計算。色の変換とコントラストの算出 |
+| `validate-design.mjs` | 契約自体を検証する（スキーマ、色域、コントラスト、キャンバス寸法とランタイムの一致、deck 契約の構文とスキーマ） |
+| `lib/` | 色の変換とコントラストの算出（`color.mjs`）、deck.md を JSON へ正規化するパーサ（`deck.mjs`、DR-0016） |
 
 **スクリプトは AI を起動しない**（[DR-0020](../docs/decisions/0020-scripts-do-not-invoke-ai.md)）。
 

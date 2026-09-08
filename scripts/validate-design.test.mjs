@@ -5,11 +5,14 @@
  * 壊れた入力を渡したときに必ず1件返るという側。判定側にこれが無いと、何も検出しない
  * ルールでも緑のまま通る。
  */
+import { readFileSync } from 'node:fs'
+
 import { describe, expect, it } from 'vitest'
 
 import {
   checkCanvasMatchesRuntime,
   checkContrast,
+  checkDecks,
   checkGamut,
   checkLayoutClasses,
   checkLayoutComponentConsistency,
@@ -224,5 +227,170 @@ describe('checkCanvasMatchesRuntime', () => {
 
     expect(found).toHaveLength(2)
     expect(found[0]).toContain('読み取れない')
+  })
+})
+
+describe('checkDecks', () => {
+  // resolve() は import.meta.url からの相対パス解決に URL を使っており、jsdom
+  // 環境下ではその解決が壊れる（jsdom がグローバルの URL を差し替えるため）。
+  // checkSchemas 側もこの理由でテスト対象に含めていない。ここではファイル読み込みを
+  // 挟まず、相対パスのまま fs で読むことでその落とし穴を避ける。
+  const deckSchema = JSON.parse(readFileSync('design/schemas/deck.schema.json', 'utf8'))
+
+  // ソースコードへ不可視文字を直接埋めると no-irregular-whitespace に
+  // 引っかかるため、JS のエスケープシーケンスとして埋め込む。
+  const zeroWidthSpace = '\u200B'
+
+  /** Schema を満たす最小の deck.md。各テストはここから1箇所だけ壊す。 */
+  const validSource = `---
+title: サンプル
+---
+
+layout: title
+keyMessage: "見出し"
+`
+
+  it('Schema を満たしていれば何も返さない', () => {
+    expect(checkDecks([{ path: 'design/decks/sample.md', source: validSource }], deckSchema)).toEqual([])
+  })
+
+  it('frontmatter が無ければ構文エラーとして捕まえる', () => {
+    const found = checkDecks(
+      [{ path: 'design/decks/sample.md', source: 'layout: title\n' }],
+      deckSchema,
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('design/decks/sample.md')
+    expect(found[0]).toContain('frontmatter')
+  })
+
+  it('keyMessage が無ければ Schema 違反として捕まえる', () => {
+    const source = `---
+title: サンプル
+---
+
+layout: title
+`
+    const found = checkDecks([{ path: 'design/decks/sample.md', source }], deckSchema)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('keyMessage')
+  })
+
+  it('layout が契約に無いレイアウト名なら Schema 違反として捕まえる', () => {
+    const source = `---
+title: サンプル
+---
+
+layout: unknown-layout
+keyMessage: "見出し"
+`
+    const found = checkDecks([{ path: 'design/decks/sample.md', source }], deckSchema)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('layout')
+  })
+
+  it('keyMessage が空白のみなら Schema 違反として捕まえる。minLength だけでは1文字以上の空白を通してしまう', () => {
+    const source = `---
+title: サンプル
+---
+
+layout: title
+keyMessage: " "
+`
+    const found = checkDecks([{ path: 'design/decks/sample.md', source }], deckSchema)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('keyMessage')
+  })
+
+  it('keyMessage がゼロ幅スペースのみなら Schema 違反として捕まえる。\\S は ECMAScript の空白定義にしか反応せず、見た目上空の不可視文字を見逃す', () => {
+    const source = `---
+title: サンプル
+---
+
+layout: title
+keyMessage: "${zeroWidthSpace}"
+`
+    const found = checkDecks([{ path: 'design/decks/sample.md', source }], deckSchema)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('keyMessage')
+  })
+
+  it('title が空白のみなら Schema 違反として捕まえる', () => {
+    const source = `---
+title: " "
+---
+
+layout: title
+keyMessage: "見出し"
+`
+    const found = checkDecks([{ path: 'design/decks/sample.md', source }], deckSchema)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('title')
+  })
+
+  it('title がゼロ幅スペースのみなら Schema 違反として捕まえる。title/keyMessage/body は同じ pattern を個別に持つため、1キーだけのテストでは残り2つの改変・改悪を検出できない', () => {
+    const source = `---
+title: "${zeroWidthSpace}"
+---
+
+layout: title
+keyMessage: "見出し"
+`
+    const found = checkDecks([{ path: 'design/decks/sample.md', source }], deckSchema)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('title')
+  })
+
+  it('body がゼロ幅スペースのみなら Schema 違反として捕まえる', () => {
+    const source = `---
+title: サンプル
+---
+
+layout: bullets
+keyMessage: "見出し"
+
+${zeroWidthSpace}
+`
+    const found = checkDecks([{ path: 'design/decks/sample.md', source }], deckSchema)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('body')
+  })
+
+  it('契約に無いキーが frontmatter にあれば Schema 違反として捕まえる。パーサが既知キーだけ拾うと additionalProperties が発火しなくなる', () => {
+    const source = `---
+title: サンプル
+author: "誰か"
+---
+
+layout: title
+keyMessage: "見出し"
+`
+    const found = checkDecks([{ path: 'design/decks/sample.md', source }], deckSchema)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('additional')
+  })
+
+  it('契約に無いキーがスライド見出しブロックにあれば Schema 違反として捕まえる', () => {
+    const source = `---
+title: サンプル
+---
+
+layout: title
+keyMessage: "見出し"
+speakerNotes: "台本"
+`
+    const found = checkDecks([{ path: 'design/decks/sample.md', source }], deckSchema)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('additional')
   })
 })

@@ -8,14 +8,15 @@
  * （DR-0011）。実行口は pnpm check に一本化する（DR-0028）。
  *
  * 骨格として、契約が増えるたびに CONTRACTS と CHECKS へ足していく形にしてある。
- * 今は tokens / layouts / components がある。decks / rules は後続の Issue で入る。
+ * 今は tokens / layouts / components / decks がある。rules は後続の Issue で入る。
  */
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import Ajv2020 from 'ajv/dist/2020.js'
 
 import { contrastRatio, isInSrgbGamut } from './lib/color.mjs'
+import { parseDeck } from './lib/deck.mjs'
 
 /** @param {string} relativePath */
 const resolve = (relativePath) => fileURLToPath(new URL(`../${relativePath}`, import.meta.url))
@@ -28,9 +29,10 @@ const readJson = (relativePath) => JSON.parse(readFileSync(resolve(relativePath)
  * 読み込む対象・スキーマ検証の対象のどちらもここから導く。契約を足したらここへ
  * 足すだけでよく、ファイルの列挙を CONTRACTS 側へ複製しない（DR-0035）。
  *
- * ただし design/schemas/layout.schema.json と component.schema.json の name /
- * allowedIn / slots.component の enum は JSON Schema の静的な列挙なので、ここと
- * 独立に更新が要る。増減させたときは両方のスキーマも合わせて直すこと。
+ * ただし design/schemas/layout.schema.json・component.schema.json・deck.schema.json
+ * の name / allowedIn / slots.component / slides.items.layout の enum は JSON Schema
+ * の静的な列挙なので、ここと独立に更新が要る。増減させたときは3つのスキーマすべてを
+ * 合わせて直すこと。
  */
 const LAYOUT_NAMES = ['title', 'bullets', 'statement']
 const COMPONENT_NAMES = ['slide-title', 'bullet-list', 'statement', 'emphasis']
@@ -109,6 +111,41 @@ function checkSchemas() {
     return (validate.errors ?? []).map(
       (error) => `${data}: ${error.instancePath || '/'} ${error.message}`,
     )
+  })
+}
+
+/**
+ * design/decks/*.md が deck 契約として成立しているか（DR-0016 / DR-0017）。
+ *
+ * パース自体の構文エラー（frontmatter が無い等）と、正規化後の JSON Schema
+ * 違反（keyMessage が無い、layout が契約外 等）の両方をここで捕まえる。
+ *
+ * スキーマはファイルパスではなく読み込み済みの値で受け取る。ファイルの読み込みは
+ * main() に寄せ、ここは引数だけで完結する純関数にする（DR-0032の帰結）。
+ *
+ * @param {{ path: string, source: string }[]} decks
+ * @param {object} deckSchema design/schemas/deck.schema.json の中身
+ * @returns {string[]}
+ */
+export function checkDecks(decks, deckSchema) {
+  const ajv = new Ajv2020({ allErrors: true, strict: true })
+  const validate = ajv.compile(deckSchema)
+
+  return decks.flatMap(({ path, source }) => {
+    /** @type {ReturnType<typeof parseDeck>} */
+    let normalized
+
+    try {
+      normalized = parseDeck(source)
+    } catch (error) {
+      return [`${path}: ${/** @type {Error} */ (error).message}`]
+    }
+
+    if (validate(normalized)) {
+      return []
+    }
+
+    return (validate.errors ?? []).map((error) => `${path}: ${error.instancePath || '/'} ${error.message}`)
   })
 }
 
@@ -326,9 +363,19 @@ function main() {
   const layouts = LAYOUT_NAMES.map((name) => readJson(`design/layouts/${name}.json`))
   const components = COMPONENT_NAMES.map((name) => readJson(`design/components/${name}.json`))
   const layoutCss = readFileSync(resolve('design/layout.css'), 'utf8')
+  const decks = readdirSync(resolve('design/decks'))
+    .filter((name) => name.endsWith('.md'))
+    .map((name) => ({
+      path: `design/decks/${name}`,
+      source: readFileSync(resolve(`design/decks/${name}`), 'utf8'),
+    }))
 
   const checks = [
     { name: '契約が JSON Schema を満たす', run: () => checkSchemas() },
+    {
+      name: 'deck 契約が構文・JSON Schema を満たす',
+      run: () => checkDecks(decks, readJson('design/schemas/deck.schema.json')),
+    },
     { name: '色が sRGB 色域に収まる', run: () => checkGamut(tokens.color) },
     { name: 'コントラストが水準を満たす', run: () => checkContrast(tokens.color) },
     {
