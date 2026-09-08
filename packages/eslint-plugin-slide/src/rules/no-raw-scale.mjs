@@ -23,8 +23,9 @@
  * `margin: "8px 16px"` のようなショートハンドの複合値は、空白区切りのトークンへ
  * 分解してからそれぞれを NUMERIC_LENGTH に通す。文字列全体を1つの値として
  * 判定すると、複合値であるという理由だけで生の長さが素通りする。
- * `var(--dh-*, 16px)` のようにトークン参照が丸括弧の中に空白を含む場合に
- * 誤って分割しないよう、丸括弧の深さを見ながらトップレベルの空白だけで区切る。
+ * `var(--dh-*, 16px)` のようにトークン変数への参照が丸括弧の中に空白を含む
+ * 場合に誤って分割しないよう、丸括弧の深さを見ながらトップレベルの空白だけで
+ * 区切る。
  */
 import { extractStyleProperties, literalText } from '../lib/jsx-style.mjs'
 import { readRules } from '../lib/design-contracts.mjs'

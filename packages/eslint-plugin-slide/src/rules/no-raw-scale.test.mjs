@@ -29,7 +29,8 @@ describe('no-raw-scale', () => {
         'const el = <div style={dynamicStyles} />',
         'const el = <div style={{ padding: spaceMd }} />',
         'const el = <div />',
-        // ショートハンドの複合値。各トークンが allowedLiterals かトークン参照なら通す。
+        // ショートハンドの複合値。トークンごとに allowedLiterals・トークン変数への
+        // 参照・数値に見えないキーワード（solid）のいずれかであれば通す。
         'const el = <div style={{ border: "1px solid var(--dh-border-color)" }} />',
       ],
       invalid: [
@@ -58,7 +59,7 @@ describe('no-raw-scale', () => {
           errors: [{ messageId: 'rawScale' }, { messageId: 'rawScale' }],
         },
         {
-          // トークン参照とリテラルが混在するショートハンド。リテラル側だけを捕まえる。
+          // トークン変数への参照とリテラルが混在するショートハンド。リテラル側だけを捕まえる。
           code: 'const el = <div style={{ border: "2px solid var(--dh-border-color)" }} />',
           errors: [{ messageId: 'rawScale' }],
         },

@@ -27,6 +27,8 @@ describe('component-approved', () => {
         'const el = <Statement text="x" />',
         // layout が静的に読めないときも判定できないので何も言わない。
         'const el = <Slide layout={dynamicLayout}><Statement text="x" /></Slide>',
+        // 波括弧で包んだ文字列リテラルでも、allowedIn どおりの layout なら通る。
+        'import { Statement } from "../components"\nconst el = <Slide layout={"statement"}><Statement text="x" /></Slide>',
       ],
       invalid: [
         {
@@ -41,6 +43,18 @@ describe('component-approved', () => {
         {
           code: 'class Emphasis { render() { return null } }',
           errors: [{ messageId: 'shadowed' }],
+        },
+        {
+          // class 式（宣言ではなく式）での再定義。const X = class {} は
+          // ClassDeclaration と違うノード型を持つため別経路で検出する必要がある。
+          code: 'const Emphasis = class { render() { return null } }',
+          errors: [{ messageId: 'shadowed' }],
+        },
+        {
+          // layout="x" と layout={"x"} は同じ意味。波括弧で包むだけで
+          // allowedIn の検査を回避できないことを固定する。
+          code: 'import { Statement } from "../components"\nconst el = <Slide layout={"title"}><Statement text="x" /></Slide>',
+          errors: [{ messageId: 'disallowedLayout' }],
         },
         {
           // bullet-list の allowedIn は ["bullets"] のみ。title では使えない。
