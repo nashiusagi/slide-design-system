@@ -36,6 +36,7 @@
 | [0022](./0022-plain-vite-build-output.md) | 最終出力は `vite build` の素の成果物とする |
 | [0026](./0026-typescript-5-for-eslint-ast.md) | TypeScript は 5 系に留め、7 系へは上げない |
 | [0027](./0027-build-scaffold-workspace-and-test-stack.md) | 足場は pnpm workspace とし、テストは Vitest で書く |
+| [0032](./0032-ajv-for-contract-validation.md) | 契約の JSON Schema 検証は ajv で行い、strict モードで走らせる |
 
 ### 契約の構造
 
@@ -55,6 +56,8 @@
 |---|---|
 | [0011](./0011-lint-and-measure.md) | 検査は lint（静的）と measure（実測）の 2 系統で行う |
 | [0028](./0028-single-check-entry-point.md) | 検査の実行口を `pnpm check` に一本化する |
+| [0033](./0033-derived-values-are-generated-and-checked.md) | トークンから導かれる値は生成し、`pnpm check` で再計算と突き合わせる |
+| [0034](./0034-contrast-metric-wcag21-srgb.md) | コントラストの指標は WCAG 2.1 とし、sRGB 色域に丸めた値で測る |
 
 ### 実験と運用
 

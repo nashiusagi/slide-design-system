@@ -17,5 +17,11 @@
     "skipLibCheck": true,
     "isolatedModules": true
   },
-  "include": ["vite.config.ts", "eslint.config.js", "packages/**/*.ts", "packages/**/*.tsx"]
+  "include": [
+    "vite.config.ts",
+    "eslint.config.js",
+    "packages/**/*.ts",
+    "packages/**/*.tsx",
+    "scripts/**/*.mjs"
+  ]
 }
