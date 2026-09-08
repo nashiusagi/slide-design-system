@@ -79,12 +79,14 @@
 | `writing/do-dont-asymmetry` | 日本語 | 北極星の比喩の暴走を止める Don't が無い | 1 | PR #21 | PR #21 |
 | `code/redundant-type-only-devdependency` | コード品質 | 型を同梱するパッケージに、別系統の型パッケージを重ねて入れた | 1 | PR #23 | PR #23 |
 | `writing/test-title-ambiguous` | 日本語 | テストタイトルが、そのテストの固定する不変条件を示していない | 1 | PR #23 | PR #23 |
+| `writing/inaccurate-rationale` | 日本語 | 説明文が書いている理由付けが、実装の挙動と食い違う | 1 | PR #23 | PR #23 |
+| `code/sibling-field-test-gap` | コード品質 | 同じ制約を個別に持つ複数フィールドのうち、一部にしか回帰テストが無い | 1 | PR #23 | PR #23 |
 
 ## レビュー履歴
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #23 | 2026-09-08 | 0 | 5 | 3 | [pr-23.md](./reviews/pr-23.md) |
+| #23 | 2026-09-08 | 0 | 6 | 4 | [pr-23.md](./reviews/pr-23.md) |
 | #21 | 2026-09-08 | 0 | 10 | 1 | [pr-21.md](./reviews/pr-21.md) |
 | #20 | 2026-09-08 | 1 | 12 | 8 | [pr-20.md](./reviews/pr-20.md) |
 | #19 | 2026-09-07 | 1 | 15 | 7 | [pr-19.md](./reviews/pr-19.md) |
