@@ -1,0 +1,16 @@
+{
+  "$schema": "../schemas/layout.schema.json",
+  "$comment": "デッキの表紙や章の区切りに使う。内容を伝えるのではなく、次に何を話すかだけを示す（DR-0010）。",
+  "name": "title",
+  "role": "デッキ全体の主題、または章の区切りを宣言する。情報を足さず、これから何を話すかだけを示す。",
+  "whenToUse": [
+    "デッキ最初の一枚として、発表全体の主題を示すとき",
+    "章やセクションが変わる境目で、次に何を話すかを宣言するとき"
+  ],
+  "whenNotToUse": [
+    "複数の論点や項目を並べて伝えたいとき（bullets を選ぶ）",
+    "結論や主張を一つだけ大きく伝えたいとき（statement を選ぶ）"
+  ],
+  "classes": ["slide--title"],
+  "slots": [{ "component": "slide-title", "required": true, "max": 1 }]
+}

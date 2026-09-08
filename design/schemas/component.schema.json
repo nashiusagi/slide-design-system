@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nashiusagi/slide-design-system/design/schemas/component.schema.json",
+  "title": "design/components/*.json",
+  "$comment": "スライド内部品の契約を検証するスキーマ（DR-0009 / DR-0010 / DR-0035）。実装（React コンポーネント）は別 Issue が持つ。ここが固定するのは使用可否と props の形だけ。",
+  "type": "object",
+  "required": ["name", "role", "allowedIn", "usage", "props"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "$comment": { "type": "string" },
+    "name": {
+      "type": "string",
+      "enum": ["slide-title", "bullet-list", "statement", "emphasis"]
+    },
+    "role": {
+      "type": "string",
+      "minLength": 1
+    },
+    "allowedIn": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": ["title", "bullets", "statement"]
+      },
+      "description": "この部品が使われてよいレイアウトの一覧。"
+    },
+    "usage": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "props": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "required", "description"],
+        "properties": {
+          "type": { "type": "string", "enum": ["string", "string[]"] },
+          "required": { "type": "boolean" },
+          "description": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

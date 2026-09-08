@@ -1,0 +1,19 @@
+{
+  "$schema": "../schemas/layout.schema.json",
+  "$comment": "並列関係にある複数項目を、見出しの下にまとめて示す（DR-0010）。",
+  "name": "bullets",
+  "role": "見出しの下に、並列関係にある複数の項目をまとめて示す。",
+  "whenToUse": [
+    "比較・列挙など、並列関係にある複数の項目を伝えたいとき",
+    "個々の項目のあいだに強い優劣や時系列が無いとき"
+  ],
+  "whenNotToUse": [
+    "伝えたいことが一つの結論に収まるとき（statement を選ぶ）",
+    "話題を切り替えるだけで、具体的な項目がまだ無いとき（title を選ぶ）"
+  ],
+  "classes": ["slide--bullets"],
+  "slots": [
+    { "component": "slide-title", "required": true, "max": 1 },
+    { "component": "bullet-list", "required": true, "max": 1 }
+  ]
+}

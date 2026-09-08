@@ -1,0 +1,18 @@
+{
+  "$schema": "../schemas/component.schema.json",
+  "$comment": "見出し。title / bullets の先頭に置く（DR-0010）。",
+  "name": "slide-title",
+  "role": "スライドの主題を一行で示す見出し。",
+  "allowedIn": ["title", "bullets"],
+  "usage": [
+    "使ってよい個数は allowedIn の各レイアウトの slots が定める。レイアウトの先頭に置く",
+    "1 行に収める。折り返しが必要になるほど長い文を書かない"
+  ],
+  "props": {
+    "text": {
+      "type": "string",
+      "required": true,
+      "description": "見出しの文言。1 行想定。"
+    }
+  }
+}
