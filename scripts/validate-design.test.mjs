@@ -16,6 +16,7 @@ import {
   checkGamut,
   checkLayoutClasses,
   checkLayoutComponentConsistency,
+  checkLintRuleCoverage,
 } from './validate-design.mjs'
 
 /** 水準を満たす最小の色一式。各テストはここから1つだけ壊す。 */
@@ -46,13 +47,19 @@ describe('checkGamut', () => {
   })
 })
 
+/**
+ * design/rules.json の contrast をそのまま使う（複製しない）。ここへ値を書き写すと、
+ * 正本が変わってもこのテストが追随せず、常に自分自身の固定値でしか検証しなくなる。
+ */
+const contrastConfig = JSON.parse(readFileSync('design/rules.json', 'utf8')).contrast
+
 describe('checkContrast', () => {
   it('水準を満たしていれば何も返さない', () => {
-    expect(checkContrast(validColors)).toEqual([])
+    expect(checkContrast(validColors, contrastConfig)).toEqual([])
   })
 
   it('本文が水準を割ったら捕まえる', () => {
-    const found = checkContrast({ ...validColors, text: 'oklch(0.75 0 0)' })
+    const found = checkContrast({ ...validColors, text: 'oklch(0.75 0 0)' }, contrastConfig)
 
     expect(found.length).toBeGreaterThan(0)
     expect(found.join('\n')).toContain('本文（text on background）')
@@ -63,9 +70,9 @@ describe('checkContrast', () => {
     // 置くと落ちる。両方が通る形だと、役割ごとの閾値が 1 つに潰れても気付けない。
     const borderline = 'oklch(0.62 0 0)'
 
-    expect(checkContrast({ ...validColors, border: borderline })).toEqual([])
+    expect(checkContrast({ ...validColors, border: borderline }, contrastConfig)).toEqual([])
 
-    const asBodyText = checkContrast({ ...validColors, text: borderline })
+    const asBodyText = checkContrast({ ...validColors, text: borderline }, contrastConfig)
 
     expect(asBodyText.length).toBeGreaterThan(0)
     expect(asBodyText.join('\n')).toContain('本文（text on background）')
@@ -74,7 +81,7 @@ describe('checkContrast', () => {
   it('役割に割り当てられていない色を捕まえる', () => {
     // 前景の一覧は手書きなので、色を足して役割へ書き忘れると、その色だけ
     // 無検査のまま緑で通る。未分類そのものを検査して塞いでいることを固定する。
-    const found = checkContrast({ ...validColors, info: 'oklch(0.9 0.05 305)' })
+    const found = checkContrast({ ...validColors, info: 'oklch(0.9 0.05 305)' }, contrastConfig)
 
     expect(found).toHaveLength(1)
     expect(found[0]).toContain('color.info がどの役割にも割り当てられておらず')
@@ -83,10 +90,46 @@ describe('checkContrast', () => {
   it('面をすべて回る。background だけ通る色は見逃さない', () => {
     // accentSoft の上でだけ 4.5:1 を割る明度。前景ごとに背景を書き並べる形だと
     // 書き忘れた組み合わせが素通りするので、その形へ戻していないことを固定する。
-    const found = checkContrast({ ...validColors, success: 'oklch(0.52 0.13 150)' })
+    const found = checkContrast({ ...validColors, success: 'oklch(0.52 0.13 150)' }, contrastConfig)
 
     expect(found).toHaveLength(1)
     expect(found[0]).toContain('success on accentSoft')
+  })
+})
+
+describe('checkLintRuleCoverage', () => {
+  const rules = [
+    { id: 'no-raw-color', method: 'lint' },
+    { id: 'no-overflow', method: 'measure' },
+  ]
+
+  it('lint ルールと実装が1対1で対応していれば何も返さない', () => {
+    expect(checkLintRuleCoverage(rules, ['no-raw-color'])).toEqual([])
+  })
+
+  it('measure のルールは対象にしない。実装が無くても捕まえない', () => {
+    // no-overflow（method: measure）は implementedRuleIds に含めていない。
+    // lint ルールと同じ扱いをすると、実装が無い measure ルールまで誤って報告する。
+    expect(checkLintRuleCoverage(rules, ['no-raw-color'])).toEqual([])
+    expect(checkLintRuleCoverage(rules, [])).not.toEqual(
+      expect.arrayContaining([expect.stringContaining('no-overflow')]),
+    )
+  })
+
+  it('契約にある lint ルールの実装が無いと捕まえる', () => {
+    const found = checkLintRuleCoverage(rules, [])
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain("'no-raw-color' が実装されていない")
+  })
+
+  it('契約に無いルールを実装していると捕まえる', () => {
+    // 実装側だけを見ると、正規の検査経路（design/rules.json）から外れた
+    // 独自ルールが増えても気付けない。
+    const found = checkLintRuleCoverage(rules, ['no-raw-color', 'unknown-rule'])
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain("'unknown-rule' を実装しているが")
   })
 })
 

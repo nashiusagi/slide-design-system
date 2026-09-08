@@ -1,0 +1,78 @@
+{
+  "$schema": "./schemas/rules.schema.json",
+  "$comment": "検査ルールの正本（DR-0009 / DR-0011）。ここに無いIDは検査として存在しない。lint の実装は packages/eslint-plugin-slide、measure の実装は #8 で追加する scripts/measure-slides.mjs。lint 側の対応（ルールIDと実装の1対1）は pnpm design:check が検査する。measure 側の対応は #8 で同様に足す。",
+  "rules": [
+    {
+      "id": "no-raw-color",
+      "method": "lint",
+      "severity": "error",
+      "description": "JSX の style・色系 props に生の色値（hex / rgb / oklch などのリテラル）を書かない。--dh-* トークン変数の参照だけを許す（DR-0018）。"
+    },
+    {
+      "id": "no-raw-scale",
+      "method": "lint",
+      "severity": "error",
+      "description": "JSX の style・長さ系 props に生の長さリテラルを書かない。単位ではなくリテラルか変数参照かで判定する。noRawScale.allowedLiterals に列挙した値は例外として許す（DR-0011）。"
+    },
+    {
+      "id": "layout-approved",
+      "method": "lint",
+      "severity": "error",
+      "description": "`<Slide layout=\"...\">` の値が design/layouts/ の契約に無い名前を弾く。"
+    },
+    {
+      "id": "component-approved",
+      "method": "lint",
+      "severity": "error",
+      "description": "design/components/ の契約名（PascalCase）をローカルで再定義（シャドーイング）しない。契約名を使う箇所は、その component の allowedIn に無い layout の下で使わない。"
+    },
+    {
+      "id": "deck-conformance",
+      "method": "lint",
+      "severity": "error",
+      "description": "deck 契約（design/decks/*.md）の枚数・順序・layout 割当と、対応する実装ファイルの `<Slide layout=\"...\">` の並びが一致する。対象ファイルと deck の対応はルールオプション（`deck`）で指定する。body の素材照合は静的には行わず、measure 系の deck-body-fidelity が持つ（DR-0011 / DR-0017）。"
+    },
+    {
+      "id": "no-overflow",
+      "method": "measure",
+      "severity": "error",
+      "description": "1280x720 のキャンバスから要素がはみ出していない。各 Fragment 段階すべてで判定する（DR-0011。実装は #8）。"
+    },
+    {
+      "id": "min-font-size",
+      "method": "measure",
+      "severity": "error",
+      "description": "computed fontSize が minFontSize.px を割っていない（DR-0012。実装は #8）。"
+    },
+    {
+      "id": "contrast",
+      "method": "measure",
+      "severity": "error",
+      "description": "実測の前景/背景コントラストが contrast.requirements の水準を満たす（DR-0008。実装は #8）。算出値としての事前チェックは scripts/validate-design.mjs が contrast.requirements を読んで行う。"
+    },
+    {
+      "id": "deck-body-fidelity",
+      "method": "measure",
+      "severity": "error",
+      "description": "deck 契約に body があるとき、レンダリング後の DOM テキストが素材を欠落・改変していない（DR-0011 / DR-0017。実装は #8）。"
+    }
+  ],
+  "contrast": {
+    "$comment": "面として使える色（surfaces）と、前景ごとに満たすべき最低比（requirements）。前景・背景の総当たりは scripts/validate-design.mjs が展開する（DR-0008）。",
+    "surfaces": ["background", "surface", "accentSoft"],
+    "requirements": [
+      { "role": "本文", "foregrounds": ["text", "textMuted"], "minimum": 4.5 },
+      { "role": "強調", "foregrounds": ["accent"], "minimum": 4.5 },
+      { "role": "状態色", "foregrounds": ["danger", "warning", "success"], "minimum": 4.5 },
+      { "role": "UI 境界とフォーカス", "foregrounds": ["border"], "minimum": 3 }
+    ]
+  },
+  "minFontSize": {
+    "$comment": "Web の本文標準より一段上、登壇用の水準より一段下（DR-0012 / DR-0006）。",
+    "px": 18
+  },
+  "noRawScale": {
+    "$comment": "no-raw-scale が例外的に許す長さリテラル。0 は単位に関わらず無害、100% は親要素基準で契約外の値を持ち込まない、1px はヘアライン境界線の慣習的な最小値（DR-0011 帰結）。",
+    "allowedLiterals": ["0", "0px", "100%", "1px"]
+  }
+}

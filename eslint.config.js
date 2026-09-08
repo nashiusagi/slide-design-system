@@ -2,10 +2,12 @@ import js from '@eslint/js'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
+import slidePlugin from './packages/eslint-plugin-slide/src/index.mjs'
+
 /**
- * この時点では標準ルールのみを入れる。
- * 契約に基づく検査（no-raw-color / layout-approved など）は
- * packages/eslint-plugin-slide として後続の Issue で足す（DR-0011）。
+ * 契約に基づく検査（no-raw-color / no-raw-scale / layout-approved /
+ * component-approved / deck-conformance）は packages/eslint-plugin-slide が持つ
+ * （DR-0011）。ルールIDと design/rules.json の対応は pnpm design:check が検査する。
  */
 export default tseslint.config(
   {
@@ -16,6 +18,7 @@ export default tseslint.config(
     // 生成物に混ざった抑止コメントで契約検査を無効化されないようにする。
     files: ['src/**/*.{ts,tsx}'],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    plugins: { slide: slidePlugin },
     languageOptions: {
       ecmaVersion: 2022,
       globals: globals.browser,
@@ -24,13 +27,28 @@ export default tseslint.config(
       noInlineConfig: true,
       reportUnusedDisableDirectives: 'error',
     },
+    rules: {
+      'slide/no-raw-color': 'error',
+      'slide/no-raw-scale': 'error',
+      'slide/layout-approved': 'error',
+      'slide/component-approved': 'error',
+    },
+  },
+  {
+    // App.tsx は design/decks/harness-intro.md に対応する（DR-0037）。deck-conformance は
+    // 対象ファイルとルールオプションで deck を明示するため、ここでだけ有効にする。
+    files: ['src/App.tsx'],
+    plugins: { slide: slidePlugin },
+    rules: {
+      'slide/deck-conformance': ['error', { deck: 'design/decks/harness-intro.md' }],
+    },
   },
   {
     // 開発用パッケージ（契約検査プラグインなど）。ここは Node で動く。
     // src と違い noInlineConfig は掛けない。src は無人の生成ループで書かれる検査対象だが、
     // packages は PR レビューを経て変更されるコードなので、局所的な抑止を認める。
     // ただし効かなくなった抑止コメントは残さない（DR-0011）。
-    files: ['packages/**/*.{ts,tsx}'],
+    files: ['packages/**/*.{ts,tsx,mjs}'],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     languageOptions: {
       ecmaVersion: 2022,
