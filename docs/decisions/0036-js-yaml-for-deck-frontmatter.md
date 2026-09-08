@@ -13,7 +13,7 @@ deck 契約は Markdown + YAML frontmatter で書くと決めた（[DR-0016](./0
 
 ## 決定
 
-**js-yaml を devDependency に入れ、frontmatter ブロックと各スライド見出しブロックのパースに使う。** 型は `@types/js-yaml` を合わせて入れる。
+**js-yaml を devDependency に入れ、frontmatter ブロックと各スライド見出しブロックのパースに使う。** js-yaml 5系は型（`dist/js-yaml.d.ts`）を自ら同梱しており `exports` の `types` 条件で解決されるため、`@types/js-yaml` は入れない。入れると別系統（4系向け）の型が重なり、実際には使われないまま残る。
 
 ## 理由
 

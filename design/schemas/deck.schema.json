@@ -10,7 +10,8 @@
     "title": {
       "type": "string",
       "minLength": 1,
-      "description": "デッキ全体の主題。frontmatter の title に対応する。"
+      "pattern": "\\S",
+      "description": "デッキ全体の主題。frontmatter の title に対応する。空白のみの文字列は minLength を満たしてしまうため、pattern で非空白文字の存在を別途要求する。"
     },
     "slides": {
       "type": "array",
@@ -28,12 +29,14 @@
           "keyMessage": {
             "type": "string",
             "minLength": 1,
-            "description": "そのスライドで伝える一文。必須。body の有無に関わらず、AI が判断の軸にする。"
+            "pattern": "\\S",
+            "description": "そのスライドで伝える一文。必須。body の有無に関わらず、AI が判断の軸にする。空白のみの文字列は minLength を満たしてしまうため、pattern で非空白文字の存在を別途要求する。"
           },
           "body": {
             "type": "string",
             "minLength": 1,
-            "description": "本文素材。任意。無ければ AI が本文を書く（Phase 1）。あれば AI はそれを素材として尊重し、分割・強調・レイアウト適用だけを担う（Phase 2、DR-0017）。"
+            "pattern": "\\S",
+            "description": "本文素材。任意。無ければ AI が本文を書く（Phase 1）。あれば AI はそれを素材として尊重し、分割・強調・レイアウト適用だけを担う（Phase 2、DR-0017）。空白のみの文字列は minLength を満たしてしまうため、pattern で非空白文字の存在を別途要求する。"
           }
         }
       }

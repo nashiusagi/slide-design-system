@@ -287,4 +287,62 @@ keyMessage: "見出し"
     expect(found).toHaveLength(1)
     expect(found[0]).toContain('layout')
   })
+
+  it('keyMessage が空白のみなら Schema 違反として捕まえる。minLength だけでは1文字以上の空白を通してしまう', () => {
+    const source = `---
+title: サンプル
+---
+
+layout: title
+keyMessage: " "
+`
+    const found = checkDecks([{ path: 'design/decks/sample.md', source }], deckSchema)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('keyMessage')
+  })
+
+  it('title が空白のみなら Schema 違反として捕まえる', () => {
+    const source = `---
+title: " "
+---
+
+layout: title
+keyMessage: "見出し"
+`
+    const found = checkDecks([{ path: 'design/decks/sample.md', source }], deckSchema)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('title')
+  })
+
+  it('契約に無いキーが frontmatter にあれば Schema 違反として捕まえる。パーサが既知キーだけ拾うと additionalProperties が発火しなくなる', () => {
+    const source = `---
+title: サンプル
+author: "誰か"
+---
+
+layout: title
+keyMessage: "見出し"
+`
+    const found = checkDecks([{ path: 'design/decks/sample.md', source }], deckSchema)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('additional')
+  })
+
+  it('契約に無いキーがスライド見出しブロックにあれば Schema 違反として捕まえる', () => {
+    const source = `---
+title: サンプル
+---
+
+layout: title
+keyMessage: "見出し"
+speakerNotes: "台本"
+`
+    const found = checkDecks([{ path: 'design/decks/sample.md', source }], deckSchema)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('additional')
+  })
 })

@@ -75,11 +75,28 @@ keyMessage: "契約は5層: tokens, layouts, components, rules, decks"
     )
   })
 
+  it('契約に無いキーも捨てずにそのまま残す。妥当性判定は deck.schema.json 側の責務であり、パーサが既知キーだけを拾うと additionalProperties が検証対象を受け取る前に無力化される', () => {
+    const source = `---
+title: サンプル
+author: "誰か"
+---
+
+layout: title
+keyMessage: "見出し"
+speakerNotes: "台本"
+`
+
+    const deck = parseDeck(source)
+
+    expect(deck.author).toBe('誰か')
+    expect(deck.slides[0].speakerNotes).toBe('台本')
+  })
+
   it('先頭に frontmatter が無ければ例外を投げる', () => {
     expect(() => parseDeck('layout: title\nkeyMessage: "見出し"\n')).toThrow('frontmatter')
   })
 
-  it('スライドが1枚も無くても空配列にはせず、そのまま返す。deck.schema.json 側の minItems が捕まえる', () => {
+  it('スライド区切りが一度も現れなくても slides は空にならず、layout/keyMessage が undefined の1件を持つ（schema の必須項目違反として検出させるため）', () => {
     const source = `---
 title: サンプル
 ---

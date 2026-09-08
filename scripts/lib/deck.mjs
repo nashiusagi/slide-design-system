@@ -2,7 +2,7 @@
  * deck.md（frontmatter + `---` 区切りスライド、DR-0016）を JSON へ正規化する。
  *
  * ここが担うのは構文の正規化だけである。`keyMessage` が必須かどうかのような
- * 契約としての妥当性は design/schemas/deck.schema.json 側の Ajv 検証に委ねる
+ * 契約としての妥当性は design/schemas/deck.schema.json 側の ajv 検証に委ねる
  * （DR-0017）。パーサが妥当性まで判定すると、判定基準がスキーマとパーサの
  * 2箇所に分かれ、どちらか一方だけ直したときに食い違ったまま残る。
  *
@@ -11,8 +11,12 @@
 import { load } from 'js-yaml'
 
 /**
- * @typedef {{ layout?: unknown, keyMessage?: unknown, body?: string }} DeckSlide
- * @typedef {{ title?: unknown, slides: DeckSlide[] }} DeckDocument
+ * 既知キー（layout / keyMessage / title）だけでなく、YAML に書かれた未知キーも
+ * そのまま残る。妥当性判定（未知キーを許すかどうか）は design/schemas/deck.schema.json
+ * 側の責務であり、ここで型を絞ると同じ判定基準が2箇所に分かれる。
+ *
+ * @typedef {Record<string, unknown> & { body?: string }} DeckSlide
+ * @typedef {Record<string, unknown> & { slides: DeckSlide[] }} DeckDocument
  */
 
 const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/
@@ -48,8 +52,11 @@ export function parseDeck(source) {
   const meta = loadMapping(frontmatterMatch[1])
   const rest = source.slice(frontmatterMatch[0].length)
 
+  // 既知キー（title）だけを取り出さず、meta をそのまま展開する。既知キーだけを
+  // 拾うと、契約に無いキーが正規化の時点で消え、design/schemas/deck.schema.json
+  // の additionalProperties: false が検証対象を受け取る前に無力化されてしまう。
   return {
-    title: meta.title,
+    ...meta,
     slides: splitSlides(rest).map(parseSlide),
   }
 }
@@ -104,9 +111,9 @@ function parseSlide(chunk) {
 
   const header = loadMapping(headerText)
 
+  // parseDeck 同様、既知キーだけを拾わず header をそのまま展開する。
   return {
-    layout: header.layout,
-    keyMessage: header.keyMessage,
+    ...header,
     ...(bodyText.length > 0 ? { body: bodyText } : {}),
   }
 }

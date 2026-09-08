@@ -29,9 +29,10 @@ const readJson = (relativePath) => JSON.parse(readFileSync(resolve(relativePath)
  * 読み込む対象・スキーマ検証の対象のどちらもここから導く。契約を足したらここへ
  * 足すだけでよく、ファイルの列挙を CONTRACTS 側へ複製しない（DR-0035）。
  *
- * ただし design/schemas/layout.schema.json と component.schema.json の name /
- * allowedIn / slots.component の enum は JSON Schema の静的な列挙なので、ここと
- * 独立に更新が要る。増減させたときは両方のスキーマも合わせて直すこと。
+ * ただし design/schemas/layout.schema.json・component.schema.json・deck.schema.json
+ * の name / allowedIn / slots.component / slides.items.layout の enum は JSON Schema
+ * の静的な列挙なので、ここと独立に更新が要る。増減させたときは3つのスキーマすべてを
+ * 合わせて直すこと。
  */
 const LAYOUT_NAMES = ['title', 'bullets', 'statement']
 const COMPONENT_NAMES = ['slide-title', 'bullet-list', 'statement', 'emphasis']
@@ -372,7 +373,7 @@ function main() {
   const checks = [
     { name: '契約が JSON Schema を満たす', run: () => checkSchemas() },
     {
-      name: 'deck 契約が構文・Schema を満たす',
+      name: 'deck 契約が構文・JSON Schema を満たす',
       run: () => checkDecks(decks, readJson('design/schemas/deck.schema.json')),
     },
     { name: '色が sRGB 色域に収まる', run: () => checkGamut(tokens.color) },
