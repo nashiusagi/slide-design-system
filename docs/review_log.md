@@ -25,7 +25,7 @@
 | `writing/notation-inconsistency` | 表記の不統一（DR 参照がリンクになっていない等） | 4 | PR #19 | 未着手 |
 | `phase/out-of-scope-addition` | フェーズのスコープ外、または DR に接続しないものが混入した | 5 | PR #20 | 未着手 |
 | `decisions/undocumented-decision` | DR に無い判断が、PR説明やIssueにだけ書かれている | 6 | PR #21 | 未着手 |
-| `decisions/dr-restates-canonical-value` | DR が正本の値を本文に書き写した | 3 | PR #19 | 未着手 |
+| `decisions/dr-restates-canonical-value` | DR が正本の値を本文に書き写した | 4 | PR #21 | 未着手 |
 | `contract/source-of-truth-ambiguous` | 「正本」がどのファイルを指すか一意でない | 3 | PR #19 | 未着手 |
 | `inspection/rule-has-bypass` | 検査ルールに抜け道があり、書き方を変えると素通りする | 5 | PR #21 | 未着手 |
 | `inspection/rule-scope-inconsistent` | 同じルールIDの守備範囲が文書間で食い違う | 3 | PR #20 | 未着手 |
@@ -59,7 +59,7 @@
 | `writing/contradictory-instruction` | 日本語 | 同じ状況に対する指示が文書間で食い違う | 2 | PR #17 | PR #20 |
 | `decisions/dr-recording-bypass` | 決定記録 | DR の代わりに PR 本文へ書くことを手順が公認している | 1 | PR #17 | PR #17 |
 | `decisions/consequence-not-followed` | 決定記録 | 既存 DR の帰結が、それを通る手順に反映されていない | 3 | PR #17 | PR #20 |
-| `decisions/dr-restates-canonical-value` | 決定記録 | DR が正本の値を本文に書き写した | 3 | PR #17 | PR #19 |
+| `decisions/dr-restates-canonical-value` | 決定記録 | DR が正本の値を本文に書き写した | 4 | PR #17 | PR #21 |
 | `decisions/index-section-mismatch` | 決定記録 | DR の索引登録が、内容と合わない節に置かれた | 2 | PR #17 | PR #19 |
 | `code/rereview-overwrites-prior-review` | コード品質 | 再レビューが前周のレビュー記録を上書きする | 1 | PR #17 | PR #17 |
 | `code/review-history-row-update-undefined` | コード品質 | レビュー履歴の行の更新方法が書式定義と食い違う | 1 | PR #17 | PR #17 |
@@ -82,7 +82,7 @@
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #21 | 2026-09-08 | 0 | 6 | 1 | [pr-21.md](./reviews/pr-21.md) |
+| #21 | 2026-09-08 | 0 | 9 | 1 | [pr-21.md](./reviews/pr-21.md) |
 | #20 | 2026-09-08 | 1 | 12 | 8 | [pr-20.md](./reviews/pr-20.md) |
 | #19 | 2026-09-07 | 1 | 15 | 7 | [pr-19.md](./reviews/pr-19.md) |
 | #18 | 2026-09-07 | 0 | 9 | 9 | [pr-18.md](./reviews/pr-18.md) |
