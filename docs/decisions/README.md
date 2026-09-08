@@ -60,6 +60,7 @@
 | [0028](./0028-single-check-entry-point.md) | 検査の実行口を `pnpm check` に一本化する |
 | [0033](./0033-derived-values-are-generated-and-checked.md) | トークンから導かれる値は生成し、`pnpm check` で再計算と突き合わせる |
 | [0034](./0034-contrast-metric-wcag21-srgb.md) | コントラストの指標は WCAG 2.1 とし、sRGB 色域に丸めた値で測る |
+| [0037](./0037-eslint-plugin-slide-rule-scope.md) | eslint-plugin-slide の5ルールは、まだ無い実装を前提にしない範囲に絞る |
 
 ### 実験と運用
 

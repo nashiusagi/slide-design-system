@@ -15,6 +15,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import Ajv2020 from 'ajv/dist/2020.js'
 
+import slidePlugin from '../packages/eslint-plugin-slide/src/index.mjs'
 import { contrastRatio, isInSrgbGamut } from './lib/color.mjs'
 import { parseDeck } from './lib/deck.mjs'
 
@@ -40,6 +41,7 @@ const COMPONENT_NAMES = ['slide-title', 'bullet-list', 'statement', 'emphasis']
 /** 契約ファイルと、それを検証するスキーマの対応。契約を足したらここへ足す。 */
 const CONTRACTS = [
   { data: 'design/tokens.json', schema: 'design/schemas/tokens.schema.json' },
+  { data: 'design/rules.json', schema: 'design/schemas/rules.schema.json' },
   ...LAYOUT_NAMES.map((name) => ({
     data: `design/layouts/${name}.json`,
     schema: 'design/schemas/layout.schema.json',
@@ -48,29 +50,6 @@ const CONTRACTS = [
     data: `design/components/${name}.json`,
     schema: 'design/schemas/component.schema.json',
   })),
-]
-
-/**
- * 面として使える色。前景はこのすべての上で水準を満たす必要がある。
- *
- * 集合として持つのは、前景ごとに背景を書き並べると片方だけ書き忘れても検査が通って
- * しまうため。背景を1つ足したら、全前景がその上でも検査される。
- */
-const SURFACES = ['background', 'surface', 'accentSoft']
-
-/**
- * コントラストの必要水準。本文は 4.5:1、UI の境界とフォーカスは 3:1。
- *
- * この表は暫定で、正本は design/rules.json の `contrast` へ移す（DR-0008 / DR-0011）。
- * rules.json を作る Issue（#7 / #8）で、ここは読み込みへ置き換えて消すこと。値を
- * 二箇所に置いたまま放置すると、閾値を上げたときに片方だけが上がる。移すときは
- * 「前景 × SURFACES」という展開の形と、下の未分類の検査も一緒に持っていくこと。
- */
-const CONTRAST_REQUIREMENTS = [
-  { role: '本文', foregrounds: ['text', 'textMuted'], minimum: 4.5 },
-  { role: '強調', foregrounds: ['accent'], minimum: 4.5 },
-  { role: '状態色', foregrounds: ['danger', 'warning', 'success'], minimum: 4.5 },
-  { role: 'UI 境界とフォーカス', foregrounds: ['border'], minimum: 3 },
 ]
 
 /**
@@ -167,25 +146,34 @@ export function checkGamut(colors) {
  * 用途ごとのコントラストが水準を満たしているか。値は記録を読まずに計算し直す。
  * 記録を信じると、記録の側が古いときに検査ごと素通りする。
  *
+ * 閾値は design/rules.json の contrast を正本とする（DR-0008 / DR-0011 / DR-0033）。
+ * ファイルの読み込みは main() に寄せ、ここは引数だけで完結する純関数にする。
+ *
  * @param {Record<string, string>} colors
+ * @param {{ surfaces: string[], requirements: { role: string, foregrounds: string[], minimum: number }[] }} contrast design/rules.json の contrast
  * @returns {string[]}
  */
-export function checkContrast(colors) {
-  return [...checkEveryColorHasRole(colors), ...checkRatios(colors)]
+export function checkContrast(colors, contrast) {
+  return [...checkEveryColorHasRole(colors, contrast), ...checkRatios(colors, contrast)]
 }
 
 /**
  * どの色にも役割が割り当てられているか。
  *
- * 前景の一覧を手で並べているので、色を足して CONTRAST_REQUIREMENTS へ書き忘れると、
- * その色だけ無検査のまま緑で通る。背景側は SURFACES との総当たりで塞がっているが、
- * 前景側は列挙のままなので、未分類そのものを検査して塞ぐ。
+ * 前景の一覧は design/rules.json の contrast.requirements に手で並べているので、
+ * 色を足して書き忘れると、その色だけ無検査のまま緑で通る。背景側は
+ * contrast.surfaces との総当たりで塞がっているが、前景側は列挙のままなので、
+ * 未分類そのものを検査して塞ぐ。
  *
  * @param {Record<string, string>} colors
+ * @param {{ surfaces: string[], requirements: { foregrounds: string[] }[] }} contrast
  * @returns {string[]}
  */
-function checkEveryColorHasRole(colors) {
-  const assigned = new Set([...SURFACES, ...CONTRAST_REQUIREMENTS.flatMap(({ foregrounds }) => foregrounds)])
+function checkEveryColorHasRole(colors, contrast) {
+  const assigned = new Set([
+    ...contrast.surfaces,
+    ...contrast.requirements.flatMap(({ foregrounds }) => foregrounds),
+  ])
 
   return Object.keys(colors)
     .filter((name) => !name.startsWith('$'))
@@ -200,24 +188,57 @@ function checkEveryColorHasRole(colors) {
  * 割り当てられた役割ごとに、面の上での比が水準を満たしているか。
  *
  * @param {Record<string, string>} colors
+ * @param {{ surfaces: string[], requirements: { role: string, foregrounds: string[], minimum: number }[] }} contrast
  * @returns {string[]}
  */
-function checkRatios(colors) {
-  return CONTRAST_REQUIREMENTS.flatMap(({ role, foregrounds, minimum }) =>
+function checkRatios(colors, contrast) {
+  return contrast.requirements.flatMap(({ role, foregrounds, minimum }) =>
     foregrounds.flatMap((foreground) =>
-      SURFACES.filter((background) => background !== foreground).flatMap((background) => {
-        const ratio = contrastRatio(colors[foreground], colors[background])
+      contrast.surfaces
+        .filter((background) => background !== foreground)
+        .flatMap((background) => {
+          const ratio = contrastRatio(colors[foreground], colors[background])
 
-        if (ratio >= minimum) {
-          return []
-        }
+          if (ratio >= minimum) {
+            return []
+          }
 
-        return [
-          `design/tokens.json: ${role}（${foreground} on ${background}）が ${ratio}:1 で、${minimum}:1 を満たさない`,
-        ]
-      }),
+          return [
+            `design/tokens.json: ${role}（${foreground} on ${background}）が ${ratio}:1 で、${minimum}:1 を満たさない`,
+          ]
+        }),
     ),
   )
+}
+
+/**
+ * design/rules.json の method: "lint" のルールIDと、packages/eslint-plugin-slide が
+ * 実装するルールIDが1対1で対応しているか（DR-0011 帰結）。
+ *
+ * 片方向だけでは足りない。rules.json 側だけ見ると、実装だけあって契約に無い
+ * ルール（正規の検査経路から外れた独自ルール）を見逃す。実装側だけ見ると、
+ * 契約にあるのに実装を忘れたルールが「全ルール pass」のまま素通りする。
+ *
+ * @param {{ id: string, method: string }[]} rules design/rules.json の rules
+ * @param {string[]} implementedRuleIds packages/eslint-plugin-slide が export するルールID
+ * @returns {string[]}
+ */
+export function checkLintRuleCoverage(rules, implementedRuleIds) {
+  const declared = new Set(rules.filter((rule) => rule.method === 'lint').map((rule) => rule.id))
+  const implemented = new Set(implementedRuleIds)
+
+  const missing = [...declared]
+    .filter((id) => !implemented.has(id))
+    .map((id) => `packages/eslint-plugin-slide: design/rules.json の lint ルール '${id}' が実装されていない`)
+
+  const extra = [...implemented]
+    .filter((id) => !declared.has(id))
+    .map(
+      (id) =>
+        `packages/eslint-plugin-slide: ルール '${id}' を実装しているが、design/rules.json に method: "lint" として無い`,
+    )
+
+  return [...missing, ...extra]
 }
 
 /**
@@ -359,6 +380,7 @@ export function checkCanvasMatchesRuntime(source, canvas) {
 
 function main() {
   const tokens = readJson('design/tokens.json')
+  const rules = readJson('design/rules.json')
   const canvasSource = readFileSync(resolve('src/runtime/canvas.ts'), 'utf8')
   const layouts = LAYOUT_NAMES.map((name) => readJson(`design/layouts/${name}.json`))
   const components = COMPONENT_NAMES.map((name) => readJson(`design/components/${name}.json`))
@@ -377,7 +399,7 @@ function main() {
       run: () => checkDecks(decks, readJson('design/schemas/deck.schema.json')),
     },
     { name: '色が sRGB 色域に収まる', run: () => checkGamut(tokens.color) },
-    { name: 'コントラストが水準を満たす', run: () => checkContrast(tokens.color) },
+    { name: 'コントラストが水準を満たす', run: () => checkContrast(tokens.color, rules.contrast) },
     {
       name: 'キャンバス寸法がランタイムと一致する',
       run: () => checkCanvasMatchesRuntime(canvasSource, tokens.canvas),
@@ -389,6 +411,10 @@ function main() {
     {
       name: 'layout と component の対応が矛盾していない',
       run: () => checkLayoutComponentConsistency(layouts, components),
+    },
+    {
+      name: 'design/rules.json の lint ルールと eslint-plugin-slide の実装が対応する',
+      run: () => checkLintRuleCoverage(rules.rules, Object.keys(slidePlugin.rules)),
     },
   ]
 

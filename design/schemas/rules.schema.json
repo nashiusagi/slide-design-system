@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nashiusagi/slide-design-system/design/schemas/rules.schema.json",
+  "title": "design/rules.json",
+  "$comment": "検査ルールの契約を検証するスキーマ（DR-0009 / DR-0011）。rules 配列がルールIDと method（lint / measure / review）の対応の正本になる。閾値（contrast / minFontSize / noRawScale）は各ルールの実装がここを読みに来る値で、DR 本文には複製しない（DR-0008 / DR-0012）。",
+  "type": "object",
+  "required": ["rules", "contrast", "minFontSize", "noRawScale"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "$comment": { "type": "string" },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "method", "severity", "description"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z]+(-[a-z]+)*$" },
+          "method": {
+            "type": "string",
+            "enum": ["lint", "measure", "review"],
+            "description": "検査の実行手段。lint は ESLint、measure は Playwright での実測、review は人（DR-0011）。"
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["error", "warn"],
+            "description": "method が review のときは自動合否を持たないため常に無視される（README の検査表）。"
+          },
+          "description": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "contrast": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["surfaces", "requirements"],
+      "description": "contrast ルール（measure）の閾値。scripts/validate-design.mjs の算出値検査と、将来の measure 実装が読む（DR-0008 / DR-0011 / DR-0033）。",
+      "properties": {
+        "$comment": { "type": "string" },
+        "surfaces": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "requirements": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["role", "foregrounds", "minimum"],
+            "properties": {
+              "role": { "type": "string", "minLength": 1 },
+              "foregrounds": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": { "type": "string", "minLength": 1 }
+              },
+              "minimum": { "type": "number", "exclusiveMinimum": 1 }
+            }
+          }
+        }
+      }
+    },
+    "minFontSize": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["px"],
+      "description": "min-font-size ルール（measure）の下限（DR-0012）。",
+      "properties": {
+        "$comment": { "type": "string" },
+        "px": { "type": "integer", "exclusiveMinimum": 0 }
+      }
+    },
+    "noRawScale": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowedLiterals"],
+      "description": "no-raw-scale ルール（lint）が例外的に許す長さリテラル（DR-0011 帰結）。",
+      "properties": {
+        "$comment": { "type": "string" },
+        "allowedLiterals": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}
