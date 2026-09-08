@@ -1,0 +1,18 @@
+{
+  "$schema": "../schemas/component.schema.json",
+  "$comment": "大きな一言。statement layout の主役（DR-0010）。",
+  "name": "statement",
+  "role": "そのスライドで伝えたい結論を、単独で大きく示す。",
+  "allowedIn": ["statement"],
+  "usage": [
+    "1 スライドにつき 1 つだけ。bullet-list とは併用しない",
+    "1〜2 文に収める。本文相当の分量を持たせない"
+  ],
+  "props": {
+    "text": {
+      "type": "string",
+      "required": true,
+      "description": "伝えたい結論の文言。1〜2 文想定。"
+    }
+  }
+}

@@ -8,7 +8,7 @@
  * （DR-0011）。実行口は pnpm check に一本化する（DR-0028）。
  *
  * 骨格として、契約が増えるたびに CONTRACTS と CHECKS へ足していく形にしてある。
- * 今は tokens だけがある。layouts / components / decks / rules は後続の Issue で入る。
+ * 今は tokens / layouts / components がある。decks / rules は後続の Issue で入る。
  */
 import { readFileSync } from 'node:fs'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -24,7 +24,20 @@ const resolve = (relativePath) => fileURLToPath(new URL(`../${relativePath}`, im
 const readJson = (relativePath) => JSON.parse(readFileSync(resolve(relativePath), 'utf8'))
 
 /** 契約ファイルと、それを検証するスキーマの対応。契約を足したらここへ足す。 */
-const CONTRACTS = [{ data: 'design/tokens.json', schema: 'design/schemas/tokens.schema.json' }]
+const CONTRACTS = [
+  { data: 'design/tokens.json', schema: 'design/schemas/tokens.schema.json' },
+  { data: 'design/layouts/title.json', schema: 'design/schemas/layout.schema.json' },
+  { data: 'design/layouts/bullets.json', schema: 'design/schemas/layout.schema.json' },
+  { data: 'design/layouts/statement.json', schema: 'design/schemas/layout.schema.json' },
+  { data: 'design/components/slide-title.json', schema: 'design/schemas/component.schema.json' },
+  { data: 'design/components/bullet-list.json', schema: 'design/schemas/component.schema.json' },
+  { data: 'design/components/statement.json', schema: 'design/schemas/component.schema.json' },
+  { data: 'design/components/emphasis.json', schema: 'design/schemas/component.schema.json' },
+]
+
+/** layout / component 契約のファイル名（拡張子抜き）。読み込む対象をここで固定する。 */
+const LAYOUT_NAMES = ['title', 'bullets', 'statement']
+const COMPONENT_NAMES = ['slide-title', 'bullet-list', 'statement', 'emphasis']
 
 /**
  * 面として使える色。前景はこのすべての上で水準を満たす必要がある。
@@ -52,13 +65,33 @@ const CONTRAST_REQUIREMENTS = [
 /**
  * 契約が JSON Schema を満たすか。
  *
+ * 複数の契約ファイルが同じスキーマ（layout / component）を共有するため、
+ * スキーマパスごとに一度だけ compile する。同じ $id を持つスキーマを ajv に
+ * 二度 compile させると衝突で例外になる。
+ *
  * @returns {string[]}
  */
 function checkSchemas() {
   const ajv = new Ajv2020({ allErrors: true, strict: true })
+  /** @type {Map<string, import('ajv').ValidateFunction>} */
+  const validators = new Map()
+
+  /** @param {string} schemaPath */
+  const validatorFor = (schemaPath) => {
+    const cached = validators.get(schemaPath)
+
+    if (cached !== undefined) {
+      return cached
+    }
+
+    const compiled = ajv.compile(readJson(schemaPath))
+    validators.set(schemaPath, compiled)
+
+    return compiled
+  }
 
   return CONTRACTS.flatMap(({ data, schema }) => {
-    const validate = ajv.compile(readJson(schema))
+    const validate = validatorFor(schema)
 
     if (validate(readJson(data))) {
       return []
@@ -142,6 +175,69 @@ function checkRatios(colors) {
 }
 
 /**
+ * design/layout.css が、レイアウト契約の classes をちょうど実装しているか
+ * （DR-0018 / DR-0030）。過不足どちらも検査する。契約に無いクラスが実装に
+ * 残っていると、使われなくなったレイアウトの実装が残り続けても気付けない。
+ *
+ * CSS を正式にパースせず正規表現で読むのは、キャンバス寸法の検査（下記）と同じ
+ * 理由による。3 レイアウト分の小さな契約に対して別途パーサを持ち込まない。
+ *
+ * @param {{ name: string, classes: string[] }[]} layouts
+ * @param {string} cssSource design/layout.css の中身
+ * @returns {string[]}
+ */
+export function checkLayoutClasses(layouts, cssSource) {
+  const withoutComments = cssSource.replace(/\/\*[\s\S]*?\*\//g, '')
+  const declared = new Set(layouts.flatMap((layout) => layout.classes))
+  const implemented = new Set(
+    [...withoutComments.matchAll(/\.([a-zA-Z0-9_-]+)/g)].map((match) => match[1]),
+  )
+
+  const missing = [...declared]
+    .filter((name) => !implemented.has(name))
+    .map((name) => `design/layout.css: レイアウト契約の classes にある .${name} を実装していない`)
+
+  const extra = [...implemented]
+    .filter((name) => name.startsWith('slide--') && !declared.has(name))
+    .map((name) => `design/layout.css: .${name} を実装しているが、design/layouts/ のどの契約にも無い`)
+
+  return [...missing, ...extra]
+}
+
+/**
+ * layout の slots が参照する component が、その component 契約の allowedIn に
+ * layout 自身を含んでいるか。layout 側と component 側の両方に対応関係を書いて
+ * いるため、片方だけ直して矛盾したまま残ることがある（DR-0035）。
+ *
+ * @param {{ name: string, slots: { component: string }[] }[]} layouts
+ * @param {{ name: string, allowedIn: string[] }[]} components
+ * @returns {string[]}
+ */
+export function checkLayoutComponentConsistency(layouts, components) {
+  const componentsByName = new Map(components.map((component) => [component.name, component]))
+
+  return layouts.flatMap((layout) =>
+    layout.slots.flatMap(({ component: componentName }) => {
+      const component = componentsByName.get(componentName)
+
+      if (component === undefined) {
+        return [
+          `design/layouts/${layout.name}.json: slots が参照する component '${componentName}' の契約が無い`,
+        ]
+      }
+
+      if (!component.allowedIn.includes(layout.name)) {
+        return [
+          `design/components/${componentName}.json: allowedIn に '${layout.name}' が無いが、design/layouts/${layout.name}.json の slots から使われている`,
+        ]
+      }
+
+      return []
+    }),
+  )
+}
+
+/**
  * キャンバス寸法の正本は design/tokens.json だが、ランタイムは設計契約から独立して
  * 動く必要があるため src/runtime/canvas.ts が数値を持つ（DR-0004 / DR-0021）。
  * 両者がずれると no-overflow の基準面が条件ごとに変わり、lint では検出できない。
@@ -179,6 +275,9 @@ export function checkCanvasMatchesRuntime(source, canvas) {
 function main() {
   const tokens = readJson('design/tokens.json')
   const canvasSource = readFileSync(resolve('src/runtime/canvas.ts'), 'utf8')
+  const layouts = LAYOUT_NAMES.map((name) => readJson(`design/layouts/${name}.json`))
+  const components = COMPONENT_NAMES.map((name) => readJson(`design/components/${name}.json`))
+  const layoutCss = readFileSync(resolve('design/layout.css'), 'utf8')
 
   const checks = [
     { name: '契約が JSON Schema を満たす', run: () => checkSchemas() },
@@ -187,6 +286,14 @@ function main() {
     {
       name: 'キャンバス寸法がランタイムと一致する',
       run: () => checkCanvasMatchesRuntime(canvasSource, tokens.canvas),
+    },
+    {
+      name: 'layout.css がレイアウト契約の classes をちょうど実装する',
+      run: () => checkLayoutClasses(layouts, layoutCss),
+    },
+    {
+      name: 'layout と component の対応が矛盾していない',
+      run: () => checkLayoutComponentConsistency(layouts, components),
     },
   ]
 

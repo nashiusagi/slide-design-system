@@ -1,0 +1,19 @@
+{
+  "$schema": "../schemas/component.schema.json",
+  "$comment": "地の文の中で一点だけ強調するインライン部品。北極星「強調は赤紫の一色だけ」に対応（DR-0007）。",
+  "name": "emphasis",
+  "role": "文中の一語・一句だけを、アクセント色で強調する。",
+  "allowedIn": ["statement"],
+  "usage": [
+    "statement の text の中で最大 1 箇所まで。連発すると強調が強調でなくなる",
+    "色はトークンの accent 以外を使わない",
+    "見出しや箇条書きの部品としては使わない。他の部品の中に埋め込んで使う"
+  ],
+  "props": {
+    "text": {
+      "type": "string",
+      "required": true,
+      "description": "強調したい語句のみ。文全体を渡さない。"
+    }
+  }
+}

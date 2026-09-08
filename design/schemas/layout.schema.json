@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nashiusagi/slide-design-system/design/schemas/layout.schema.json",
+  "title": "design/layouts/*.json",
+  "$comment": "レイアウト契約を検証するスキーマ（DR-0009 / DR-0010 / DR-0035）。whenToUse / whenNotToUse を両方必須にすることで、選択基準を書く場所を強制する。中身が役割ベースになっているかどうかまではスキーマでは強制できない。",
+  "type": "object",
+  "required": ["name", "role", "whenToUse", "whenNotToUse", "classes", "slots"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "$comment": { "type": "string" },
+    "name": {
+      "type": "string",
+      "enum": ["title", "bullets", "statement"]
+    },
+    "role": {
+      "type": "string",
+      "minLength": 1,
+      "description": "そのレイアウトが担う役割。見た目ではなく機能で書く。"
+    },
+    "whenToUse": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "whenNotToUse": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "classes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^slide--[a-z-]+$"
+      },
+      "description": "design/layout.css が実装する必要のあるクラス名。DR-0030 の slide--<layout> のみを持つ。"
+    },
+    "slots": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["component", "required", "max"],
+        "properties": {
+          "component": {
+            "type": "string",
+            "enum": ["slide-title", "bullet-list", "statement", "emphasis"]
+          },
+          "required": { "type": "boolean" },
+          "max": { "type": "integer", "minimum": 1 }
+        }
+      }
+    }
+  }
+}

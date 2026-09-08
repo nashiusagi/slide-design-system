@@ -49,6 +49,7 @@
 | [0029](./0029-position-in-url-and-explicit-fragment-index.md) | 現在位置は URL の `#/<スライド>/<段階>` で表し、Fragment の段階は明示する |
 | [0030](./0030-slide-class-derived-from-layout.md) | Slide のクラス名は `slide slide--<layout>` として layout から導く |
 | [0031](./0031-navigation-keys-and-no-history.md) | ページ送りは → ← Space とクリックで行い、履歴を積まない |
+| [0035](./0035-layout-component-contract-shape.md) | layout / component 契約は役割の選択基準と slots / allowedIn の対応で書く |
 
 ### 検査
 

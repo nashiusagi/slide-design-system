@@ -1,0 +1,36 @@
+/*
+ * design/layouts/ にある各契約の slide--<layout> を実装する（DR-0018 / DR-0030）。
+ *
+ * ここが持つのは箱の構造（配置・余白）だけで、部品（design/components/）の
+ * スタイルは持たない。部品の実装は別 Issue が持つ。値はすべて design/theme.css
+ * の --dh-* トークンから取り、生の色・px は書かない（DR-0018）。
+ *
+ * クラス名は design/layouts/*.json の classes と一致していなければならず、
+ * 一致は pnpm design:check が検査する（DR-0009 / DR-0030）。
+ */
+
+.slide--title {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  padding: var(--dh-space-4xl);
+}
+
+.slide--bullets {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--dh-space-3xl);
+  gap: var(--dh-space-xl);
+}
+
+.slide--statement {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  height: 100%;
+  padding: var(--dh-space-4xl);
+}

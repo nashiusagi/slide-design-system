@@ -1,0 +1,19 @@
+{
+  "$schema": "../schemas/layout.schema.json",
+  "$comment": "一枚で伝えたい結論を単独で大きく示す（DR-0010、DR-0007 の北極星に対応）。",
+  "name": "statement",
+  "role": "そのスライド一枚で伝えたい結論やインパクトのある一言を、単独で大きく示す。",
+  "whenToUse": [
+    "一つの結論や主張だけを伝えたいとき",
+    "本文で補足する必要がないほど、言いたいことが一文に収まるとき"
+  ],
+  "whenNotToUse": [
+    "複数の項目を並列に示したいとき（bullets を選ぶ）",
+    "話題を切り替えるだけのとき（title を選ぶ）"
+  ],
+  "classes": ["slide--statement"],
+  "slots": [
+    { "component": "statement", "required": true, "max": 1 },
+    { "component": "emphasis", "required": false, "max": 1 }
+  ]
+}
