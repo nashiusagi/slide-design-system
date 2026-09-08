@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nashiusagi/slide-design-system/design/schemas/deck.schema.json",
+  "title": "design/decks/*.md を正規化した JSON",
+  "$comment": "deck 契約を検証するスキーマ（DR-0016 / DR-0017）。scripts/lib/deck.mjs が Markdown をここへ正規化してから検証する。body の有無で AI の役割が変わる: body が無ければ AI が本文を書く（Phase 1 の使い方）。body があれば AI はそれを素材として尊重し、分割・強調・レイアウト適用だけを担う（Phase 2 の使い方）。",
+  "type": "object",
+  "required": ["title", "slides"],
+  "additionalProperties": false,
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "デッキ全体の主題。frontmatter の title に対応する。"
+    },
+    "slides": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["layout", "keyMessage"],
+        "additionalProperties": false,
+        "properties": {
+          "layout": {
+            "type": "string",
+            "enum": ["title", "bullets", "statement"],
+            "description": "design/layouts/*.json のどのレイアウトでこのスライドを表すか。"
+          },
+          "keyMessage": {
+            "type": "string",
+            "minLength": 1,
+            "description": "そのスライドで伝える一文。必須。body の有無に関わらず、AI が判断の軸にする。"
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "description": "本文素材。任意。無ければ AI が本文を書く（Phase 1）。あれば AI はそれを素材として尊重し、分割・強調・レイアウト適用だけを担う（Phase 2、DR-0017）。"
+          }
+        }
+      }
+    }
+  }
+}

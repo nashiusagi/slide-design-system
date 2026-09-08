@@ -5,11 +5,14 @@
  * 壊れた入力を渡したときに必ず1件返るという側。判定側にこれが無いと、何も検出しない
  * ルールでも緑のまま通る。
  */
+import { readFileSync } from 'node:fs'
+
 import { describe, expect, it } from 'vitest'
 
 import {
   checkCanvasMatchesRuntime,
   checkContrast,
+  checkDecks,
   checkGamut,
   checkLayoutClasses,
   checkLayoutComponentConsistency,
@@ -224,5 +227,64 @@ describe('checkCanvasMatchesRuntime', () => {
 
     expect(found).toHaveLength(2)
     expect(found[0]).toContain('読み取れない')
+  })
+})
+
+describe('checkDecks', () => {
+  // resolve() は import.meta.url からの相対パス解決に URL を使っており、jsdom
+  // 環境下ではその解決が壊れる（jsdom がグローバルの URL を差し替えるため）。
+  // checkSchemas 側もこの理由でテスト対象に含めていない。ここではファイル読み込みを
+  // 挟まず、相対パスのまま fs で読むことでその落とし穴を避ける。
+  const deckSchema = JSON.parse(readFileSync('design/schemas/deck.schema.json', 'utf8'))
+
+  /** Schema を満たす最小の deck.md。各テストはここから1箇所だけ壊す。 */
+  const validSource = `---
+title: サンプル
+---
+
+layout: title
+keyMessage: "見出し"
+`
+
+  it('Schema を満たしていれば何も返さない', () => {
+    expect(checkDecks([{ path: 'design/decks/sample.md', source: validSource }], deckSchema)).toEqual([])
+  })
+
+  it('frontmatter が無ければ構文エラーとして捕まえる', () => {
+    const found = checkDecks(
+      [{ path: 'design/decks/sample.md', source: 'layout: title\n' }],
+      deckSchema,
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('design/decks/sample.md')
+    expect(found[0]).toContain('frontmatter')
+  })
+
+  it('keyMessage が無ければ Schema 違反として捕まえる', () => {
+    const source = `---
+title: サンプル
+---
+
+layout: title
+`
+    const found = checkDecks([{ path: 'design/decks/sample.md', source }], deckSchema)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('keyMessage')
+  })
+
+  it('layout が契約に無いレイアウト名なら Schema 違反として捕まえる', () => {
+    const source = `---
+title: サンプル
+---
+
+layout: unknown-layout
+keyMessage: "見出し"
+`
+    const found = checkDecks([{ path: 'design/decks/sample.md', source }], deckSchema)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('layout')
   })
 })
