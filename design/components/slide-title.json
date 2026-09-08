@@ -5,7 +5,7 @@
   "role": "スライドの主題を一行で示す見出し。",
   "allowedIn": ["title", "bullets"],
   "usage": [
-    "1 スライドにつき最大 1 つ。layout の先頭に置く",
+    "使ってよい個数は allowedIn の各 layout の slots が定める。layout の先頭に置く",
     "1 行に収める。折り返しが必要になるほど長い文を書かない"
   ],
   "props": {

@@ -5,7 +5,7 @@
   "role": "そのスライドで伝えたい結論を、単独で大きく示す。",
   "allowedIn": ["statement"],
   "usage": [
-    "1 スライドにつき 1 つだけ。bullet-list とは併用しない",
+    "使ってよい個数は allowedIn の各 layout の slots が定める。bullet-list とは併用しない",
     "1〜2 文に収める。本文相当の分量を持たせない"
   ],
   "props": {

@@ -23,21 +23,30 @@ const resolve = (relativePath) => fileURLToPath(new URL(`../${relativePath}`, im
 /** @param {string} relativePath */
 const readJson = (relativePath) => JSON.parse(readFileSync(resolve(relativePath), 'utf8'))
 
+/**
+ * layout / component 契約のファイル名（拡張子抜き）。ここが名前の唯一の一覧で、
+ * 読み込む対象・スキーマ検証の対象のどちらもここから導く。契約を足したらここへ
+ * 足すだけでよく、ファイルの列挙を CONTRACTS 側へ複製しない（DR-0035）。
+ *
+ * ただし design/schemas/layout.schema.json と component.schema.json の name /
+ * allowedIn / slots.component の enum は JSON Schema の静的な列挙なので、ここと
+ * 独立に更新が要る。増減させたときは両方のスキーマも合わせて直すこと。
+ */
+const LAYOUT_NAMES = ['title', 'bullets', 'statement']
+const COMPONENT_NAMES = ['slide-title', 'bullet-list', 'statement', 'emphasis']
+
 /** 契約ファイルと、それを検証するスキーマの対応。契約を足したらここへ足す。 */
 const CONTRACTS = [
   { data: 'design/tokens.json', schema: 'design/schemas/tokens.schema.json' },
-  { data: 'design/layouts/title.json', schema: 'design/schemas/layout.schema.json' },
-  { data: 'design/layouts/bullets.json', schema: 'design/schemas/layout.schema.json' },
-  { data: 'design/layouts/statement.json', schema: 'design/schemas/layout.schema.json' },
-  { data: 'design/components/slide-title.json', schema: 'design/schemas/component.schema.json' },
-  { data: 'design/components/bullet-list.json', schema: 'design/schemas/component.schema.json' },
-  { data: 'design/components/statement.json', schema: 'design/schemas/component.schema.json' },
-  { data: 'design/components/emphasis.json', schema: 'design/schemas/component.schema.json' },
+  ...LAYOUT_NAMES.map((name) => ({
+    data: `design/layouts/${name}.json`,
+    schema: 'design/schemas/layout.schema.json',
+  })),
+  ...COMPONENT_NAMES.map((name) => ({
+    data: `design/components/${name}.json`,
+    schema: 'design/schemas/component.schema.json',
+  })),
 ]
-
-/** layout / component 契約のファイル名（拡張子抜き）。読み込む対象をここで固定する。 */
-const LAYOUT_NAMES = ['title', 'bullets', 'statement']
-const COMPONENT_NAMES = ['slide-title', 'bullet-list', 'statement', 'emphasis']
 
 /**
  * 面として使える色。前景はこのすべての上で水準を満たす必要がある。
@@ -189,8 +198,13 @@ function checkRatios(colors) {
 export function checkLayoutClasses(layouts, cssSource) {
   const withoutComments = cssSource.replace(/\/\*[\s\S]*?\*\//g, '')
   const declared = new Set(layouts.flatMap((layout) => layout.classes))
+
+  // クラス名は「次の { の直前までの部分（セレクタ）」からだけ拾う。宣言ブロックの
+  // 中（例: カスタムプロパティの値に書かれた文字列）まで拾うと、実装していない
+  // クラスを値としてだけ書いても「実装済み」と誤判定できてしまう。
+  const selectors = [...withoutComments.matchAll(/([^{}]+)\{/g)].map((match) => match[1])
   const implemented = new Set(
-    [...withoutComments.matchAll(/\.([a-zA-Z0-9_-]+)/g)].map((match) => match[1]),
+    selectors.flatMap((selector) => [...selector.matchAll(/\.([a-zA-Z0-9_-]+)/g)].map((match) => match[1])),
   )
 
   const missing = [...declared]
@@ -205,18 +219,24 @@ export function checkLayoutClasses(layouts, cssSource) {
 }
 
 /**
- * layout の slots が参照する component が、その component 契約の allowedIn に
- * layout 自身を含んでいるか。layout 側と component 側の両方に対応関係を書いて
- * いるため、片方だけ直して矛盾したまま残ることがある（DR-0035）。
+ * layout の slots と component の allowedIn が、両方向から見て矛盾していないか。
+ * どちらの契約にも同じ対応関係を書いているため、片方だけ直すと矛盾したまま残る
+ * （DR-0035）。
+ *
+ * 片方向（slots → allowedIn）だけでは、「実際には使われていない layout を
+ * allowedIn に書いてしまう」誤りを検出できない。allowedIn 側の一覧を signature
+ * として信じる読み手（AI や将来の component-approved 相当のルール）がいる以上、
+ * 逆方向（allowedIn → slots）も見る必要がある。
  *
  * @param {{ name: string, slots: { component: string }[] }[]} layouts
  * @param {{ name: string, allowedIn: string[] }[]} components
  * @returns {string[]}
  */
 export function checkLayoutComponentConsistency(layouts, components) {
+  const layoutsByName = new Map(layouts.map((layout) => [layout.name, layout]))
   const componentsByName = new Map(components.map((component) => [component.name, component]))
 
-  return layouts.flatMap((layout) =>
+  const fromSlots = layouts.flatMap((layout) =>
     layout.slots.flatMap(({ component: componentName }) => {
       const component = componentsByName.get(componentName)
 
@@ -235,6 +255,28 @@ export function checkLayoutComponentConsistency(layouts, components) {
       return []
     }),
   )
+
+  const fromAllowedIn = components.flatMap((component) =>
+    component.allowedIn.flatMap((layoutName) => {
+      const layout = layoutsByName.get(layoutName)
+
+      if (layout === undefined) {
+        return [
+          `design/components/${component.name}.json: allowedIn が参照する layout '${layoutName}' の契約が無い`,
+        ]
+      }
+
+      if (!layout.slots.some((slot) => slot.component === component.name)) {
+        return [
+          `design/components/${component.name}.json: allowedIn に '${layoutName}' があるが、design/layouts/${layoutName}.json の slots に '${component.name}' が無い`,
+        ]
+      }
+
+      return []
+    }),
+  )
+
+  return [...fromSlots, ...fromAllowedIn]
 }
 
 /**

@@ -122,6 +122,19 @@ describe('checkLayoutClasses', () => {
     expect(found).toHaveLength(1)
     expect(found[0]).toContain('.slide--bullets')
   })
+
+  it('宣言ブロックの中に書かれた文字列はセレクタと見なさない', () => {
+    // カスタムプロパティの値などにクラス名らしき文字列が書かれていても、それは
+    // セレクタではない。「{ の直前までの部分」だけを見ることで、実装していない
+    // クラスを値としてだけ書いた場合に「実装済み」と誤判定しないことを固定する。
+    const found = checkLayoutClasses(
+      layouts,
+      ':root { --debug-note: ".slide--bullets is not implemented yet"; }\n.slide--title { display: flex; }\n',
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('.slide--bullets')
+  })
 })
 
 describe('checkLayoutComponentConsistency', () => {
@@ -139,13 +152,43 @@ describe('checkLayoutComponentConsistency', () => {
     expect(found[0]).toContain("component 'slide-title' の契約が無い")
   })
 
-  it('component の allowedIn が layout を含んでいないと捕まえる', () => {
+  it('slots にある component の allowedIn にその layout が無いと捕まえる', () => {
+    // component 自体は bullets では allowedIn を満たしているので、
+    // allowedIn → slots 方向は空になり、slots → allowedIn 方向の1件だけが返る。
+    const found = checkLayoutComponentConsistency(
+      [
+        { name: 'title', slots: [{ component: 'slide-title' }] },
+        { name: 'bullets', slots: [{ component: 'slide-title' }] },
+      ],
+      [{ name: 'slide-title', allowedIn: ['bullets'] }],
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain("allowedIn に 'title' が無い")
+  })
+
+  it('allowedIn が参照する layout の契約が無いと捕まえる', () => {
     const found = checkLayoutComponentConsistency(layouts, [
-      { name: 'slide-title', allowedIn: ['bullets'] },
+      { name: 'slide-title', allowedIn: ['title', 'nonexistent'] },
     ])
 
     expect(found).toHaveLength(1)
-    expect(found[0]).toContain('allowedIn')
+    expect(found[0]).toContain("layout 'nonexistent' の契約が無い")
+  })
+
+  it('allowedIn にあるが、その layout の slots で使われていない component を捕まえる', () => {
+    // slots → allowedIn 方向だけでは、「実際には使われていない layout を
+    // allowedIn に書いてしまう」誤りを検出できない。逆方向も見ていることを固定する。
+    const found = checkLayoutComponentConsistency(
+      [
+        { name: 'title', slots: [{ component: 'slide-title' }] },
+        { name: 'bullets', slots: [] },
+      ],
+      [{ name: 'slide-title', allowedIn: ['title', 'bullets'] }],
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain("slots に 'slide-title' が無い")
   })
 })
 

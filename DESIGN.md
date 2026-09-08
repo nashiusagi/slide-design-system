@@ -15,15 +15,16 @@ AI がスライドを生成する前に最初に読む設計方針。ここは�
 - 余白と文字の階層だけで構造を示す
 - レイアウトは「見た目」ではなく「そのスライドが担う役割」で選ぶ。判断基準は `design/layouts/*.json` の `whenToUse` / `whenNotToUse` にある（[DR-0010](./docs/decisions/0010-three-layouts.md)）
 - 色・余白・文字サイズはすべて `design/tokens.json` から生成された `--dh-*` 変数を参照する（[DR-0018](./docs/decisions/0018-plain-css-with-tokens.md)）
-- 契約にある layout / component だけを使う。組み合わせは `design/layouts/*.json` の `slots` が定める
+- 契約にあるレイアウト / 部品だけを使う。組み合わせは `design/layouts/*.json` の `slots` が定める
 
 **Don't**
 
 - 生の色値・生の px 値を書かない。`--dh-*` を経由しない値は契約を素通りする抜け道になる（[DR-0018](./docs/decisions/0018-plain-css-with-tokens.md)）
 - 影・角丸を装飾として使わない。既定は「無し」で、`design/tokens.json` の `shadow.raised` は 1 枚につき 1 箇所までの例外である
 - アクセント（強調）を 1 枚の中で複数箇所に重ねない。強調が連発すると強調でなくなる
-- 契約に無い layout 名・component 名を使わない。契約に無い独自のレイアウトや部品を作らない（`layout-approved` / `component-approved`、[DR-0011](./docs/decisions/0011-lint-and-measure.md)）
-- Phase 1 のスコープ外にある layout（`section` / `code` / `figure`）を先取りして作らない（[DR-0010](./docs/decisions/0010-three-layouts.md)、Phase 1.5）
+- 契約に無い、または契約と異なる独自のレイアウト・部品を作らない（`layout-approved` / `component-approved`、[DR-0011](./docs/decisions/0011-lint-and-measure.md)）
+- Phase 1 のスコープ外にあるレイアウト（`section` / `code` / `figure`）を先取りして作らない（[DR-0010](./docs/decisions/0010-three-layouts.md)、Phase 1.5）
+- 北極星の「紙面」を字義通りに取らない。罫線・枠線・仕切り線で紙や帳票を模す装飾は作らない。北極星が指すのは余白と文字の階層だけで構造を示すことであり、紙の見た目を再現することではない
 
 ## 衝突したときの優先順位
 
@@ -31,7 +32,7 @@ AI がスライドを生成する前に最初に読む設計方針。ここは�
 
 1. **Global Constraints** — 機械検査で担保される、譲れない制約
 2. **北極星** — 「白い紙面と黒い文字。強調は赤紫の一色だけ」
-3. **layout / component 契約の選択基準** — 役割に基づく選択（見た目の好みでは選ばない）
+3. **レイアウト / 部品契約の選択基準** — 役割に基づく選択（見た目の好みでは選ばない）
 4. **見た目の細部の裁量** — トークンの範囲内での、上記のいずれとも衝突しない選択
 
 北極星と Global Constraints が衝突しているように見えるときは、Global Constraints を優先する。たとえば「強調を大きく見せたい」という北極星側の欲求より、「キャンバスからはみ出さない」「コントラスト基準を満たす」という制約が勝つ。
@@ -57,4 +58,4 @@ AI がスライドを生成する前に最初に読む設計方針。ここは�
 - [DR-0009](./docs/decisions/0009-five-layer-contract.md) 契約の 5 層
 - [DR-0010](./docs/decisions/0010-three-layouts.md) レイアウト 3 種
 - [DR-0018](./docs/decisions/0018-plain-css-with-tokens.md) 素の CSS + トークン
-- [DR-0035](./docs/decisions/0035-layout-component-contract-shape.md) layout / component 契約の具体的な形
+- [DR-0035](./docs/decisions/0035-layout-component-contract-shape.md) レイアウト / 部品契約の具体的な形
