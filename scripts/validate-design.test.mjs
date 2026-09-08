@@ -302,6 +302,23 @@ keyMessage: " "
     expect(found[0]).toContain('keyMessage')
   })
 
+  it('keyMessage がゼロ幅スペースのみなら Schema 違反として捕まえる。\\S は ECMAScript の空白定義にしか反応せず、見た目上空の不可視文字を見逃す', () => {
+    // ソースコードへ不可視文字を直接埋めると no-irregular-whitespace に
+    // 引っかかるため、JS のエスケープシーケンスとして埋め込む。
+    const zeroWidthSpace = '\u200B'
+    const source = `---
+title: サンプル
+---
+
+layout: title
+keyMessage: "${zeroWidthSpace}"
+`
+    const found = checkDecks([{ path: 'design/decks/sample.md', source }], deckSchema)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('keyMessage')
+  })
+
   it('title が空白のみなら Schema 違反として捕まえる', () => {
     const source = `---
 title: " "
