@@ -237,6 +237,10 @@ describe('checkDecks', () => {
   // 挟まず、相対パスのまま fs で読むことでその落とし穴を避ける。
   const deckSchema = JSON.parse(readFileSync('design/schemas/deck.schema.json', 'utf8'))
 
+  // ソースコードへ不可視文字を直接埋めると no-irregular-whitespace に
+  // 引っかかるため、JS のエスケープシーケンスとして埋め込む。
+  const zeroWidthSpace = '\u200B'
+
   /** Schema を満たす最小の deck.md。各テストはここから1箇所だけ壊す。 */
   const validSource = `---
 title: サンプル
@@ -303,9 +307,6 @@ keyMessage: " "
   })
 
   it('keyMessage がゼロ幅スペースのみなら Schema 違反として捕まえる。\\S は ECMAScript の空白定義にしか反応せず、見た目上空の不可視文字を見逃す', () => {
-    // ソースコードへ不可視文字を直接埋めると no-irregular-whitespace に
-    // 引っかかるため、JS のエスケープシーケンスとして埋め込む。
-    const zeroWidthSpace = '\u200B'
     const source = `---
 title: サンプル
 ---
@@ -331,6 +332,36 @@ keyMessage: "見出し"
 
     expect(found).toHaveLength(1)
     expect(found[0]).toContain('title')
+  })
+
+  it('title がゼロ幅スペースのみなら Schema 違反として捕まえる。title/keyMessage/body は同じ pattern を個別に持つため、1キーだけのテストでは残り2つの改変・改悪を検出できない', () => {
+    const source = `---
+title: "${zeroWidthSpace}"
+---
+
+layout: title
+keyMessage: "見出し"
+`
+    const found = checkDecks([{ path: 'design/decks/sample.md', source }], deckSchema)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('title')
+  })
+
+  it('body がゼロ幅スペースのみなら Schema 違反として捕まえる', () => {
+    const source = `---
+title: サンプル
+---
+
+layout: bullets
+keyMessage: "見出し"
+
+${zeroWidthSpace}
+`
+    const found = checkDecks([{ path: 'design/decks/sample.md', source }], deckSchema)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('body')
   })
 
   it('契約に無いキーが frontmatter にあれば Schema 違反として捕まえる。パーサが既知キーだけ拾うと additionalProperties が発火しなくなる', () => {

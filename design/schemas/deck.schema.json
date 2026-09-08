@@ -11,7 +11,7 @@
       "type": "string",
       "minLength": 1,
       "pattern": "[^\\s\\u200B\\u200C\\u200D\\uFEFF]",
-      "description": "デッキ全体の主題。frontmatter の title に対応する。空白のみの文字列は minLength を満たしてしまうため、pattern で「空白文字でも、よく使われるゼロ幅/不可視文字（U+200B〜200D, U+FEFF）でもない文字」の存在を別途要求する。Unicode の不可視文字（Cf カテゴリ）を網羅する意図は無く、実際に遭遇した種類だけを塞ぐ。"
+      "description": "デッキ全体の主題。frontmatter の title に対応する。空白のみの文字列は minLength を満たしてしまうため、pattern で非空白文字の存在を別途要求する。JavaScript の \\s は U+FEFF（BOM）を空白として扱うが、ゼロ幅スペース等（U+200B〜200D）は扱わないため、それらは pattern 側で明示的に除外している。U+200B は実際に確認された事例、U+200C・U+200D・U+FEFF は同種の不可視文字として予防的に含めた。Unicode の不可視文字（Cf カテゴリ）全般を網羅する意図は無い。"
     },
     "slides": {
       "type": "array",
@@ -30,13 +30,13 @@
             "type": "string",
             "minLength": 1,
             "pattern": "[^\\s\\u200B\\u200C\\u200D\\uFEFF]",
-            "description": "そのスライドで伝える一文。必須。body の有無に関わらず、AI が判断の軸にする。空白のみの文字列は minLength を満たしてしまうため、pattern で「空白文字でも、よく使われるゼロ幅/不可視文字（U+200B〜200D, U+FEFF）でもない文字」の存在を別途要求する。Unicode の不可視文字（Cf カテゴリ）を網羅する意図は無く、実際に遭遇した種類だけを塞ぐ。"
+            "description": "そのスライドで伝える一文。必須。body の有無に関わらず、AI が判断の軸にする。空白のみの文字列は minLength を満たしてしまうため、pattern で非空白文字の存在を別途要求する。JavaScript の \\s は U+FEFF（BOM）を空白として扱うが、ゼロ幅スペース等（U+200B〜200D）は扱わないため、それらは pattern 側で明示的に除外している。U+200B は実際に確認された事例、U+200C・U+200D・U+FEFF は同種の不可視文字として予防的に含めた。Unicode の不可視文字（Cf カテゴリ）全般を網羅する意図は無い。"
           },
           "body": {
             "type": "string",
             "minLength": 1,
             "pattern": "[^\\s\\u200B\\u200C\\u200D\\uFEFF]",
-            "description": "本文素材。任意。無ければ AI が本文を書く（Phase 1）。あれば AI はそれを素材として尊重し、分割・強調・レイアウト適用だけを担う（Phase 2、DR-0017）。空白のみの文字列は minLength を満たしてしまうため、pattern で「空白文字でも、よく使われるゼロ幅/不可視文字（U+200B〜200D, U+FEFF）でもない文字」の存在を別途要求する。Unicode の不可視文字（Cf カテゴリ）を網羅する意図は無く、実際に遭遇した種類だけを塞ぐ。"
+            "description": "本文素材。任意。無ければ AI が本文を書く（Phase 1）。あれば AI はそれを素材として尊重し、分割・強調・レイアウト適用だけを担う（Phase 2、DR-0017）。空白のみの文字列は minLength を満たしてしまうため、pattern で非空白文字の存在を別途要求する。JavaScript の \\s は U+FEFF（BOM）を空白として扱うが、ゼロ幅スペース等（U+200B〜200D）は扱わないため、それらは pattern 側で明示的に除外している。U+200B は実際に確認された事例、U+200C・U+200D・U+FEFF は同種の不可視文字として予防的に含めた。Unicode の不可視文字（Cf カテゴリ）全般を網羅する意図は無い。"
           }
         }
       }
