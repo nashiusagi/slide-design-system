@@ -1,11 +1,11 @@
 {
   "$schema": "../schemas/component.schema.json",
-  "$comment": "大きな一言。statement layout の主役（DR-0010）。",
+  "$comment": "大きな一言。statement レイアウトの主役（DR-0010）。",
   "name": "statement",
   "role": "そのスライドで伝えたい結論を、単独で大きく示す。",
   "allowedIn": ["statement"],
   "usage": [
-    "使ってよい個数は allowedIn の各 layout の slots が定める。bullet-list とは併用しない",
+    "使ってよい個数は allowedIn の各レイアウトの slots が定める。bullet-list とは併用しない",
     "1〜2 文に収める。本文相当の分量を持たせない"
   ],
   "props": {

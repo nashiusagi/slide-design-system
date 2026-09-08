@@ -15,7 +15,7 @@ Phase 1.5 で layout / component が増える（[DR-0010](./0010-three-layouts.m
 
 **layout 契約**は `name` / `role` / `whenToUse` / `whenNotToUse` / `classes` / `slots` を持つ。`whenToUse` と `whenNotToUse` を両方必須にし、どちらも配列で複数書けるようにする。`classes` は [DR-0030](./0030-slide-class-derived-from-layout.md) が定める `slide--<layout>` のみを持つ。`slots` は、その layout が使う component 名と、必須かどうか・最大個数を書く。
 
-**component 契約**は `name` / `role` / `allowedIn` / `usage` / `props` を持つ。`allowedIn` はその component が使ってよい layout 名の配列。`props` は `{ プロパティ名: { type, required, description } }` という平坦なオブジェクトで、実装（React コンポーネントの型）はここでは持たない。`type` は `string` / `string[]` のみを許す。Phase 1 の4 component が要求する値は、見出しや本文の文言（`string`）か、箇条書きの項目（`string[]`）のどちらかで表現でき、真偽値や数値を要求する component がまだ無いため、現時点で必要な範囲に絞った。
+**component 契約**は `name` / `role` / `allowedIn` / `usage` / `props` を持つ。`allowedIn` はその component が使ってよい layout 名の配列。`props` は `{ プロパティ名: { type, required, description } }` という平坦なオブジェクトで、実装（React コンポーネントの型）はここでは持たない。`type` が取りうる値は `design/schemas/component.schema.json` の enum が定める（正本）。Phase 1 の4 component が要求する値は、見出しや本文の文言か、箇条書きの項目かのどちらかで表現でき、真偽値や数値を要求する component がまだ無いため、その2種類だけに絞った。
 
 **layout の `slots` と component の `allowedIn` は同じ対応関係を両側から書く。** `pnpm design:check` は両方向の矛盾を検査する。`slots` → `allowedIn` 方向（`slots` が参照する component 名が無い、`allowedIn` に layout が無い）と、`allowedIn` → `slots` 方向（`allowedIn` が参照する layout 名が無い、その layout の `slots` に自分が無い）の両方を見る。片方向だけだと、「実際には使われていない layout を `allowedIn` に書いてしまう」誤りを検出できない。
 
@@ -25,7 +25,7 @@ Phase 1.5 で layout / component が増える（[DR-0010](./0010-three-layouts.m
 - **`classes` を `slide--<layout>` 1 つに絞ったのは、[DR-0030](./0030-slide-class-derived-from-layout.md) が実装スコープをそこまでと決めているため。** region ごとの子クラスまで契約に持たせると、まだ存在しない component 実装の DOM 構造を先取りして決めることになり、契約が実装より先に固まってしまう
 - **`slots` と `allowedIn` を両側に書くのは、AI が契約を読む入り口を揃えるため。** layout を選ぶときは `slots` から使える component が分かり、component を選ぶときは `allowedIn` から使える layout が分かる。どちらか一方だけだと、逆方向から読むときに他方のファイルを探しに行くことになる
 - **両側に書く以上、矛盾しうる。** 矛盾を機械検査するのは、[DR-0009](./0009-five-layer-contract.md) の帰結（契約と実装の整合を保つ仕組みが要る）と同じ理由による
-- **`props.type` を `string` / `string[]` に絞ったのは、まだ来ていない要求に備えないため。** 4 つの component の `props` はすべてこの2値で表現できる。真偽値や数値の prop が実際に要る component が出てきた時点で、この DR を更新してから schema の enum を広げる
+- **`props.type` の取りうる値を絞ったのは、まだ来ていない要求に備えないため。** 4 つの component の `props` はすべて文言かその配列で表現できる。真偽値や数値の prop が実際に要る component が出てきた時点で、この DR を更新してから `design/schemas/component.schema.json` の enum を広げる
 
 ## 検討した他の選択肢
 

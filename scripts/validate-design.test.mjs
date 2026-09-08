@@ -135,6 +135,18 @@ describe('checkLayoutClasses', () => {
     expect(found).toHaveLength(1)
     expect(found[0]).toContain('.slide--bullets')
   })
+
+  it('属性セレクタの引用符付き値に書かれた文字列はクラス名と見なさない', () => {
+    // セレクタ部分に絞っても、属性セレクタの値というスタイリングを持たない場所に
+    // クラス名らしき文字列を書けてしまう。空ルールで「実装済み」を装えないことを固定する。
+    const found = checkLayoutClasses(
+      layouts,
+      '[data-debug=".slide--bullets"] {}\n.slide--title { display: flex; }\n',
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('.slide--bullets')
+  })
 })
 
 describe('checkLayoutComponentConsistency', () => {

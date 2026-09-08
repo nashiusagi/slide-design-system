@@ -202,7 +202,13 @@ export function checkLayoutClasses(layouts, cssSource) {
   // クラス名は「次の { の直前までの部分（セレクタ）」からだけ拾う。宣言ブロックの
   // 中（例: カスタムプロパティの値に書かれた文字列）まで拾うと、実装していない
   // クラスを値としてだけ書いても「実装済み」と誤判定できてしまう。
-  const selectors = [...withoutComments.matchAll(/([^{}]+)\{/g)].map((match) => match[1])
+  //
+  // セレクタの中でも、属性セレクタの引用符付き値（例: [data-x=".slide--x"]）は
+  // 除いてから拾う。除かないと、実際にはスタイリングしていない空ルールの
+  // 属性値へクラス名らしき文字列を書くだけで「実装済み」と誤判定できてしまう。
+  const selectors = [...withoutComments.matchAll(/([^{}]+)\{/g)].map((match) =>
+    match[1].replace(/\[[^\]]*\]/g, ''),
+  )
   const implemented = new Set(
     selectors.flatMap((selector) => [...selector.matchAll(/\.([a-zA-Z0-9_-]+)/g)].map((match) => match[1])),
   )

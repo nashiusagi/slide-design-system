@@ -25,7 +25,7 @@
         "type": "string",
         "enum": ["title", "bullets", "statement"]
       },
-      "description": "この部品が使われてよい layout の一覧。"
+      "description": "この部品が使われてよいレイアウトの一覧。"
     },
     "usage": {
       "type": "array",
