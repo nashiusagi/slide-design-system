@@ -11,6 +11,7 @@
  * 使う場所が `allowedIn` と一致しているかだけを見る。import による参照は
  * 対象にしない（正規の実装をインポートして使うことを妨げないため）。
  */
+import { jsxAttributeStringValue } from '../lib/jsx-style.mjs'
 import { listComponents, toPascalCase } from '../lib/design-contracts.mjs'
 
 /**
@@ -38,9 +39,8 @@ function findEnclosingLayout(context, node) {
     const layoutAttribute = attributes.find(
       (attribute) => attribute.type === 'JSXAttribute' && attribute.name?.name === 'layout',
     )
-    const value = layoutAttribute?.value
 
-    return value?.type === 'Literal' && typeof value.value === 'string' ? value.value : undefined
+    return layoutAttribute === undefined ? undefined : jsxAttributeStringValue(layoutAttribute)?.text
   }
 
   return undefined
@@ -89,9 +89,13 @@ const rule = {
         }
       },
       VariableDeclarator(node) {
+        const initType = node.init?.type
+
         if (
           node.id.type === 'Identifier' &&
-          (node.init?.type === 'ArrowFunctionExpression' || node.init?.type === 'FunctionExpression')
+          (initType === 'ArrowFunctionExpression' ||
+            initType === 'FunctionExpression' ||
+            initType === 'ClassExpression')
         ) {
           checkShadow(node.id)
         }

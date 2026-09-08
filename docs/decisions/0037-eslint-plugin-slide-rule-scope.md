@@ -3,7 +3,8 @@
 - **状態**: 承認済み
 - **日付**: 2026-09-08
 - **関連**: [DR-0011](./0011-lint-and-measure.md), [DR-0035](./0035-layout-component-contract-shape.md), [DR-0033](./0033-derived-values-are-generated-and-checked.md)
-- **正本**: `design/rules.json`, `packages/eslint-plugin-slide/`
+- **正本**: `design/rules.json`
+- **実装**: `packages/eslint-plugin-slide/`
 
 ## 文脈
 
@@ -19,6 +20,7 @@
 **まだ無い実装を前提にしない範囲に、各ルールの検出方法を絞る。**
 
 - **`no-raw-color` / `no-raw-scale`**: 検査対象を JSX の `style={{ ... }}` オブジェクトに絞る。CSS ファイル（`design/layout.css` 等）は対象にしない。ESLint に CSS AST パーサが配線されていない（#22 が指摘する状態と同じ）ため、CSS 側は現状「検査していない」ことを明示する
+- **`no-raw-color`**: 色を運ぶプロパティを固定の一覧（`COLOR_PROPERTIES`）で持ち、`background` / `border` のようなショートハンドは対象に含めない。ショートハンドの値は色以外（長さ・スタイル種別）も同じ文字列に混ざるため、対象にすると「色ではない部分」を色として誤検出する。生の色値も hex と CSS の色関数（`rgb()` / `oklch()` 等）だけをパターンとして検出し、CSS の名前付きキーワード色（`red` 等）は語彙が広く誤検出が増えるため対象にしない
 - **`no-raw-scale`**: 値が「数値、または単位付きの数値」に見えるものだけを対象にする（`NUMERIC_LENGTH` パターン）。`'center'` のようなキーワード値まで対象にすると、長さではない値を誤って報告する
 - **`component-approved`**: DOM 構造ではなく、契約名（kebab-case を PascalCase へ変換したもの、例: `slide-title` → `SlideTitle`）の**ローカルでの再定義（シャドーイング）**と、契約名を使う箇所の **layout との対応（`allowedIn`）** だけを見る。正規の実装を import して使うことは妨げない。実際の DOM 構造を検査する版は、component の React 実装が入る Issue で改めて検討する
 - **`deck-conformance`**: 対応する deck 契約をファイル名の規則では決めず、ESLint のルールオプション `deck` で明示する。`eslint.config.js` の `files` で対象ファイルを絞り込み、そのブロックで `deck` を指定する（例: `src/App.tsx` ↔ `design/decks/harness-intro.md`）

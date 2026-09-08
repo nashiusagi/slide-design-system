@@ -2,10 +2,12 @@
  * `layout-approved` — `<Slide layout="...">` の値が design/layouts/ の契約に無い
  * 名前を弾く（design/rules.json / DR-0030）。
  *
- * `layout` の値が文字列リテラルでないとき（変数・式）は静的に判定できないため
- * 対象にしない。ランタイム（src/runtime/Slide.tsx）は値を検査しない設計
- * （DR-0021）なので、動的な値そのものを禁止する根拠は無い。
+ * `layout` の値が文字列リテラル（`layout="x"` と、波括弧で包んだ `layout={"x"}` の
+ * 両方を含む）でないとき（変数・式）は静的に判定できないため対象にしない。
+ * ランタイム（src/runtime/Slide.tsx）は値を検査しない設計（DR-0030）なので、
+ * 動的な値そのものを禁止する根拠は無い。
  */
+import { jsxAttributeStringValue } from '../lib/jsx-style.mjs'
 import { listLayouts } from '../lib/design-contracts.mjs'
 
 /** @type {import('eslint').Rule.RuleModule} */
@@ -27,20 +29,20 @@ const rule = {
     return {
       /** @param {any} node */
       'JSXOpeningElement[name.name="Slide"] > JSXAttribute[name.name="layout"]'(node) {
-        const value = node.value
+        const resolved = jsxAttributeStringValue(node)
 
-        if (value?.type !== 'Literal' || typeof value.value !== 'string') {
+        if (resolved === undefined) {
           return
         }
 
-        if (approved.has(value.value)) {
+        if (approved.has(resolved.text)) {
           return
         }
 
         context.report({
-          node: value,
+          node: resolved.valueNode,
           messageId: 'unapprovedLayout',
-          data: { layout: value.value, approved: [...approved].join(' / ') },
+          data: { layout: resolved.text, approved: [...approved].join(' / ') },
         })
       },
     }

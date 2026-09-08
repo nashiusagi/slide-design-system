@@ -47,16 +47,11 @@ describe('checkGamut', () => {
   })
 })
 
-/** 水準を満たす最小の contrast 設定。design/rules.json の contrast と同じ形。 */
-const contrastConfig = {
-  surfaces: ['background', 'surface', 'accentSoft'],
-  requirements: [
-    { role: '本文', foregrounds: ['text', 'textMuted'], minimum: 4.5 },
-    { role: '強調', foregrounds: ['accent'], minimum: 4.5 },
-    { role: '状態色', foregrounds: ['danger', 'warning', 'success'], minimum: 4.5 },
-    { role: 'UI 境界とフォーカス', foregrounds: ['border'], minimum: 3 },
-  ],
-}
+/**
+ * design/rules.json の contrast をそのまま使う（複製しない）。ここへ値を書き写すと、
+ * 正本が変わってもこのテストが追随せず、常に自分自身の固定値でしか検証しなくなる。
+ */
+const contrastConfig = JSON.parse(readFileSync('design/rules.json', 'utf8')).contrast
 
 describe('checkContrast', () => {
   it('水準を満たしていれば何も返さない', () => {
@@ -113,7 +108,12 @@ describe('checkLintRuleCoverage', () => {
   })
 
   it('measure のルールは対象にしない。実装が無くても捕まえない', () => {
+    // no-overflow（method: measure）は implementedRuleIds に含めていない。
+    // lint ルールと同じ扱いをすると、実装が無い measure ルールまで誤って報告する。
     expect(checkLintRuleCoverage(rules, ['no-raw-color'])).toEqual([])
+    expect(checkLintRuleCoverage(rules, [])).not.toEqual(
+      expect.arrayContaining([expect.stringContaining('no-overflow')]),
+    )
   })
 
   it('契約にある lint ルールの実装が無いと捕まえる', () => {

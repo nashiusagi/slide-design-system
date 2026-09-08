@@ -29,6 +29,8 @@ describe('no-raw-scale', () => {
         'const el = <div style={dynamicStyles} />',
         'const el = <div style={{ padding: spaceMd }} />',
         'const el = <div />',
+        // ショートハンドの複合値。各トークンが allowedLiterals かトークン参照なら通す。
+        'const el = <div style={{ border: "1px solid var(--dh-border-color)" }} />',
       ],
       invalid: [
         {
@@ -47,6 +49,17 @@ describe('no-raw-scale', () => {
         },
         {
           code: 'const el = <div style={{ gap: "8%" }} />',
+          errors: [{ messageId: 'rawScale' }],
+        },
+        {
+          // ショートハンドの複合値。空白区切りの各トークンを個別に見ないと、
+          // 複合値であるという理由だけで生の長さがまるごと素通りする。
+          code: 'const el = <div style={{ margin: "8px 16px" }} />',
+          errors: [{ messageId: 'rawScale' }, { messageId: 'rawScale' }],
+        },
+        {
+          // トークン参照とリテラルが混在するショートハンド。リテラル側だけを捕まえる。
+          code: 'const el = <div style={{ border: "2px solid var(--dh-border-color)" }} />',
           errors: [{ messageId: 'rawScale' }],
         },
       ],

@@ -19,6 +19,12 @@
  *
  * `opacity` / `zIndex` 等、値が長さではないプロパティは対象から外す
  * （UNITLESS_PROPERTIES）。
+ *
+ * `margin: "8px 16px"` のようなショートハンドの複合値は、空白区切りのトークンへ
+ * 分解してからそれぞれを NUMERIC_LENGTH に通す。文字列全体を1つの値として
+ * 判定すると、複合値であるという理由だけで生の長さが素通りする。
+ * `var(--dh-*, 16px)` のようにトークン参照が丸括弧の中に空白を含む場合に
+ * 誤って分割しないよう、丸括弧の深さを見ながらトップレベルの空白だけで区切る。
  */
 import { extractStyleProperties, literalText } from '../lib/jsx-style.mjs'
 import { readRules } from '../lib/design-contracts.mjs'
@@ -36,6 +42,42 @@ const UNITLESS_PROPERTIES = new Set([
 ])
 
 const NUMERIC_LENGTH = /^-?\d+(\.\d+)?(px|rem|em|vh|vw|vmin|vmax|pt|ch|%)?$/
+
+/**
+ * トップレベル（丸括弧の外）の空白でだけ区切る。`var(--dh-x, 16px)` のように
+ * 丸括弧の中に空白を含むトークンを分断しない。
+ * @param {string} text
+ * @returns {string[]}
+ */
+function splitTopLevelTokens(text) {
+  const tokens = []
+  let depth = 0
+  let current = ''
+
+  for (const char of text) {
+    if (char === '(') {
+      depth += 1
+    } else if (char === ')') {
+      depth = Math.max(0, depth - 1)
+    }
+
+    if (/\s/.test(char) && depth === 0) {
+      if (current !== '') {
+        tokens.push(current)
+        current = ''
+      }
+      continue
+    }
+
+    current += char
+  }
+
+  if (current !== '') {
+    tokens.push(current)
+  }
+
+  return tokens
+}
 
 /** @type {import('eslint').Rule.RuleModule} */
 const rule = {
@@ -69,15 +111,17 @@ const rule = {
 
           const trimmed = text.trim()
 
-          if (!NUMERIC_LENGTH.test(trimmed) || allowedLiterals.has(trimmed)) {
-            continue
-          }
+          for (const token of splitTopLevelTokens(trimmed)) {
+            if (!NUMERIC_LENGTH.test(token) || allowedLiterals.has(token)) {
+              continue
+            }
 
-          context.report({
-            node: valueNode,
-            messageId: 'rawScale',
-            data: { property: key, value: text },
-          })
+            context.report({
+              node: valueNode,
+              messageId: 'rawScale',
+              data: { property: key, value: token },
+            })
+          }
         }
       },
     }

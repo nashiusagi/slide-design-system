@@ -66,3 +66,29 @@ export function literalText(node) {
 
   return null
 }
+
+/**
+ * JSXAttribute の値から、静的な文字列を取り出す。JSX は同じ意味の値を
+ * `attr="x"`（Literal）と `attr={"x"}`（JSXExpressionContainer で包んだ Literal）の
+ * どちらでも書けるため、後者だけを見落とすと波括弧で包むだけで検査を回避できてしまう。
+ *
+ * @param {any} attributeNode JSXAttribute
+ * @returns {{ valueNode: any, text: string } | undefined}
+ */
+export function jsxAttributeStringValue(attributeNode) {
+  const value = attributeNode.value
+
+  if (value?.type === 'Literal' && typeof value.value === 'string') {
+    return { valueNode: value, text: value.value }
+  }
+
+  if (
+    value?.type === 'JSXExpressionContainer' &&
+    value.expression?.type === 'Literal' &&
+    typeof value.expression.value === 'string'
+  ) {
+    return { valueNode: value.expression, text: value.expression.value }
+  }
+
+  return undefined
+}
