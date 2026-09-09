@@ -44,5 +44,5 @@ workspace の設定が要らない。
 ## 帰結
 
 - `packages/*` に置いたコードが `pnpm check` の全段（typecheck / lint / test）に入ることを、設定側で保証する（[DR-0028](./0028-single-check-entry-point.md)）。指定の一覧は `packages/README.md` に置く
-- **リポジトリ直下の足場と、実験の共通 starter（[DR-0021](./0021-starter-contains-runtime-only.md)、`experiments/`）の関係は未決である。** 複製にすると、直下だけを更新したときに Baseline と Harness が異なるビルド条件で走り、比較の前提（starter は完全に同一）が静かに崩れる。starter を作る Issue で「生成するか、一致を検査するか」を決める
+- **リポジトリ直下の足場と、実験の共通 starter（[DR-0021](./0021-starter-contains-runtime-only.md)、`experiments/`）の関係は未決である。** 複製にすると、直下だけを更新したときに Baseline と Harness が異なるビルド条件で走り、比較の前提（starter は完全に同一）が静かに崩れる。starter を作る Issue で「生成するか、一致を検査するか」を決める → [DR-0039](./0039-experiment-starter-checked-against-root-scaffold.md) で一致検査に決定
 - TypeScript のバージョンだけは別の制約を受ける（[DR-0026](./0026-typescript-5-for-eslint-ast.md)）
