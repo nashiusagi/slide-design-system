@@ -6,6 +6,7 @@
 | --- | --- |
 | `generate-theme.mjs` | `design/tokens.json` から `design/theme.css` の `--dh-*` を生成する。`--check` で乖離を検出する |
 | `validate-design.mjs` | 契約自体を検証する（スキーマ、色域、コントラスト、キャンバス寸法とランタイムの一致、deck 契約の構文とスキーマ） |
+| `measure-slides.mjs` | `dist/` を Playwright で開き、no-overflow / min-font-size / contrast を実測する（DR-0011）。`pnpm build` の後に `pnpm measure` で実行し、`measurements.json` を出力する |
 | `lib/` | 色の変換とコントラストの算出（`color.mjs`）、deck.md を JSON へ正規化するパーサ（`deck.mjs`、DR-0016） |
 
 **スクリプトは AI を起動しない**（[DR-0020](../docs/decisions/0020-scripts-do-not-invoke-ai.md)）。

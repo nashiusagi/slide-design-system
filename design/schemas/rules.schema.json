@@ -4,7 +4,7 @@
   "title": "design/rules.json",
   "$comment": "検査ルールの契約を検証するスキーマ（DR-0009 / DR-0011）。rules 配列がルールIDと method（lint / measure / review）の対応の正本になる。閾値（contrast / minFontSize / noRawScale）は各ルールの実装がここを読みに来る値で、DR 本文には複製しない（DR-0008 / DR-0012）。",
   "type": "object",
-  "required": ["rules", "contrast", "minFontSize", "noRawScale"],
+  "required": ["rules", "contrast", "minFontSize", "noRawScale", "noOverflow"],
   "additionalProperties": false,
   "properties": {
     "$schema": { "type": "string" },
@@ -74,6 +74,16 @@
       "properties": {
         "$comment": { "type": "string" },
         "px": { "type": "integer", "exclusiveMinimum": 0 }
+      }
+    },
+    "noOverflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["toleranceInPx"],
+      "description": "no-overflow ルール（measure）の許容誤差（DR-0011 帰結）。",
+      "properties": {
+        "$comment": { "type": "string" },
+        "toleranceInPx": { "type": "number", "minimum": 0 }
       }
     },
     "noRawScale": {
