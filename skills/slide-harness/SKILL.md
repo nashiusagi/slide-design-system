@@ -31,7 +31,7 @@ description: このリポジトリの設計契約（DESIGN.md / design/）に従
 
 1. 実装が一区切りついたら `pnpm check` を実行する。`design:check → theme:check → typecheck → lint → test → build` を一度に走らせ、契約違反・型・lint・テスト・ビルドをまとめて確認する。逐次的に個別コマンドを都度実行しない。
 2. 失敗した検査を読み、実装側を直す。`design/theme.css` のような生成物は手で直さず、対応する生成スクリプト（例: `pnpm theme:generate`）を再実行する。
-3. `pnpm measure` は現時点では `pnpm check` に含まれていない（[DR-0038](../../docs/decisions/0038-defer-measure-in-check.md): `src/App.tsx` がまだ `design/theme.css` / `design/layout.css` を実消費していないため）。実装がキャンバス上の実測（はみ出し・最小フォントサイズ・コントラスト）に関わるときは、`pnpm build` の後に `pnpm measure` を別途実行して確認する。この実測結果は次項の「すべての機械検査」には含まない。DR-0038 の状況が解消するまでの既知の除外であり、完了報告を妨げない。実測結果自体は最終報告に書く。
+3. `pnpm measure` は現時点では `pnpm check` に含まれていない（[DR-0038](../../docs/decisions/0038-defer-measure-in-check.md): `src/App.tsx` がまだ `design/theme.css` / `design/layout.css` を実消費していないため）。実装がキャンバス上の実測（はみ出し・最小フォントサイズ・コントラスト）に関わるときは、`pnpm build` の後に `pnpm measure` を別途実行して確認する。この実測結果は、手順5の「`pnpm check` の全段」には含まない。DR-0038 の状況が解消するまでの既知の除外であり、完了報告を妨げない。実測結果自体は最終報告に書く。
 4. 検査で拾えない項目（1 枚 1 メッセージになっているか、話の順序が通っているか）は人が判断する `review` 項目である（`design/rules.json` の `method: "review"`、[DR-0011](../../docs/decisions/0011-lint-and-measure.md)）。これを自動合格として報告しない。
 5. `pnpm check` の全段が通るまで、完了として報告しない。
 

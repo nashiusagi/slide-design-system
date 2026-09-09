@@ -388,6 +388,19 @@ describe('checkSkillNoDesignDataDuplication', () => {
     expect(found).toHaveLength(1)
     expect(found[0]).toContain('color.accent')
   })
+
+  it('複製の途中にゼロ幅スペースを挟んでも検出する（不可視文字による回避を防ぐ）', () => {
+    // ソースコードへ不可視文字を直接埋めると no-irregular-whitespace に
+    // 引っかかるため、JS のエスケープシーケンスとして埋め込む（checkDecks 節と同じ理由）。
+    const zeroWidthSpace = '\u200B'
+    const found = checkSkillNoDesignDataDuplication(
+      `強調は oklch(0.47${zeroWidthSpace} 0.22 305) を使う。`,
+      contract,
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('color.accent')
+  })
 })
 
 describe('checkCanvasMatchesRuntime', () => {

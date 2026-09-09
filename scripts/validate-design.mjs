@@ -328,9 +328,14 @@ export function checkLayoutClasses(layouts, cssSource) {
   return [...missing, ...extra]
 }
 
-/** 連続する空白（改行を含む）を1つに畳む。Markdown の折り返しで複製の途中に
- * 改行が挟まっただけで完全一致判定をすり抜けるのを防ぐ（DR-0013）。 */
-const normalizeWhitespace = (/** @type {string} */ text) => text.replace(/\s+/g, ' ').trim()
+/**
+ * 連続する空白（改行を含む）を1つに畳み、書式文字（Unicode の Cf カテゴリ。
+ * ゼロ幅スペース等）を取り除く。Markdown の折り返しで複製の途中に改行が挟まる、
+ * あるいはコピー時に不可視文字が混入するだけで完全一致判定をすり抜けるのを
+ * 防ぐ（DR-0013）。
+ */
+const normalizeWhitespace = (/** @type {string} */ text) =>
+  text.replace(/\p{Cf}/gu, '').replace(/\s+/g, ' ').trim()
 
 /**
  * DESIGN.md を、複製の検出対象になりうる程度に長い行へ分ける。見出し記号・
@@ -510,6 +515,11 @@ export function checkCanvasMatchesRuntime(source, canvas) {
  * vitest では検証できない。ここで実データに対して呼び、pnpm check（design:check、
  * 素の node 実行）経由で固定する。
  *
+ * 正常系・存在しない deck 参照に加え、deck 名に `../` を含めても
+ * design/decks/ の外を読まないこと（パストラバーサル対策）も実データに対して
+ * 固定する。この防御自体が壊れても resolveManifest 側の単体テスト（手書きの
+ * fixture のみを対象）は検知できないため、ここでの確認が唯一の回帰検査になる。
+ *
  * @returns {string[]}
  */
 function checkResolveDesignContractSmoke() {
@@ -545,11 +555,22 @@ function checkResolveDesignContractSmoke() {
 
     try {
       resolveManifestFile(manifestPath)
+      return ["scripts/resolve-design-contract.mjs: 存在しない deck 参照（'no-such-deck'）がエラーにならない"]
+    } catch {
+      // 期待どおり。次のパストラバーサル確認へ進む。
+    }
+
+    // deck 名に `../` を含めても design/decks/ の外を読まないこと（回帰防止）。
+    writeFileSync(manifestPath, JSON.stringify({ decks: ['../../../../../../etc/passwd'] }))
+
+    try {
+      resolveManifestFile(manifestPath)
+      return [
+        "scripts/resolve-design-contract.mjs: deck 参照に '../' を含めても design/decks/ の外を読まずにエラーにする、という保証が壊れている",
+      ]
     } catch {
       return []
     }
-
-    return ["scripts/resolve-design-contract.mjs: 存在しない deck 参照（'no-such-deck'）がエラーにならない"]
   } finally {
     rmSync(dir, { recursive: true, force: true })
   }
