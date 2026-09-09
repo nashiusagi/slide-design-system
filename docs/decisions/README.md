@@ -75,6 +75,7 @@
 | [0021](./0021-starter-contains-runtime-only.md) | starter にはスライド機構のみを入れ、契約は Harness 側だけに渡す |
 | [0023](./0023-public-repo-with-audit.md) | public リポジトリで公開し、sanitize と audit を実装する |
 | [0025](./0025-issue-driven-development-flow.md) | Issue 起点の開発フローを Agent Skill として固定する |
+| [0039](./0039-experiment-starter-checked-against-root-scaffold.md) | experiments の starter はコミットして持ち、ルート足場との一致を検査する |
 
 ### メタ
 

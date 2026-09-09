@@ -7,6 +7,10 @@
 | `generate-theme.mjs` | `design/tokens.json` から `design/theme.css` の `--dh-*` を生成する。`--check` で乖離を検出する |
 | `validate-design.mjs` | 契約自体を検証する（スキーマ、色域、コントラスト、キャンバス寸法とランタイムの一致、deck 契約の構文とスキーマ） |
 | `measure-slides.mjs` | `dist/` を Playwright で開き、no-overflow / min-font-size / contrast を実測する（DR-0011）。`pnpm build` の後に `pnpm measure` で実行し、`measurements.json` を出力する |
+| `resolve-design-contract.mjs` | manifest（deck/layout/component の一覧）から、正本の中で本当に必要な契約ファイルだけを解決する（DR-0013） |
+| `prepare-workspace.mjs` | 実験の隔離ワークスペースを用意する。`create` は `experiments/<name>/starter/` をコピーし、条件が設計契約を含むときは資源も追加でコピーする。`check-starter` は starter のランタイム機構がリポジトリ直下と一致しているかを検査する（DR-0020 / DR-0021 / DR-0039） |
+| `evaluate-run.mjs` | 生成結果を Run として取り込み（`save`）、保存済み Run を lint / measure で採点する（`score`）。AI は起動しない（DR-0020） |
+| `compare-runs.mjs` | 複数の Run の採点結果（`scoring.json`）を比較表にする（DR-0020） |
 | `lib/` | 色の変換とコントラストの算出（`color.mjs`）、deck.md を JSON へ正規化するパーサ（`deck.mjs`、DR-0016） |
 
 **スクリプトは AI を起動しない**（[DR-0020](../docs/decisions/0020-scripts-do-not-invoke-ai.md)）。
