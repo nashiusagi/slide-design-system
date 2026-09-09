@@ -93,7 +93,6 @@
 | `phase/completion-criterion-not-verified-e2e` | フェーズ | Issue の完了条件が、単体テストのみで統合パスを通さず検証されている | 3 | PR #25 | PR #27 |
 | `code/manifest-shape-not-validated` | コード品質 | manifest のフィールドが期待する型（配列等）であることを検証しておらず、誤った形を渡すと無関係なエラーになる | 1 | PR #26 | PR #26 |
 | `code/duplicate-resolve-readjson-helpers` | コード品質 | 同じ resolve/readJson ヘルパーが複数の scripts/*.mjs へ複製されている | 1 | PR #26 | PR #26 |
-| `writing/dangling-quote-reference` | 日本語 | 文書内の引用符付き参照が、書き換え後のどの語句・項目にも対応しなくなった | 1 | PR #26 | PR #26 |
 | `code/generated-artifact-not-gitignored` | コード品質 | 新設した生成物が .gitignore に無く、実行のたびに untracked ファイルが残る | 1 | PR #26 | PR #26 |
 | `code/binary-extension-check-case-sensitive` | コード品質 | 拡張子の大文字小文字を無視した判定が、大文字拡張子の入力を取りこぼす | 1 | PR #28 | PR #28 |
 | `code/duplicate-binary-extensions-list` | コード品質 | 同じ拡張子一覧が複数の scripts/*.mjs へ複製されている | 1 | PR #28 | PR #28 |
@@ -102,12 +101,14 @@
 | `code/audit-test-env-username-coupling` | コード品質 | テストが実行環境のOSユーザー名に依存し、環境次第で無関係な理由で失敗しうる | 1 | PR #28 | PR #28 |
 | `decisions/citation-overclaims-source-scope` | 決定記録 | 正本として引用した資料の、実際の記述範囲より広い主張をしている | 1 | PR #28 | PR #28 |
 | `writing/subjectless-predicate` | 日本語 | 文の主語が省略され、何の話かが読み取りにくい | 1 | PR #28 | PR #28 |
+| `decisions/citation-points-to-wrong-file` | 決定記録 | 正本として引用したファイルが、実際にはその内容を記述していない | 1 | PR #28 | PR #28 |
+| `writing/dangling-quote-reference` | 日本語 | 文書内の引用符付き参照が、書き換え後のどの語句・項目にも対応しなくなった | 2 | PR #26 | PR #28 |
 
 ## レビュー履歴
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #28 | 2026-09-10 | 0 | 13 | 4 | [pr-28.md](./reviews/pr-28.md) |
+| #28 | 2026-09-10 | 0 | 17 | 4 | [pr-28.md](./reviews/pr-28.md) |
 | #27 | 2026-09-09 | 0 | 10 | 0 | [pr-27.md](./reviews/pr-27.md) |
 | #26 | 2026-09-09 | 0 | 16 | 5 | [pr-26.md](./reviews/pr-26.md) |
 | #25 | 2026-09-09 | 2 | 2 | 3 | [pr-25.md](./reviews/pr-25.md) |
