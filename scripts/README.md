@@ -11,7 +11,9 @@
 | `prepare-workspace.mjs` | 実験の隔離ワークスペースを用意する。`create` は `experiments/<name>/starter/` をコピーし、条件が設計契約を含むときは資源も追加でコピーする。`check-starter` は starter のランタイム機構がリポジトリ直下と一致しているかを検査する（DR-0020 / DR-0021 / DR-0039） |
 | `evaluate-run.mjs` | 生成結果を Run として取り込み（`save`）、保存済み Run を lint / measure で採点する（`score`）。AI は起動しない（DR-0020） |
 | `compare-runs.mjs` | 複数の Run の採点結果（`scoring.json`）を比較表にする（DR-0020） |
-| `lib/` | 色の変換とコントラストの算出（`color.mjs`）、deck.md を JSON へ正規化するパーサ（`deck.mjs`、DR-0016） |
+| `sanitize-run-artifacts.mjs` | 保存 Run から端末の絶対パスと OS ユーザー名を機械的に置換する（DR-0023） |
+| `audit-public-data.mjs` | 公開データに既知の漏洩パターン（絶対パス・API キー/token らしき文字列）が残っていないか検査する。公開の承認ではない（DR-0023、`docs/PUBLICATION_POLICY.md`） |
+| `lib/` | 色の変換とコントラストの算出（`color.mjs`）、deck.md を JSON へ正規化するパーサ（`deck.mjs`、DR-0016）、ディレクトリ配下のファイル列挙（`fs-walk.mjs`） |
 
 **スクリプトは AI を起動しない**（[DR-0020](../docs/decisions/0020-scripts-do-not-invoke-ai.md)）。
 
