@@ -99,8 +99,16 @@ describe('buildLeakPatterns', () => {
     expect(patterns.some((pattern) => pattern.id === 'current-username')).toBe(false)
   })
 
-  it.each(['root', 'admin', 'node', 'runner', 'RUNNER'])(
+  it.each(['root', 'admin', 'node', 'runner', 'RUNNER', 'core', 'default'])(
     '汎用アカウント名 "%s" は current-username パターンを持たない（コンテナ/CIでの誤検知対策）',
+    (username) => {
+      const patterns = buildLeakPatterns({ username })
+      expect(patterns.some((pattern) => pattern.id === 'current-username')).toBe(false)
+    },
+  )
+
+  it.each(['pi', 'app', 'ai', 'x'])(
+    '短いユーザー名 "%s"（4文字未満）は current-username パターンを持たない',
     (username) => {
       const patterns = buildLeakPatterns({ username })
       expect(patterns.some((pattern) => pattern.id === 'current-username')).toBe(false)
@@ -110,6 +118,20 @@ describe('buildLeakPatterns', () => {
   it('username が root のとき、React/Vite の scaffold の id="root" を誤検知しない', () => {
     const patterns = buildLeakPatterns({ username: 'root' })
     const leaks = findLeaks('<div id="root"></div>\ndocument.getElementById(\'root\')', patterns)
+
+    expect(leaks).toEqual([])
+  })
+
+  it('username が pi のとき、minify後のコードにある短い識別子を誤検知しない', () => {
+    const patterns = buildLeakPatterns({ username: 'pi' })
+    const leaks = findLeaks('function pi(e,t){return di(e,nu)}', patterns)
+
+    expect(leaks).toEqual([])
+  })
+
+  it('username が default のとき、export default を誤検知しない', () => {
+    const patterns = buildLeakPatterns({ username: 'default' })
+    const leaks = findLeaks('export default defineConfig({})', patterns)
 
     expect(leaks).toEqual([])
   })

@@ -89,25 +89,25 @@ const STATIC_LEAK_PATTERNS = [
 ]
 
 /**
- * コンテナ・CI でよく使われる汎用アカウント名。個人を特定しないため
- * `current-username` の対象から外す。
+ * OS/クラウド/コンテナが標準で割り当てる汎用アカウント名。個人を特定しないため
+ * `current-username` の対象から外す。一覧・除外理由は `docs/PUBLICATION_POLICY.md` を参照。
  *
- * これらを対象に含めると、React/Vite の scaffold が持つ `id="root"` のような
- * ボイラープレートまで「ユーザー名の漏洩」として検出してしまい、audit を
- * root 権限のコンテナで実行するだけで保存 Run のほぼ全件が引っかかる
- * （実際に確認した誤検知。DR-0023 の帰結を参照）。
+ * 列挙は既知のものに追従する運用であり、網羅を保証しない
+ * （`MIN_USERNAME_LENGTH` による短い名前の除外と合わせて使うこと）。
  */
 const GENERIC_USERNAMES = new Set([
   'root',
   'admin',
   'administrator',
   'user',
+  'default',
   'test',
   'node',
   'runner',
   'ubuntu',
   'debian',
   'centos',
+  'core',
   'ec2-user',
   'docker',
   'nobody',
@@ -115,10 +115,17 @@ const GENERIC_USERNAMES = new Set([
 ])
 
 /**
+ * これより短いユーザー名は `current-username` の対象にしない。短い文字列
+ * （`pi`・`app` 等）はソースコードの識別子・変数名と衝突しやすく、
+ * `GENERIC_USERNAMES` の列挙だけでは追いつかないため、長さでも粗く弾く。
+ */
+const MIN_USERNAME_LENGTH = 4
+
+/**
  * 検査パターンを組み立てる。`username` を渡すと、OS ユーザー名が単語境界つきの
  * 単独の文字列として残っていないかも検査対象に加える
  * （sanitize-run-artifacts.mjs の置換漏れの検出）。実行環境のユーザー名しか
- * 知らない・汎用アカウント名は対象にしないという制約がある
+ * 知らない・汎用アカウント名や短い名前は対象にしないという制約がある
  * （詳細は `docs/PUBLICATION_POLICY.md`）。
  *
  * @param {{ username?: string }} [identifiers]
@@ -127,7 +134,7 @@ const GENERIC_USERNAMES = new Set([
 export function buildLeakPatterns(identifiers = {}) {
   const username = identifiers.username ?? userInfo().username
 
-  if (username.length === 0 || GENERIC_USERNAMES.has(username.toLowerCase())) {
+  if (username.length < MIN_USERNAME_LENGTH || GENERIC_USERNAMES.has(username.toLowerCase())) {
     return STATIC_LEAK_PATTERNS
   }
 
