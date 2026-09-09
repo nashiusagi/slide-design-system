@@ -326,6 +326,57 @@ export function checkLayoutClasses(layouts, cssSource) {
 }
 
 /**
+ * skills/slide-harness/SKILL.md に設計データそのものが複製されていないか（DR-0013）。
+ *
+ * Skill は契約を参照するだけで、値や記述を埋め込んではならない。複製が起きると、
+ * 正本を直しても Skill 側が古いままになり、AI が読む内容が正本とずれる。
+ *
+ * 埋め込みを検出できる高信号な値だけを見る。color は oklch(...) の文字列そのもの、
+ * layout / component は role・whenToUse・whenNotToUse・usage の文章そのもの、
+ * rules は各ルールの description そのもの。space や max のような小さい数値は
+ * 「3」のような一般的な語と衝突するため対象にしない。
+ *
+ * @param {string} skillSource skills/slide-harness/SKILL.md の中身
+ * @param {{
+ *   tokens: { color: Record<string, string> },
+ *   layouts: { name: string, role: string, whenToUse: string[], whenNotToUse: string[] }[],
+ *   components: { name: string, role: string, usage: string[] }[],
+ *   rules: { rules: { id: string, description: string }[] },
+ * }} contract
+ * @returns {string[]}
+ */
+export function checkSkillNoDesignDataDuplication(skillSource, { tokens, layouts, components, rules }) {
+  const colorProblems = Object.entries(tokens.color)
+    .filter(([name]) => !name.startsWith('$'))
+    .filter(([, value]) => skillSource.includes(value))
+    .map(([name, value]) => `skills/slide-harness/SKILL.md: design/tokens.json の color.${name}（${value}）がそのまま書かれている`)
+
+  const layoutProblems = layouts.flatMap((layout) =>
+    [layout.role, ...layout.whenToUse, ...layout.whenNotToUse]
+      .filter((text) => skillSource.includes(text))
+      .map(
+        (text) =>
+          `skills/slide-harness/SKILL.md: design/layouts/${layout.name}.json の記述がそのまま書かれている: "${text}"`,
+      ),
+  )
+
+  const componentProblems = components.flatMap((component) =>
+    [component.role, ...component.usage]
+      .filter((text) => skillSource.includes(text))
+      .map(
+        (text) =>
+          `skills/slide-harness/SKILL.md: design/components/${component.name}.json の記述がそのまま書かれている: "${text}"`,
+      ),
+  )
+
+  const ruleProblems = rules.rules
+    .filter((rule) => skillSource.includes(rule.description))
+    .map((rule) => `skills/slide-harness/SKILL.md: design/rules.json のルール '${rule.id}' の description がそのまま書かれている`)
+
+  return [...colorProblems, ...layoutProblems, ...componentProblems, ...ruleProblems]
+}
+
+/**
  * layout の slots と component の allowedIn が、両方向から見て矛盾していないか。
  * どちらの契約にも同じ対応関係を書いているため、片方だけ直すと矛盾したまま残る
  * （DR-0035）。
@@ -462,6 +513,16 @@ function main() {
     {
       name: 'design/rules.json の measure ルールと measure-slides.mjs の実装が対応する',
       run: () => checkMeasureRuleCoverage(rules.rules, IMPLEMENTED_MEASURE_RULE_IDS, ['deck-body-fidelity']),
+    },
+    {
+      name: 'skills/slide-harness/SKILL.md に設計データが複製されていない',
+      run: () =>
+        checkSkillNoDesignDataDuplication(readFileSync(resolve('skills/slide-harness/SKILL.md'), 'utf8'), {
+          tokens,
+          layouts,
+          components,
+          rules,
+        }),
     },
   ]
 

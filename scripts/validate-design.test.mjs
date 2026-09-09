@@ -18,6 +18,7 @@ import {
   checkLayoutComponentConsistency,
   checkLintRuleCoverage,
   checkMeasureRuleCoverage,
+  checkSkillNoDesignDataDuplication,
 } from './validate-design.mjs'
 
 /** 水準を満たす最小の色一式。各テストはここから1つだけ壊す。 */
@@ -295,6 +296,62 @@ describe('checkLayoutComponentConsistency', () => {
 
     expect(found).toHaveLength(1)
     expect(found[0]).toContain("slots に 'slide-title' が無い")
+  })
+})
+
+describe('checkSkillNoDesignDataDuplication', () => {
+  const contract = {
+    tokens: { color: { accent: 'oklch(0.47 0.22 305)' } },
+    layouts: [
+      {
+        name: 'title',
+        role: 'デッキ全体の主題、または章の区切りを宣言する。',
+        whenToUse: ['発表全体の主題を示すとき'],
+        whenNotToUse: ['複数の論点を並べて伝えたいとき'],
+      },
+    ],
+    components: [
+      {
+        name: 'slide-title',
+        role: 'スライドの主題を一行で示す見出し。',
+        usage: ['1 行に収める。'],
+      },
+    ],
+    rules: { rules: [{ id: 'no-overflow', description: 'キャンバスから要素がはみ出していない。' }] },
+  }
+
+  it('契約を参照するだけなら何も返さない', () => {
+    const skillSource = '契約を読み、design/layouts/*.json の whenToUse で layout を選ぶ。'
+
+    expect(checkSkillNoDesignDataDuplication(skillSource, contract)).toEqual([])
+  })
+
+  it('color の値がそのまま書かれていると捕まえる', () => {
+    const found = checkSkillNoDesignDataDuplication('強調は oklch(0.47 0.22 305) を使う。', contract)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('color.accent')
+  })
+
+  it('layout の whenToUse がそのまま書かれていると捕まえる', () => {
+    const found = checkSkillNoDesignDataDuplication('title は発表全体の主題を示すときに使う。', contract)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('design/layouts/title.json')
+  })
+
+  it('component の usage がそのまま書かれていると捕まえる', () => {
+    const found = checkSkillNoDesignDataDuplication('見出しは1 行に収める。を守る。', contract)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('design/components/slide-title.json')
+  })
+
+  it('rule の description がそのまま書かれていると捕まえる', () => {
+    const found = checkSkillNoDesignDataDuplication('no-overflow はキャンバスから要素がはみ出していない。を見る。', contract)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain("ルール 'no-overflow'")
   })
 })
 
