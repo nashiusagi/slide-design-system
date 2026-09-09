@@ -12,7 +12,7 @@
  * 起動しない（DR-0020）。生成は別途サブエージェントを手動で起動して行う（DR-0019）。
  */
 import { execFileSync } from 'node:child_process'
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { basename, join, relative, resolve as resolvePath } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
@@ -23,6 +23,7 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
 import slidePlugin from '../packages/eslint-plugin-slide/src/index.mjs'
+import { collectFiles } from './lib/fs-walk.mjs'
 
 const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url))
 
@@ -34,31 +35,9 @@ const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url))
  */
 export const SCORED_LINT_RULE_IDS = ['no-raw-color', 'no-raw-scale', 'layout-approved', 'component-approved']
 
-/**
- * `dir` 配下のファイルを再帰的に列挙し、`dir` からの相対パス（`/` 区切り）で返す。
- *
- * @param {string} dir
- * @returns {string[]}
- */
-export function collectFiles(dir) {
-  /**
-   * @param {string} current
-   * @returns {string[]}
-   */
-  function walk(current) {
-    return readdirSync(current, { withFileTypes: true }).flatMap((entry) => {
-      const entryPath = join(current, entry.name)
-
-      if (entry.isDirectory()) {
-        return walk(entryPath)
-      }
-
-      return [relative(dir, entryPath).split('\\').join('/')]
-    })
-  }
-
-  return walk(dir)
-}
+// collectFiles は scripts/audit-public-data.mjs・sanitize-run-artifacts.mjs（DR-0023）と
+// 共有するため scripts/lib/fs-walk.mjs へ切り出した。ここでの呼び出し元向けに re-export する。
+export { collectFiles }
 
 /**
  * `run.json` の中身を組み立てる。IO を持たない純関数。
