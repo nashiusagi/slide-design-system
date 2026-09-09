@@ -98,6 +98,21 @@ describe('buildLeakPatterns', () => {
     const patterns = buildLeakPatterns({ username: '' })
     expect(patterns.some((pattern) => pattern.id === 'current-username')).toBe(false)
   })
+
+  it.each(['root', 'admin', 'node', 'runner', 'RUNNER'])(
+    '汎用アカウント名 "%s" は current-username パターンを持たない（コンテナ/CIでの誤検知対策）',
+    (username) => {
+      const patterns = buildLeakPatterns({ username })
+      expect(patterns.some((pattern) => pattern.id === 'current-username')).toBe(false)
+    },
+  )
+
+  it('username が root のとき、React/Vite の scaffold の id="root" を誤検知しない', () => {
+    const patterns = buildLeakPatterns({ username: 'root' })
+    const leaks = findLeaks('<div id="root"></div>\ndocument.getElementById(\'root\')', patterns)
+
+    expect(leaks).toEqual([])
+  })
 })
 
 describe('auditDirectory', () => {
@@ -116,7 +131,9 @@ describe('auditDirectory', () => {
 
     sanitizeDirectory(dir, { homeDir: '/home/ryogo', username: 'ryogo' })
 
-    expect(auditDirectory(dir)).toEqual([])
+    // 実行環境の OS ユーザー名（既定パターンが含む current-username）に依存しないよう、
+    // ここでは静的パターンだけで確認する。
+    expect(auditDirectory(dir, buildLeakPatterns({ username: '' }))).toEqual([])
   })
 
   it('API キー・token らしき文字列も検査対象に含む（完了条件）', () => {
@@ -131,6 +148,7 @@ describe('auditDirectory', () => {
     const dir = makeTempDir()
     writeFileSync(join(dir, 'App.tsx'), 'export function App() { return null }\n')
 
-    expect(auditDirectory(dir)).toEqual([])
+    // 実行環境の OS ユーザー名に依存しないよう、ここでは静的パターンだけで確認する。
+    expect(auditDirectory(dir, buildLeakPatterns({ username: '' }))).toEqual([])
   })
 })

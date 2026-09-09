@@ -88,7 +88,7 @@ pnpm check            # design:check → theme:check → typecheck → lint → 
 
 ## 公開時の注意
 
-公開してよいもの／してはいけないものの基準は [`docs/PUBLICATION_POLICY.md`](./docs/PUBLICATION_POLICY.md) を参照。`pnpm public:sanitize` / `pnpm public:audit`（`pnpm check` に組み込み済み）を持つ。根拠は [DR-0023](./docs/decisions/0023-public-repo-with-audit.md)。
+公開してよいもの／してはいけないものの基準は [`docs/PUBLICATION_POLICY.md`](./docs/PUBLICATION_POLICY.md) を参照。実行コマンドは `pnpm public:sanitize` / `pnpm public:audit`（`pnpm check` に組み込み済み）。根拠は [DR-0023](./docs/decisions/0023-public-repo-with-audit.md)。
 
 ## 決定記録
 

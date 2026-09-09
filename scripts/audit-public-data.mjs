@@ -89,13 +89,37 @@ const STATIC_LEAK_PATTERNS = [
 ]
 
 /**
+ * コンテナ・CI でよく使われる汎用アカウント名。個人を特定しないため
+ * `current-username` の対象から外す。
+ *
+ * これらを対象に含めると、React/Vite の scaffold が持つ `id="root"` のような
+ * ボイラープレートまで「ユーザー名の漏洩」として検出してしまい、audit を
+ * root 権限のコンテナで実行するだけで保存 Run のほぼ全件が引っかかる
+ * （実際に確認した誤検知。DR-0023 の帰結を参照）。
+ */
+const GENERIC_USERNAMES = new Set([
+  'root',
+  'admin',
+  'administrator',
+  'user',
+  'test',
+  'node',
+  'runner',
+  'ubuntu',
+  'debian',
+  'centos',
+  'ec2-user',
+  'docker',
+  'nobody',
+  'www-data',
+])
+
+/**
  * 検査パターンを組み立てる。`username` を渡すと、OS ユーザー名が単語境界つきの
  * 単独の文字列として残っていないかも検査対象に加える
- * （sanitize-run-artifacts.mjs の置換漏れの検出。DR-0023）。
- *
- * これは実行環境（audit を走らせているマシン）のユーザー名しか知らない。
- * 生成を別マシンで行い、そちらで sanitize せずに保存した Run のユーザー名までは
- * 検出できない（`docs/PUBLICATION_POLICY.md` の限界を参照）。
+ * （sanitize-run-artifacts.mjs の置換漏れの検出）。実行環境のユーザー名しか
+ * 知らない・汎用アカウント名は対象にしないという制約がある
+ * （詳細は `docs/PUBLICATION_POLICY.md`）。
  *
  * @param {{ username?: string }} [identifiers]
  * @returns {LeakPattern[]}
@@ -103,7 +127,7 @@ const STATIC_LEAK_PATTERNS = [
 export function buildLeakPatterns(identifiers = {}) {
   const username = identifiers.username ?? userInfo().username
 
-  if (username.length === 0) {
+  if (username.length === 0 || GENERIC_USERNAMES.has(username.toLowerCase())) {
     return STATIC_LEAK_PATTERNS
   }
 
