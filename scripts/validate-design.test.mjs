@@ -18,6 +18,7 @@ import {
   checkLayoutComponentConsistency,
   checkLintRuleCoverage,
   checkMeasureRuleCoverage,
+  checkSkillNoDesignDataDuplication,
 } from './validate-design.mjs'
 
 /** 水準を満たす最小の色一式。各テストはここから1つだけ壊す。 */
@@ -295,6 +296,110 @@ describe('checkLayoutComponentConsistency', () => {
 
     expect(found).toHaveLength(1)
     expect(found[0]).toContain("slots に 'slide-title' が無い")
+  })
+})
+
+describe('checkSkillNoDesignDataDuplication', () => {
+  const contract = {
+    tokens: { color: { accent: 'oklch(0.47 0.22 305)' } },
+    layouts: [
+      {
+        name: 'title',
+        role: 'デッキ全体の主題、または章の区切りを宣言する。',
+        whenToUse: ['発表全体の主題を示すとき'],
+        whenNotToUse: ['複数の論点を並べて伝えたいとき'],
+      },
+    ],
+    components: [
+      {
+        name: 'slide-title',
+        role: 'スライドの主題を一行で示す見出し。',
+        usage: ['1 行に収める。'],
+      },
+    ],
+    rules: { rules: [{ id: 'no-overflow', description: 'キャンバスから要素がはみ出していない。' }] },
+    designMd: '# DESIGN.md\n\n白い紙面と黒い文字。強調は赤紫の一色だけ。\n\n装飾で語らず、余白と文字の階層だけで構造を示す。\n',
+  }
+
+  it('契約を参照するだけなら何も返さない', () => {
+    const skillSource = '契約を読み、design/layouts/*.json の whenToUse で layout を選ぶ。'
+
+    expect(checkSkillNoDesignDataDuplication(skillSource, contract)).toEqual([])
+  })
+
+  it('layout の role がそのまま書かれていると捕まえる', () => {
+    const found = checkSkillNoDesignDataDuplication(
+      'title はデッキ全体の主題、または章の区切りを宣言する。ために使う。',
+      contract,
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('design/layouts/title.json')
+  })
+
+  it('layout の whenNotToUse がそのまま書かれていると捕まえる', () => {
+    const found = checkSkillNoDesignDataDuplication('複数の論点を並べて伝えたいときは title を使わない。', contract)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('design/layouts/title.json')
+  })
+
+  it('color の値がそのまま書かれていると捕まえる', () => {
+    const found = checkSkillNoDesignDataDuplication('強調は oklch(0.47 0.22 305) を使う。', contract)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('color.accent')
+  })
+
+  it('layout の whenToUse がそのまま書かれていると捕まえる', () => {
+    const found = checkSkillNoDesignDataDuplication('title は発表全体の主題を示すときに使う。', contract)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('design/layouts/title.json')
+  })
+
+  it('component の usage がそのまま書かれていると捕まえる', () => {
+    const found = checkSkillNoDesignDataDuplication('見出しは1 行に収める。を守る。', contract)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('design/components/slide-title.json')
+  })
+
+  it('rule の description がそのまま書かれていると捕まえる', () => {
+    const found = checkSkillNoDesignDataDuplication('no-overflow はキャンバスから要素がはみ出していない。を見る。', contract)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain("ルール 'no-overflow'")
+  })
+
+  it('DESIGN.md の記述がそのまま書かれていると捕まえる', () => {
+    const found = checkSkillNoDesignDataDuplication(
+      '北極星は、白い紙面と黒い文字。強調は赤紫の一色だけ。である。',
+      contract,
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('DESIGN.md')
+  })
+
+  it('複製の途中に改行を挟んでも検出する（折り返しによる回避を防ぐ）', () => {
+    const found = checkSkillNoDesignDataDuplication('強調は oklch(0.47 0.22\n305) を使う。', contract)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('color.accent')
+  })
+
+  it('複製の途中にゼロ幅スペースを挟んでも検出する（不可視文字による回避を防ぐ）', () => {
+    // ソースコードへ不可視文字を直接埋めると no-irregular-whitespace に
+    // 引っかかるため、JS のエスケープシーケンスとして埋め込む（checkDecks 節と同じ理由）。
+    const zeroWidthSpace = '\u200B'
+    const found = checkSkillNoDesignDataDuplication(
+      `強調は oklch(0.47${zeroWidthSpace} 0.22 305) を使う。`,
+      contract,
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('color.accent')
   })
 })
 

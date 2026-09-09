@@ -34,5 +34,6 @@ Agent Skill と resolve スクリプトを作る。MCP サーバーは作らな�
 
 ## 帰結
 
-- SKILL.md に設計データが複製されていないことを検査する仕組みを持つ
+- SKILL.md に設計データが複製されていないことを検査する仕組みを持つ。対象は色（`design/tokens.json` の color）、layout / component の役割・使用基準の文章、rule の description、および `DESIGN.md` の記述（見出し・箇条書き記号を除いた20文字以上の行）。`space` / `max` のような小さい数値、および20文字未満の短い行は「3」「1280x720」のような一般的な表現と衝突しやすく誤検知になるため対象にしない
 - 非対話で実行される前提を SKILL.md に明記する。生成中に質問しても誰も答えられない
+- `resolve-design-contract.mjs` は解決結果をカレントディレクトリの `HARNESS_RESOLVED.json` へ書き出す。SKILL.md はこのファイル名を実行結果の受け渡し規約として参照する
