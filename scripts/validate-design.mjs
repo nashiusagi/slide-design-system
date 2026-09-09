@@ -18,6 +18,7 @@ import Ajv2020 from 'ajv/dist/2020.js'
 import slidePlugin from '../packages/eslint-plugin-slide/src/index.mjs'
 import { contrastRatio, isInSrgbGamut } from './lib/color.mjs'
 import { parseDeck } from './lib/deck.mjs'
+import { IMPLEMENTED_MEASURE_RULE_IDS } from './lib/measure-rules.mjs'
 
 /** @param {string} relativePath */
 const resolve = (relativePath) => fileURLToPath(new URL(`../${relativePath}`, import.meta.url))
@@ -242,6 +243,48 @@ export function checkLintRuleCoverage(rules, implementedRuleIds) {
 }
 
 /**
+ * design/rules.json の method: "measure" のルールIDと、scripts/measure-slides.mjs が
+ * 実装するルールIDが1対1で対応しているか（DR-0011 帰結）。lint 側の
+ * `checkLintRuleCoverage` と同じ理由でこの検査が要る。
+ *
+ * lint 側と違い、`knownUnimplementedRuleIds` に列挙したIDは「未実装」を許容する。
+ * `deck-body-fidelity` は宣言だけがあり実装が別 Issue に残っているため（design/rules.json
+ * の該当ルールの description を参照）、これを missing として扱うと対応検査そのものが
+ * 常に赤くなり、実際に実装済みの3ルール（no-overflow / min-font-size / contrast）が
+ * 対応しているかどうかを、この検査からは読めなくなる。
+ *
+ * @param {{ id: string, method: string }[]} rules design/rules.json の rules
+ * @param {string[]} implementedRuleIds scripts/measure-slides.mjs が実装するルールID
+ * @param {string[]} knownUnimplementedRuleIds 未実装であることが分かっているルールID
+ * @returns {string[]}
+ */
+export function checkMeasureRuleCoverage(rules, implementedRuleIds, knownUnimplementedRuleIds) {
+  const declared = new Set(rules.filter((rule) => rule.method === 'measure').map((rule) => rule.id))
+  const implemented = new Set(implementedRuleIds)
+  const knownUnimplemented = new Set(knownUnimplementedRuleIds)
+
+  const missing = [...declared]
+    .filter((id) => !implemented.has(id) && !knownUnimplemented.has(id))
+    .map((id) => `scripts/measure-slides.mjs: design/rules.json の measure ルール '${id}' が実装されていない`)
+
+  const extra = [...implemented]
+    .filter((id) => !declared.has(id))
+    .map(
+      (id) =>
+        `scripts/measure-slides.mjs: ルール '${id}' を実装しているが、design/rules.json に method: "measure" として無い`,
+    )
+
+  const staleKnownUnimplemented = [...knownUnimplemented]
+    .filter((id) => implemented.has(id))
+    .map(
+      (id) =>
+        `scripts/validate-design.mjs: '${id}' は knownUnimplementedRuleIds にあるが、既に scripts/measure-slides.mjs で実装されている。許容リストから外すこと`,
+    )
+
+  return [...missing, ...extra, ...staleKnownUnimplemented]
+}
+
+/**
  * design/layout.css が、レイアウト契約の classes をちょうど実装しているか
  * （DR-0018 / DR-0030）。過不足どちらも検査する。契約に無いクラスが実装に
  * 残っていると、使われなくなったレイアウトの実装が残り続けても気付けない。
@@ -415,6 +458,10 @@ function main() {
     {
       name: 'design/rules.json の lint ルールと eslint-plugin-slide の実装が対応する',
       run: () => checkLintRuleCoverage(rules.rules, Object.keys(slidePlugin.rules)),
+    },
+    {
+      name: 'design/rules.json の measure ルールと measure-slides.mjs の実装が対応する',
+      run: () => checkMeasureRuleCoverage(rules.rules, IMPLEMENTED_MEASURE_RULE_IDS, ['deck-body-fidelity']),
     },
   ]
 

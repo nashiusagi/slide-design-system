@@ -23,9 +23,11 @@ Node.js 22 以上と pnpm が要る。
 
 ```bash
 pnpm install
+npx playwright install chromium  # pnpm measure が使うブラウザ本体。初回のみ
 pnpm dev              # 開発サーバ
 pnpm build            # dist/index.html + dist/assets/ を出力
 pnpm theme:generate   # design/tokens.json から design/theme.css を生成
+pnpm measure          # dist/ を実測し measurements.json を出力（要 pnpm build。DR-0011）
 pnpm check            # design:check → theme:check → typecheck → lint → test → build
 ```
 
@@ -35,6 +37,8 @@ pnpm check            # design:check → theme:check → typecheck → lint → 
 出力形式の根拠は [DR-0022](./docs/decisions/0022-plain-vite-build-output.md)、足場の構成は [DR-0027](./docs/decisions/0027-build-scaffold-workspace-and-test-stack.md)。
 
 検査の実行口は `pnpm check` に一本化する。契約に基づく検査は、この並びの中へ足していく。契約自体の検証は先頭の `design:check` / `theme:check` 段へ、lint は `lint` 段へ、measure はビルド出力に対して実測するため `build` より後段へ置く。
+
+**現時点では `pnpm measure` を `pnpm check` へ組み込んでいない。** `src/App.tsx` はまだ `design/theme.css` / `design/layout.css` を読み込んでおらず、実測すると既存のプレースホルダ表示（ブラウザ既定のフォントサイズ・余白）が no-overflow / min-font-size に落ちる。App が設計契約を実際に消費するようになった時点で `check` の build 後段へ足す。根拠は [DR-0038](./docs/decisions/0038-defer-measure-in-check.md)。
 
 **「実測」はビルド出力をブラウザ上で測ること（measure 系）を指す。** トークンの数値から計算して求めるコントラストや色相差は「算出値」と呼び、区別する。算出値はビルドを要さないので先頭の段に置く。
 

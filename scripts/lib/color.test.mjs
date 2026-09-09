@@ -2,11 +2,14 @@ import { describe, expect, it } from 'vitest'
 
 import {
   contrastRatio,
+  contrastRatioFromRgb,
   hueDistance,
   isInSrgbGamut,
   oklchToHex,
+  parseCssRgb,
   parseOklch,
   relativeLuminance,
+  relativeLuminanceFromRgb,
 } from './color.mjs'
 
 describe('parseOklch', () => {
@@ -70,6 +73,48 @@ describe('contrastRatio', () => {
     const ratio = contrastRatio('oklch(0.3 0 0)', 'oklch(1 0 0)')
 
     expect(ratio).toBe(13.57)
+  })
+})
+
+describe('relativeLuminanceFromRgb', () => {
+  it('白は 1、黒は 0', () => {
+    expect(relativeLuminanceFromRgb([255, 255, 255])).toBeCloseTo(1, 5)
+    expect(relativeLuminanceFromRgb([0, 0, 0])).toBeCloseTo(0, 5)
+  })
+
+  it('oklch 経由の relativeLuminance と一致する。8bit 丸め後の値を基準にする点は変わらない', () => {
+    const rgb = /** @type {[number, number, number]} */ (
+      [1, 3, 5].map((offset) => parseInt(oklchToHex('oklch(0.47 0.22 305)').slice(offset, offset + 2), 16))
+    )
+
+    expect(relativeLuminanceFromRgb(rgb)).toBe(relativeLuminance('oklch(0.47 0.22 305)'))
+  })
+})
+
+describe('contrastRatioFromRgb', () => {
+  it('白と黒で 21:1 になる', () => {
+    expect(contrastRatioFromRgb([0, 0, 0], [255, 255, 255])).toBe(21)
+  })
+
+  it('前景と背景を入れ替えても同じ', () => {
+    expect(contrastRatioFromRgb([33, 33, 33], [255, 255, 255])).toBe(
+      contrastRatioFromRgb([255, 255, 255], [33, 33, 33]),
+    )
+  })
+})
+
+describe('parseCssRgb', () => {
+  it('rgb() を読む。alpha は省略時 1', () => {
+    expect(parseCssRgb('rgb(33, 33, 33)')).toEqual({ rgb: [33, 33, 33], alpha: 1 })
+  })
+
+  it('rgba() を読む', () => {
+    expect(parseCssRgb('rgba(0, 0, 0, 0)')).toEqual({ rgb: [0, 0, 0], alpha: 0 })
+  })
+
+  it('別記法は受け付けない', () => {
+    expect(() => parseCssRgb('oklch(0.47 0.22 305)')).toThrow()
+    expect(() => parseCssRgb('#791fba')).toThrow()
   })
 })
 

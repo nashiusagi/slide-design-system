@@ -61,6 +61,7 @@
 | [0033](./0033-derived-values-are-generated-and-checked.md) | トークンから導かれる値は生成し、`pnpm check` で再計算と突き合わせる |
 | [0034](./0034-contrast-metric-wcag21-srgb.md) | コントラストの指標は WCAG 2.1 とし、sRGB 色域に丸めた値で測る |
 | [0037](./0037-eslint-plugin-slide-rule-scope.md) | eslint-plugin-slide の5ルールは、まだ無い実装を前提にしない範囲に絞る |
+| [0038](./0038-defer-measure-in-check.md) | `pnpm measure` は、App が設計契約を消費するまで `pnpm check` へ組み込まない |
 
 ### 実験と運用
 

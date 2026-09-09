@@ -13,6 +13,7 @@ node_modules/
 /.vite/
 /playwright-report/
 /test-results/
+/measurements.json
 /*.log
 experiments/*/starter/dist/
 experiments/*/starter/coverage/

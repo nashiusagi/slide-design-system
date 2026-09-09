@@ -17,6 +17,7 @@ import {
   checkLayoutClasses,
   checkLayoutComponentConsistency,
   checkLintRuleCoverage,
+  checkMeasureRuleCoverage,
 } from './validate-design.mjs'
 
 /** 水準を満たす最小の色一式。各テストはここから1つだけ壊す。 */
@@ -130,6 +131,53 @@ describe('checkLintRuleCoverage', () => {
 
     expect(found).toHaveLength(1)
     expect(found[0]).toContain("'unknown-rule' を実装しているが")
+  })
+})
+
+describe('checkMeasureRuleCoverage', () => {
+  const rules = [
+    { id: 'no-overflow', method: 'measure' },
+    { id: 'deck-body-fidelity', method: 'measure' },
+    { id: 'no-raw-color', method: 'lint' },
+  ]
+
+  it('measure ルールと実装が1対1で対応していれば何も返さない', () => {
+    expect(checkMeasureRuleCoverage(rules, ['no-overflow'], ['deck-body-fidelity'])).toEqual([])
+  })
+
+  it('lint のルールは対象にしない', () => {
+    expect(
+      checkMeasureRuleCoverage(rules, ['no-overflow'], ['deck-body-fidelity']),
+    ).not.toEqual(expect.arrayContaining([expect.stringContaining('no-raw-color')]))
+  })
+
+  it('未実装リストに無い measure ルールの実装が無いと捕まえる', () => {
+    const found = checkMeasureRuleCoverage(rules, [], ['deck-body-fidelity'])
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain("'no-overflow' が実装されていない")
+  })
+
+  it('未実装リストにあるルールは、実装が無くても捕まえない', () => {
+    // deck-body-fidelity は既知の未実装として許容している。missing 扱いにすると、
+    // 実装済みの他ルールの対応状況までこの検査から読めなくなる（design/rules.json 参照）。
+    const found = checkMeasureRuleCoverage(rules, ['no-overflow'], ['deck-body-fidelity'])
+
+    expect(found).not.toEqual(expect.arrayContaining([expect.stringContaining('deck-body-fidelity')]))
+  })
+
+  it('契約に無いルールを実装していると捕まえる', () => {
+    const found = checkMeasureRuleCoverage(rules, ['no-overflow', 'unknown-rule'], ['deck-body-fidelity'])
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain("'unknown-rule' を実装しているが")
+  })
+
+  it('既に実装されたルールが未実装リストへ残っていると捕まえる', () => {
+    // 実装され次第、許容リストから外す運用（design/rules.json 参照）が崩れていないか。
+    const found = checkMeasureRuleCoverage(rules, ['no-overflow'], ['no-overflow', 'deck-body-fidelity'])
+
+    expect(found).toEqual([expect.stringContaining("'no-overflow' は knownUnimplementedRuleIds にあるが")])
   })
 })
 

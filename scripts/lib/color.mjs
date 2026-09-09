@@ -93,15 +93,14 @@ export function oklchToHex(value) {
 }
 
 /**
- * WCAG 2.1 の相対輝度。8bit へ丸めた後の値から求める。
+ * WCAG 2.1 の相対輝度。8bit（0..255）に丸めた後の値から求める。
  * 実際に描画されるのは丸めた後の色なので、そこを基準にしないと実測にならない。
  *
- * @param {string} value
+ * @param {[number, number, number]} rgb 0..255 の3成分
  */
-export function relativeLuminance(value) {
-  const hex = oklchToHex(value)
-  const components = [1, 3, 5].map((offset) => {
-    const channel = parseInt(hex.slice(offset, offset + 2), 16) / 255
+export function relativeLuminanceFromRgb([r, g, b]) {
+  const components = [r, g, b].map((byte) => {
+    const channel = byte / 255
 
     return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4
   })
@@ -113,6 +112,36 @@ export function relativeLuminance(value) {
  * WCAG 2.1 のコントラスト比。小数第 2 位で切り捨てる。
  * 四捨五入すると 4.495 が 4.5 になり、基準を割った組み合わせを通してしまう。
  *
+ * @param {[number, number, number]} rgbA 0..255 の3成分
+ * @param {[number, number, number]} rgbB 0..255 の3成分
+ */
+export function contrastRatioFromRgb(rgbA, rgbB) {
+  const [lighter, darker] = [relativeLuminanceFromRgb(rgbA), relativeLuminanceFromRgb(rgbB)].sort(
+    (a, b) => b - a,
+  )
+
+  return Math.floor(((lighter + 0.05) / (darker + 0.05)) * 100) / 100
+}
+
+/**
+ * WCAG 2.1 の相対輝度。トークンの oklch を経由する版。
+ * `scripts/validate-design.mjs` の `checkContrast`（コントラスト検査。DR-0008 / DR-0011 /
+ * DR-0033）が使う。色域検査（`isInSrgbGamut`）はこれを使わず独立している。
+ *
+ * @param {string} value
+ */
+export function relativeLuminance(value) {
+  const hex = oklchToHex(value)
+  const rgb = /** @type {[number, number, number]} */ (
+    [1, 3, 5].map((offset) => parseInt(hex.slice(offset, offset + 2), 16))
+  )
+
+  return relativeLuminanceFromRgb(rgb)
+}
+
+/**
+ * WCAG 2.1 のコントラスト比。トークンの oklch を経由する版。
+ *
  * @param {string} foreground
  * @param {string} background
  */
@@ -122,6 +151,28 @@ export function contrastRatio(foreground, background) {
   )
 
   return Math.floor(((lighter + 0.05) / (darker + 0.05)) * 100) / 100
+}
+
+/** `rgb(...)` / `rgba(...)` の記法を読む。ブラウザの `getComputedStyle` が返す形式（DR-0011）。 */
+const CSS_RGB_PATTERN = /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)$/
+
+/**
+ * `getComputedStyle` が返す `rgb(...)` / `rgba(...)` 文字列を読む。
+ *
+ * @param {string} value
+ * @returns {{ rgb: [number, number, number], alpha: number }}
+ */
+export function parseCssRgb(value) {
+  const matched = CSS_RGB_PATTERN.exec(value.trim())
+
+  if (matched === null) {
+    throw new Error(`rgb()/rgba() の形で書くこと: ${value}`)
+  }
+
+  return {
+    rgb: [Number(matched[1]), Number(matched[2]), Number(matched[3])],
+    alpha: matched[4] === undefined ? 1 : Number(matched[4]),
+  }
 }
 
 /**

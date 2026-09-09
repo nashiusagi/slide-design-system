@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/rules.schema.json",
-  "$comment": "検査ルールの正本（DR-0009 / DR-0011）。ここに無いIDは検査として存在しない。lint の実装は packages/eslint-plugin-slide、measure の実装は #8 で追加する scripts/measure-slides.mjs。lint 側の対応（ルールIDと実装の1対1）は pnpm design:check が検査する。measure 側の対応は #8 で同様に足す。",
+  "$comment": "検査ルールの正本（DR-0009 / DR-0011）。ここに無いIDは検査として存在しない。lint の実装は packages/eslint-plugin-slide、measure の実装は scripts/measure-slides.mjs（#8。no-overflow / min-font-size / contrast まで。deck-body-fidelity は未実装）。lint 側・measure 側とも、ルールIDと実装の1対1対応は pnpm design:check が検査する（scripts/validate-design.mjs の checkLintRuleCoverage / checkMeasureRuleCoverage）。measure 側は deck-body-fidelity を『既知の未実装』としてその検査の許容リストに明示しており、実装され次第そこから外す。",
   "rules": [
     {
       "id": "no-raw-color",
@@ -36,25 +36,25 @@
       "id": "no-overflow",
       "method": "measure",
       "severity": "error",
-      "description": "1280x720 のキャンバスから要素がはみ出していない。各 Fragment 段階すべてで判定する（DR-0011。実装は #8）。"
+      "description": "1280x720 のキャンバスから要素がはみ出していない。各 Fragment 段階すべてで判定する。判定はレイアウト矩形（getBoundingClientRect）で行い、許容誤差は noOverflow.toleranceInPx（DR-0011）。"
     },
     {
       "id": "min-font-size",
       "method": "measure",
       "severity": "error",
-      "description": "computed fontSize が minFontSize.px を割っていない（DR-0012。実装は #8）。"
+      "description": "computed fontSize が minFontSize.px を割っていない（DR-0012）。"
     },
     {
       "id": "contrast",
       "method": "measure",
       "severity": "error",
-      "description": "実測の前景/背景コントラストが contrast.requirements の水準を満たす（DR-0008。実装は #8）。算出値としての事前チェックは scripts/validate-design.mjs が contrast.requirements を読んで行う。"
+      "description": "実測の前景/背景コントラストが contrast.requirements の水準を満たす（DR-0008）。算出値としての事前チェックは scripts/validate-design.mjs が contrast.requirements を読んで行う。"
     },
     {
       "id": "deck-body-fidelity",
       "method": "measure",
       "severity": "error",
-      "description": "deck 契約に body があるとき、レンダリング後の DOM テキストが素材を欠落・改変していない（DR-0011 / DR-0017。実装は #8）。"
+      "description": "deck 契約に body があるとき、レンダリング後の DOM テキストが素材を欠落・改変していない（DR-0011 / DR-0017）。未実装（#8 のスコープは no-overflow / min-font-size / contrast まで）。"
     }
   ],
   "contrast": {
@@ -70,6 +70,10 @@
   "minFontSize": {
     "$comment": "Web の本文標準より一段上、登壇用の水準より一段下（DR-0012 / DR-0006）。",
     "px": 18
+  },
+  "noOverflow": {
+    "$comment": "no-overflow の許容誤差（DR-0011 帰結）。ビューポートをキャンバスと同寸・スケール倍率1.0に固定しても、サブピクセル単位のフォントメトリクスの丸め差は環境（OS のフォントレンダラ、Chromium のマイナーバージョン）で生じうる。判定をキャンバス寸法ちょうどにすると、はみ出していないレイアウトが環境差だけで落ちる。閾値を超えるはみ出しは誤差では説明が付かないため、この値は小さく保つ。",
+    "toleranceInPx": 0.5
   },
   "noRawScale": {
     "$comment": "no-raw-scale が例外的に許す長さリテラル。0 は単位に関わらず無害、100% は親要素基準で契約外の値を持ち込まない、1px はヘアライン境界線の慣習的な最小値（DR-0011 帰結）。",
