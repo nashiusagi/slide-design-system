@@ -5,8 +5,11 @@
  *
  * `<dir>` 配下の全ファイルを対象に、現在のホームディレクトリ（`os.homedir()`）を
  * `<workspace>` へ、現在の OS ユーザー名（`os.userInfo().username`）を `<user>` へ
- * 置換してその場で上書きする。バックアップは取らない（git 管理下にあるため、
- * 必要なら差分を戻せる）。
+ * 置換してその場で上書きする。バックアップは取らない。`docs/PUBLICATION_POLICY.md`
+ * が定める運用（Run を保存したらコミットする前に実行する）では対象はまだ未追跡
+ * ファイルであることが多く、その場合 git で元に戻すことはできない。置換結果に
+ * 疑いが残るときは、実行前に `git add -N` して差分を取れるようにするか、
+ * コミット後に実行すること。
  *
  * これは既知パターンの機械的な置換であり、公開してよいという承認ではない
  * （`docs/PUBLICATION_POLICY.md`）。置換漏れが無いかは `scripts/audit-public-data.mjs`
@@ -14,21 +17,13 @@
  */
 import { readFileSync, writeFileSync } from 'node:fs'
 import { homedir, userInfo } from 'node:os'
-import { extname, join } from 'node:path'
+import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-import { collectFiles } from './lib/fs-walk.mjs'
+import { collectFiles, escapeForRegExp, isBinaryPath } from './lib/fs-walk.mjs'
 
 export const WORKSPACE_PLACEHOLDER = '<workspace>'
 export const USER_PLACEHOLDER = '<user>'
-
-/** バイナリとして扱い、テキスト置換の対象にしない拡張子。 */
-const BINARY_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.ico', '.woff', '.woff2', '.ttf', '.eot'])
-
-/** @param {string} value */
-function escapeForRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
 
 /**
  * テキスト1件分から、既知の識別子を機械的に置換する。IO を持たない純関数。
@@ -66,7 +61,7 @@ export function sanitizeText(content, { homeDir, username }) {
  */
 export function sanitizeDirectory(dir, identifiers = { homeDir: homedir(), username: userInfo().username }) {
   return collectFiles(dir).flatMap((relativePath) => {
-    if (BINARY_EXTENSIONS.has(extname(relativePath))) {
+    if (isBinaryPath(relativePath)) {
       return []
     }
 

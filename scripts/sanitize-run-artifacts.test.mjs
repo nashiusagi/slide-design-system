@@ -81,7 +81,18 @@ describe('sanitizeDirectory', () => {
     expect(readFileSync(join(dir, 'screenshot.png'), 'utf8')).toBe(original)
   })
 
-  it('既定の identifiers（現在の OS の homedir/username）でも動く', () => {
+  it('拡張子が大文字でもバイナリ扱いになり、書き込まない', () => {
+    const dir = makeTempDir()
+    const original = 'not really a png but contains /home/ryogo/secret'
+    writeFileSync(join(dir, 'Screenshot.PNG'), original)
+
+    const changed = sanitizeDirectory(dir, { homeDir: '/home/ryogo', username: 'ryogo' })
+
+    expect(changed).toEqual([])
+    expect(readFileSync(join(dir, 'Screenshot.PNG'), 'utf8')).toBe(original)
+  })
+
+  it('identifiers を省略すると、例外を投げずファイルをそのまま残す（既定値として現在の OS の homedir/username を使う）', () => {
     const dir = makeTempDir()
     writeFileSync(join(dir, 'note.txt'), 'no secrets here')
 

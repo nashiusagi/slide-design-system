@@ -10,7 +10,7 @@ import { join } from 'node:path'
 
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { auditDirectory, findLeaks } from './audit-public-data.mjs'
+import { auditDirectory, buildLeakPatterns, findLeaks } from './audit-public-data.mjs'
 import { sanitizeDirectory } from './sanitize-run-artifacts.mjs'
 
 /** @type {string[]} */
@@ -39,6 +39,16 @@ describe('findLeaks', () => {
     expect(leaks.map((leak) => leak.id)).toContain('macos-home-path')
   })
 
+  it('一時ディレクトリ配下の絶対パスを検出する（prepare-workspace.mjs の既定の出力先）', () => {
+    const leaks = findLeaks('workspace at /tmp/slide-harness-experiments/harness-intro/baseline-123/src/App.tsx')
+    expect(leaks.map((leak) => leak.id)).toContain('tmp-path')
+  })
+
+  it('macOS の一時ディレクトリ配下の絶対パスを検出する', () => {
+    const leaks = findLeaks('dist served from /var/folders/ab/xyz1234/T/slide-harness/dist')
+    expect(leaks.map((leak) => leak.id)).toContain('macos-tmp-path')
+  })
+
   it.each([
     ['OpenAI 形式', 'sk-abcdefghijklmnopqrstuvwx', 'openai-api-key'],
     ['Anthropic 形式', 'sk-ant-abcdefghijklmnopqrstuvwx', 'anthropic-api-key'],
@@ -63,14 +73,37 @@ describe('findLeaks', () => {
       'ハッシュ値の例: a1b2c3d4（8文字、8桁のvite出力ハッシュ）',
     ].join('\n')
 
-    expect(findLeaks(content)).toEqual([])
+    // 実行環境の OS ユーザー名（既定の LEAK_PATTERNS が含む）に依存しないよう、
+    // ここではユーザー名パターンを持たない静的パターンだけで確認する。
+    expect(findLeaks(content, buildLeakPatterns({ username: '' }))).toEqual([])
+  })
+})
+
+describe('buildLeakPatterns', () => {
+  it('username を渡すと、単語境界つきで単独の文字列としての出現を検出する', () => {
+    const patterns = buildLeakPatterns({ username: 'ryogo-test-user' })
+    const leaks = findLeaks('note left by ryogo-test-user while debugging', patterns)
+
+    expect(leaks.map((leak) => leak.id)).toContain('current-username')
+  })
+
+  it('username が別の単語の一部のときは検出しない', () => {
+    const patterns = buildLeakPatterns({ username: 'ryogo-test-user' })
+    const leaks = findLeaks('ryogo-test-user-extended is unrelated', patterns)
+
+    expect(leaks.map((leak) => leak.id)).not.toContain('current-username')
+  })
+
+  it('username を空文字列にすると current-username パターンを持たない', () => {
+    const patterns = buildLeakPatterns({ username: '' })
+    expect(patterns.some((pattern) => pattern.id === 'current-username')).toBe(false)
   })
 })
 
 describe('auditDirectory', () => {
   it('ホームディレクトリを含む成果物を検出する（完了条件）', () => {
     const dir = makeTempDir()
-    writeFileSync(join(dir, 'measurements.json'), JSON.stringify({ dist: '/home/ryogo/tmp/slide-harness/dist' }))
+    writeFileSync(join(dir, 'measurements.json'), JSON.stringify({ dist: '/home/ryogo/workspace/slide-harness/dist' }))
 
     const problems = auditDirectory(dir)
     expect(problems.length).toBeGreaterThan(0)
@@ -79,7 +112,7 @@ describe('auditDirectory', () => {
 
   it('sanitize 後は検出されない（完了条件）', () => {
     const dir = makeTempDir()
-    writeFileSync(join(dir, 'measurements.json'), JSON.stringify({ dist: '/home/ryogo/tmp/slide-harness/dist' }))
+    writeFileSync(join(dir, 'measurements.json'), JSON.stringify({ dist: '/home/ryogo/workspace/slide-harness/dist' }))
 
     sanitizeDirectory(dir, { homeDir: '/home/ryogo', username: 'ryogo' })
 

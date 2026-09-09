@@ -4,34 +4,34 @@
  *   node scripts/audit-public-data.mjs [<dir> ...]
  *
  * 引数を省略すると `experiments/*\/runs`（保存 Run。存在するものだけ）を対象にする。
- * 対象ディレクトリ配下の全テキストファイルから、絶対パス・API キー・token らしき
- * 文字列パターンを探す。1件でも見つかれば非ゼロで終了する。`pnpm check` に組み込む。
+ * 対象ディレクトリ配下の全テキストファイルから、絶対パス（ホーム・一時ディレクトリ）・
+ * 実行環境の OS ユーザー名（単独の文字列として）・API キー・token らしき文字列
+ * パターンを探す。1件でも見つかれば非ゼロで終了する。`pnpm check` に組み込む。
+ * ユーザー名の検出は audit を実行しているマシンのものに限る（`buildLeakPatterns` を参照）。
  *
  * **これは文字列パターンの検査であり、公開してよいという承認ではない。**
  * 画像・差分の中身は人が開いて確認する（`docs/PUBLICATION_POLICY.md`）。
  */
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
-import { extname, join } from 'node:path'
+import { userInfo } from 'node:os'
+import { join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
-import { collectFiles } from './lib/fs-walk.mjs'
+import { collectFiles, escapeForRegExp, isBinaryPath } from './lib/fs-walk.mjs'
 
 const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url))
-
-/** sanitize 済みなら残らないはずの拡張子は対象外にする（画像・フォント等）。 */
-const BINARY_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.ico', '.woff', '.woff2', '.ttf', '.eot'])
 
 /**
  * @typedef {{ id: string, pattern: RegExp, description: string }} LeakPattern
  */
 
 /**
- * 検査対象のパターン。id は結果の集計・テストで安定して参照するためのキー。
- * `pattern` は必ず `g` フラグを持つ（matchAll を使うため）。
+ * どの環境でも意味を持つ、固定の検査パターン。id は結果の集計・テストで安定して
+ * 参照するためのキー。`pattern` は必ず `g` フラグを持つ（matchAll を使うため）。
  *
  * @type {LeakPattern[]}
  */
-export const LEAK_PATTERNS = [
+const STATIC_LEAK_PATTERNS = [
   {
     id: 'home-path',
     pattern: /\/home\/[^/\s"'<>)]+/g,
@@ -41,6 +41,20 @@ export const LEAK_PATTERNS = [
     id: 'macos-home-path',
     pattern: /\/Users\/[^/\s"'<>)]+/g,
     description: 'macOS のホームディレクトリ配下の絶対パス',
+  },
+  {
+    id: 'tmp-path',
+    // 隔離ワークスペースの既定の出力先（prepare-workspace.mjs）は os.tmpdir() 配下で、
+    // Linux では通常 /tmp。ここは実行機に依存せず、常に見る（docs/PUBLICATION_POLICY.md
+    // が「一時ディレクトリのパス」を絶対パス漏洩の例として明示している）。
+    pattern: /\/tmp\/[^/\s"'<>)]+/g,
+    description: '一時ディレクトリ配下の絶対パス',
+  },
+  {
+    id: 'macos-tmp-path',
+    // macOS の os.tmpdir() の既定は /var/folders/... 配下。
+    pattern: /\/var\/folders\/[^/\s"'<>)]+/g,
+    description: 'macOS の一時ディレクトリ配下の絶対パス',
   },
   {
     id: 'openai-api-key',
@@ -75,13 +89,46 @@ export const LEAK_PATTERNS = [
 ]
 
 /**
+ * 検査パターンを組み立てる。`username` を渡すと、OS ユーザー名が単語境界つきの
+ * 単独の文字列として残っていないかも検査対象に加える
+ * （sanitize-run-artifacts.mjs の置換漏れの検出。DR-0023）。
+ *
+ * これは実行環境（audit を走らせているマシン）のユーザー名しか知らない。
+ * 生成を別マシンで行い、そちらで sanitize せずに保存した Run のユーザー名までは
+ * 検出できない（`docs/PUBLICATION_POLICY.md` の限界を参照）。
+ *
+ * @param {{ username?: string }} [identifiers]
+ * @returns {LeakPattern[]}
+ */
+export function buildLeakPatterns(identifiers = {}) {
+  const username = identifiers.username ?? userInfo().username
+
+  if (username.length === 0) {
+    return STATIC_LEAK_PATTERNS
+  }
+
+  return [
+    ...STATIC_LEAK_PATTERNS,
+    {
+      id: 'current-username',
+      pattern: new RegExp(`(?<![A-Za-z0-9_-])${escapeForRegExp(username)}(?![A-Za-z0-9_-])`, 'g'),
+      description: '実行環境の OS ユーザー名が単独の文字列として残っている（同一マシンでの生成のみ検出できる）',
+    },
+  ]
+}
+
+/** CLI・既定の呼び出しで使う、現在の環境に基づく検査パターン。 */
+export const LEAK_PATTERNS = buildLeakPatterns()
+
+/**
  * 1件のテキストから漏洩候補を探す。IO を持たない純関数。
  *
  * @param {string} content
+ * @param {LeakPattern[]} [patterns]
  * @returns {{ id: string, description: string, match: string }[]}
  */
-export function findLeaks(content) {
-  return LEAK_PATTERNS.flatMap(({ id, pattern, description }) =>
+export function findLeaks(content, patterns = LEAK_PATTERNS) {
+  return patterns.flatMap(({ id, pattern, description }) =>
     [...content.matchAll(pattern)].map((match) => ({ id, description, match: match[0] })),
   )
 }
@@ -90,18 +137,19 @@ export function findLeaks(content) {
  * `dir` 配下の全ファイルを検査し、人が読める形の問題一覧を返す。
  *
  * @param {string} dir
+ * @param {LeakPattern[]} [patterns]
  * @returns {string[]}
  */
-export function auditDirectory(dir) {
+export function auditDirectory(dir, patterns = LEAK_PATTERNS) {
   return collectFiles(dir).flatMap((relativePath) => {
-    if (BINARY_EXTENSIONS.has(extname(relativePath))) {
+    if (isBinaryPath(relativePath)) {
       return []
     }
 
     const absolutePath = join(dir, relativePath)
     const content = readFileSync(absolutePath, 'utf8')
 
-    return findLeaks(content).map(
+    return findLeaks(content, patterns).map(
       (leak) => `${absolutePath}: ${leak.description}（${leak.id}）: ${leak.match}`,
     )
   })

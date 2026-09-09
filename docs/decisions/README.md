@@ -76,6 +76,7 @@
 | [0023](./0023-public-repo-with-audit.md) | public リポジトリで公開し、sanitize と audit を実装する |
 | [0025](./0025-issue-driven-development-flow.md) | Issue 起点の開発フローを Agent Skill として固定する |
 | [0039](./0039-experiment-starter-checked-against-root-scaffold.md) | experiments の starter はコミットして持ち、ルート足場との一致を検査する |
+| [0040](./0040-audit-secret-pattern-selection.md) | audit の API キー・token 検査は、主要ベンダーの既知形式 + 汎用の変数代入パターンに限る |
 
 ### メタ
 
