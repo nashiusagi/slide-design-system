@@ -30,7 +30,7 @@
 | `inspection/rule-has-bypass` | 検査ルールに抜け道があり、書き方を変えると素通りする | 10 | PR #27 | 未着手 |
 | `inspection/rule-scope-inconsistent` | 同じルールIDの守備範囲が文書間で食い違う | 3 | PR #20 | 未着手 |
 | `decisions/consequence-not-followed` | 既存 DR の帰結が、それを通る手順に反映されていない | 4 | PR #25 | 未着手 |
-| `contract/contract-structure-duplicated` | 正本の中身の一覧が、別の文書へ構造ごと複製された | 5 | PR #26 | 未着手 |
+| `contract/contract-structure-duplicated` | 正本の中身の一覧が、別の文書へ構造ごと複製された | 6 | PR #27 | 未着手 |
 | `contract/value-outside-source-of-truth` | 正本に置くと決めた値が、正本を参照できない場所にも必要になる | 3 | PR #21 | 未着手 |
 | `contract/design-data-duplicated` | デザインの値が正本以外へ複製された | 5 | PR #27 | 未着手 |
 | `writing/inaccurate-rationale` | 説明文が書いている理由付けが、実装の挙動と食い違う | 4 | PR #26 | 未着手 |
@@ -44,7 +44,7 @@
 | `contract/design-data-duplicated` | 設計契約 | デザインの値が正本以外へ複製された | 5 | PR #13 | PR #27 |
 | `contract/value-outside-source-of-truth` | 設計契約 | 正本に置くと決めた値が、正本を参照できない場所にも必要になる | 3 | PR #13 | PR #21 |
 | `contract/source-of-truth-ambiguous` | 設計契約 | 「正本」がどのファイルを指すか一意でない | 3 | PR #13 | PR #19 |
-| `contract/contract-structure-duplicated` | 設計契約 | 正本の中身の一覧が、別の文書へ構造ごと複製された | 5 | PR #13 | PR #26 |
+| `contract/contract-structure-duplicated` | 設計契約 | 正本の中身の一覧が、別の文書へ構造ごと複製された | 6 | PR #13 | PR #27 |
 | `inspection/rule-scope-inconsistent` | 検査 | 同じルールIDの守備範囲が文書間で食い違う | 3 | PR #13 | PR #20 |
 | `inspection/rule-id-mapping-incomplete` | 検査 | ルールIDと実装の対応検査が一部の系統しか覆っていない | 2 | PR #13 | PR #25 |
 | `inspection/measure-state-unspecified` | 検査 | measure がどの表示状態で測るか規定されていない | 2 | PR #13 | PR #19 |
@@ -101,7 +101,7 @@
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #27 | 2026-09-09 | 0 | 6 | 0 | [pr-27.md](./reviews/pr-27.md) |
+| #27 | 2026-09-09 | 0 | 10 | 0 | [pr-27.md](./reviews/pr-27.md) |
 | #26 | 2026-09-09 | 0 | 16 | 5 | [pr-26.md](./reviews/pr-26.md) |
 | #25 | 2026-09-09 | 2 | 2 | 3 | [pr-25.md](./reviews/pr-25.md) |
 | #24 | 2026-09-09 | 2 | 11 | 5 | [pr-24.md](./reviews/pr-24.md) |
