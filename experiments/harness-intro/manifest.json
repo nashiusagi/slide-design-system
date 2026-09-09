@@ -1,0 +1,17 @@
+{
+  "$comment": "harness-intro 実験の条件定義（DR-0014 / DR-0021）。baseline は設計契約・Skill のどちらも渡さない。harness の contractManifest は scripts/resolve-design-contract.mjs の manifest 形式（decks/layouts/components）そのもので、scripts/prepare-workspace.mjs がこれを解決してワークスペースへ資源をコピーする。harness-corrected はワークスペースの用意先が別に無く、harness の Run を人が修正して保存し直したものなので、conditions には含めない（DR-0014）。scripts/evaluate-run.mjs / compare-runs.mjs 側の condition の値としてのみ登場する。",
+  "id": "harness-intro",
+  "brief": "brief.md",
+  "prompt": "prompt.md",
+  "conditions": {
+    "baseline": {
+      "includesDesignContract": false,
+      "agentSkills": []
+    },
+    "harness": {
+      "includesDesignContract": true,
+      "agentSkills": ["slide-harness"],
+      "contractManifest": { "decks": ["harness-intro"] }
+    }
+  }
+}

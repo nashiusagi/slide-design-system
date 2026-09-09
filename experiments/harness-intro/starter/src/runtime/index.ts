@@ -1,0 +1,5 @@
+export { Deck, type DeckProps } from './Deck'
+export { Slide, type SlideProps } from './Slide'
+export { Fragment, type FragmentProps } from './Fragment'
+export { CANVAS_HEIGHT, CANVAS_WIDTH, fitScale } from './canvas'
+export { formatHash, parseHash, type Position } from './hash'
