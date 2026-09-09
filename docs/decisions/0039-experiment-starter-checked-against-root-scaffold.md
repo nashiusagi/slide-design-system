@@ -9,7 +9,7 @@
 
 [DR-0027](./0027-build-scaffold-workspace-and-test-stack.md) は「リポジトリ直下の足場と、実験の共通 starter（`experiments/`）の関係は未決」とし、「生成するか、一致を検査するか」を starter を作る Issue（#10）で決めると先送りしていた。
 
-`experiments/harness-intro/starter/` は Baseline / Harness の両条件へ同一に渡る初期状態（[DR-0021](./0021-starter-contains-runtime-only.md)）で、機構部分（`src/runtime/**`・`src/index.css`・ビルド設定）はリポジトリ直下と中身が同じであるべきものである。両者が食い違うと、実験の外で機構を直したときに starter だけ古いまま残り、生成条件が「今のランタイム」ではなく「過去のランタイム」に対する実験になってしまう。
+`experiments/harness-intro/starter/` は Baseline / Harness の両条件へ同一に渡る初期状態（[DR-0021](./0021-starter-contains-runtime-only.md)）で、ランタイム機構（`src/runtime/**`・`src/index.css`）はリポジトリ直下と中身が同じであるべきものである。両者が食い違うと、実験の外で機構を直したときに starter だけ古いまま残り、生成条件が「今のランタイム」ではなく「過去のランタイム」に対する実験になってしまう。
 
 ## 決定
 
@@ -41,3 +41,4 @@
 
 - `src/runtime/**` または `src/index.css` を変更する PR は、`experiments/harness-intro/starter/` 側の対応ファイルも同じ内容へ揃える。揃えないと `pnpm experiment:starter:check`（`pnpm check` 経由）が落ちる
 - 将来 `experiments/` に starter を持つ実験が増えたときも、同じ `check-starter` サブコマンドが対象ディレクトリを引数に取れるようにする
+- **ビルド設定（`vite.config.ts` / `tsconfig*.json` / `package.json` の依存バージョン）はこの検査の対象にしない。** starter は独立した npm パッケージとして単体で `pnpm install` できる必要があり、workspace 前提のルート直下 `package.json`（`ajv` / `playwright` / `vitest` 等、実験の生成には不要な依存を含む）をそのまま一致させる対象にはできない。両者のフレームワークの大枠（React / Vite / TypeScript のメジャーバージョン）を揃えることは starter 作成時の意図だが、以後の追随は自動検査ではなく人が更新する運用に委ねる。ルートが Vite や TypeScript のメジャーバージョンを上げても、この検査は starter 側の追随漏れを検出しない

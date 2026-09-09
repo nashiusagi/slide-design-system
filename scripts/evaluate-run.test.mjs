@@ -210,6 +210,19 @@ describe('scoreLint', () => {
     const result = await scoreLint(dir)
     expect(result).toEqual({ fileCount: 0, violationsByRule: {}, total: 0, messages: [] })
   })
+
+  it('eslint-disable コメントでは違反が消えない（noInlineConfig）', async () => {
+    const dir = makeTempDir()
+    writeFileSync(
+      join(dir, 'App.tsx'),
+      "/* eslint-disable slide/no-raw-color */\nexport function App() { return <div style={{ color: '#ff0000' }}>x</div> }\n",
+    )
+
+    const result = await scoreLint(dir)
+    // noInlineConfig 自体が「無効なdisableコメントがある」という別メッセージ
+    // （ruleId 無し）も生むため、no-raw-color 以外の合計は問わない。
+    expect(result.violationsByRule['no-raw-color']).toBe(1)
+  })
 })
 
 describe('scoreMeasure', () => {
@@ -220,6 +233,49 @@ describe('scoreMeasure', () => {
       reason: 'runs/<id>/dist が無い。ビルド済みの workspace から保存すると測定できる。',
     })
   })
+
+  it(
+    'dist が健全なビルド出力なら measure-slides.mjs を実行して measured を返す',
+    () => {
+      const runDir = makeTempDir()
+      mkdirSync(join(runDir, 'dist'))
+      writeFileSync(
+        join(runDir, 'dist/index.html'),
+        [
+          '<!doctype html><html><body>',
+          '<div class="slide-deck" data-slide-count="1" data-slide-index="0" data-step="0" data-step-count="0">',
+          '<div class="slide-canvas"><p style="font-size:20px;color:#000000">hello</p></div>',
+          '</div>',
+          '</body></html>',
+        ].join('\n'),
+      )
+
+      const result = scoreMeasure(runDir, REPO_ROOT)
+      expect(result.status).toBe('measured')
+      expect(result.pass).toBe(true)
+      expect(result.violations).toEqual([])
+      expect(existsSync(join(runDir, 'measurements.json'))).toBe(true)
+    },
+    20000,
+  )
+
+  it(
+    'measurements.json を書き出す前に measure-slides.mjs が失敗すると、無関係な ENOENT ではなく本来のエラーを伝える',
+    () => {
+      const runDir = makeTempDir()
+      mkdirSync(join(runDir, 'dist'))
+      // .slide-canvas を欠いたビルド出力。measure-slides.mjs はここで例外を投げ、
+      // measurements.json を書き出す前に終了する。
+      writeFileSync(
+        join(runDir, 'dist/index.html'),
+        '<!doctype html><html><body><div class="slide-deck" data-slide-count="1" data-slide-index="0" data-step="0" data-step-count="0"></div></body></html>',
+      )
+
+      expect(() => scoreMeasure(runDir, REPO_ROOT)).toThrow(/slide-canvas/)
+      expect(existsSync(join(runDir, 'measurements.json'))).toBe(false)
+    },
+    20000,
+  )
 })
 
 describe('scoreRun', () => {

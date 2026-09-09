@@ -181,6 +181,10 @@ export async function scoreLint(sourceDir) {
         extends: [jsConfigs.configs.recommended, ...tseslint.configs.recommended],
         plugins: { slide: slidePlugin },
         languageOptions: { ecmaVersion: 2022, globals: globals.browser },
+        // eslint.config.js の src/**/*.{ts,tsx} ブロックと同じく noInlineConfig を掛ける。
+        // 無いと `/* eslint-disable slide/no-raw-color */` のような、生成AIが
+        // typecheck/build を通すために書いたコメント一つで違反が0件に化ける。
+        linterOptions: { noInlineConfig: true, reportUnusedDisableDirectives: 'error' },
         rules: Object.fromEntries(SCORED_LINT_RULE_IDS.map((ruleId) => [`slide/${ruleId}`, 'error'])),
       })
     ),
@@ -197,7 +201,9 @@ export async function scoreLint(sourceDir) {
     for (const message of result.messages) {
       // design/rules.json のルールIDには `slide/` 接頭辞が無い。compare-runs.mjs の
       // SCORED_LINT_RULE_IDS と同じ語彙で突き合わせられるよう、ここで落とす。
-      const ruleId = message.ruleId?.replace(/^slide\//, '') ?? '(parse error)'
+      // ruleId が無いメッセージは構文エラーだけでなく、noInlineConfig 違反の通知
+      // （'has no effect because you have noInlineConfig' 等）も含む。
+      const ruleId = message.ruleId?.replace(/^slide\//, '') ?? '(no rule id)'
       violationsByRule[ruleId] = (violationsByRule[ruleId] ?? 0) + 1
       messages.push({ file: relative(sourceDir, result.filePath), ruleId: message.ruleId, message: message.message, line: message.line })
     }
@@ -228,9 +234,21 @@ export function scoreMeasure(runDir, repoRoot) {
     execFileSync('node', [join(repoRoot, 'scripts/measure-slides.mjs'), `--dist=${distDir}`, `--out=${outPath}`], {
       stdio: 'pipe',
     })
-  } catch {
-    // measure-slides.mjs は違反があると exit code 1 を返す。measurements.json 自体は
-    // 違反の有無に関わらず書き出し済みなので、ここでは失敗として扱わず読みに行く。
+  } catch (error) {
+    // measure-slides.mjs は違反があると exit code 1 を返すが、measurements.json 自体は
+    // 書き出し済みなので、その場合はここでは失敗として扱わず読みに行く。ただしビルド
+    // 出力が壊れている等で measurements.json を書き出す前に落ちたときは outPath が
+    // 存在しない。その場合まで読みに行くと、実際の原因ではなく無関係な ENOENT を
+    // 投げてしまうので、ここで区別して本来のエラーを伝える。
+    if (!existsSync(outPath)) {
+      const stderr = /** @type {{ stderr?: Buffer | string }} */ (error).stderr?.toString() ?? ''
+      throw new Error(
+        `measure-slides.mjs の実行に失敗した（違反による exit ではない）: ${
+          stderr || (error instanceof Error ? error.message : String(error))
+        }`,
+        { cause: error },
+      )
+    }
   }
 
   const measurements = JSON.parse(readFileSync(outPath, 'utf8'))
@@ -322,12 +340,17 @@ async function main() {
       return
     }
 
-    const scoring = await scoreRun(flags.run)
-    console.log(
-      `${flags.run}: lint 違反 ${scoring.lint.total} 件、measure は ${
-        scoring.measure.status === 'measured' ? (scoring.measure.pass ? 'pass' : `${scoring.measure.violations.length} 件の違反`) : 'skipped'
-      }`,
-    )
+    try {
+      const scoring = await scoreRun(flags.run)
+      console.log(
+        `${flags.run}: lint 違反 ${scoring.lint.total} 件、measure は ${
+          scoring.measure.status === 'measured' ? (scoring.measure.pass ? 'pass' : `${scoring.measure.violations.length} 件の違反`) : 'skipped'
+        }`,
+      )
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : String(error))
+      process.exitCode = 1
+    }
 
     return
   }
