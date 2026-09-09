@@ -4,16 +4,16 @@
  *
  *   node scripts/resolve-design-contract.mjs <manifest.json>
  *
- * 出力は解決済み契約（resources に path の一覧を持つ JSON）を標準出力へ書く。
- * ファイルの中身はここではなく Skill 側が読む。正本を Skill やこの JSON へ
- * 複製しないことが DR-0013 の核なので、resources は path だけを持ち、
- * 契約ファイルの中身を埋め込まない。
+ * 解決結果は `HARNESS_RESOLVED.json`（実行時のカレントディレクトリ）へ書き出す
+ * （Issue #9）。中身は resources に path の一覧を持つだけの JSON で、契約ファイルの
+ * 中身は埋め込まない。正本を Skill やこの JSON へ複製しないことが DR-0013 の核であり、
+ * ファイルの中身はここではなく Skill 側が実際のパスを読んで参照する。
  *
  * manifest が参照する deck / layout / component が存在しない、または deck 契約
  * 自体が構文・スキーマを満たさないときはエラーで止める。曖昧なまま解決を続けると、
  * 存在しない契約を読んだつもりの AI が生成を進めてしまう。
  */
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import Ajv2020 from 'ajv/dist/2020.js'
@@ -25,15 +25,6 @@ const resolve = (relativePath) => fileURLToPath(new URL(`../${relativePath}`, im
 
 /** @param {string} relativePath */
 const readJson = (relativePath) => JSON.parse(readFileSync(resolve(relativePath), 'utf8'))
-
-/**
- * layout / component 契約のファイル名（拡張子抜き）。
- * scripts/validate-design.mjs の LAYOUT_NAMES / COMPONENT_NAMES と同じ一覧だが、
- * 契約を検証する側（design:check）と契約を解決する側（この Skill）は目的が違う
- * ため、ここでは複製として持つ。存在チェックは checkSchemas 側が既に担っている。
- */
-const LAYOUT_NAMES = ['title', 'bullets', 'statement']
-const COMPONENT_NAMES = ['slide-title', 'bullet-list', 'statement', 'emphasis']
 
 /** どの manifest でも常に読む、experiment に依存しない契約。 */
 const BASE_RESOURCES = [
@@ -50,20 +41,46 @@ const BASE_RESOURCES = [
  */
 
 /**
+ * manifest のフィールドが「文字列の配列」であることを確かめる。配列でない値
+ * （例: 単一の文字列）を渡すと、後続の for..of が文字列を1文字ずつ deck / layout /
+ * component 名として反復してしまい、"Unknown layout reference: s" のような誤った
+ * 原因のエラーになる。ここで先に弾き、原因をそのまま伝える。
+ *
+ * @param {unknown} value
+ * @param {string} fieldName
+ * @returns {string[]}
+ */
+function assertStringArray(value, fieldName) {
+  if (value === undefined) {
+    return []
+  }
+
+  if (!Array.isArray(value) || value.some((item) => typeof item !== 'string')) {
+    throw new Error(`manifest の '${fieldName}' は文字列の配列である必要があります`)
+  }
+
+  return value
+}
+
+/**
  * @param {string} name
+ * @param {Set<string>} knownNames design/layouts/ に実在するファイル名（拡張子抜き）
  * @returns {Resource}
  */
-function layoutResource(name) {
-  if (!LAYOUT_NAMES.includes(name)) {
+function layoutResource(name, knownNames) {
+  if (!knownNames.has(name)) {
     throw new Error(`Unknown layout reference: ${name}`)
   }
 
   return { id: `layout.${name}`, path: `design/layouts/${name}.json` }
 }
 
-/** @param {string} name */
-function componentResource(name) {
-  if (!COMPONENT_NAMES.includes(name)) {
+/**
+ * @param {string} name
+ * @param {Set<string>} knownNames design/components/ に実在するファイル名（拡張子抜き）
+ */
+function componentResource(name, knownNames) {
+  if (!knownNames.has(name)) {
     throw new Error(`Unknown component reference: ${name}`)
   }
 
@@ -73,6 +90,11 @@ function componentResource(name) {
 /**
  * deck を解決する。存在しない deck 名、frontmatter を欠いた構文エラー、
  * スキーマ違反（未知の layout 等）のすべてをここでエラーにする。
+ *
+ * `deckSources` は呼び出し側が design/decks/ の実在ファイルからのみ組み立てる
+ * （resolveManifestFile を参照）。ここでは名前からファイルパスを組み立てて読む
+ * ことをしない。deck 名をそのままパスへ埋め込むと、`../` を含む名前で
+ * design/decks/ の外にある任意のファイルを deck として読み込めてしまう。
  *
  * layout を明示的な slots 経由で辿るのではなく、deck の各スライドが宣言する
  * layout をそのまま資源として要求する。deck 契約が「実際に使う layout」を
@@ -122,30 +144,35 @@ function resolveDeck(name, deckSources, deckSchema) {
  * @param {{
  *   deckSources: Record<string, string>,
  *   deckSchema: object,
+ *   layoutNames: string[],
+ *   componentNames: string[],
  *   layoutsByName: Record<string, { slots: { component: string }[] }>,
  * }} catalog
  */
-export function resolveManifest(manifest, { deckSources, deckSchema, layoutsByName }) {
-  const decks = manifest.decks ?? []
-  const requestedLayouts = manifest.layouts ?? []
-  const requestedComponents = manifest.components ?? []
+export function resolveManifest(manifest, { deckSources, deckSchema, layoutNames, componentNames, layoutsByName }) {
+  const decks = assertStringArray(manifest.decks, 'decks')
+  const requestedLayouts = assertStringArray(manifest.layouts, 'layouts')
+  const requestedComponents = assertStringArray(manifest.components, 'components')
 
   if (decks.length === 0 && requestedLayouts.length === 0 && requestedComponents.length === 0) {
     throw new Error('少なくとも1つの deck / layout / component 参照が必要です')
   }
+
+  const knownLayoutNames = new Set(layoutNames)
+  const knownComponentNames = new Set(componentNames)
 
   /** @type {Map<string, Resource>} */
   const selected = new Map(BASE_RESOURCES.map((resource) => [resource.id, resource]))
 
   /** layout を選択し、その slots が要求する component も連れてくる。 */
   const addLayout = (/** @type {string} */ name) => {
-    const resource = layoutResource(name)
+    const resource = layoutResource(name, knownLayoutNames)
     selected.set(resource.id, resource)
 
     const layout = layoutsByName[name]
 
     for (const slot of layout?.slots ?? []) {
-      const componentRes = componentResource(slot.component)
+      const componentRes = componentResource(slot.component, knownComponentNames)
       selected.set(componentRes.id, componentRes)
     }
   }
@@ -155,15 +182,15 @@ export function resolveManifest(manifest, { deckSources, deckSchema, layoutsByNa
   }
 
   for (const name of requestedComponents) {
-    const resource = componentResource(name)
+    const resource = componentResource(name, knownComponentNames)
     selected.set(resource.id, resource)
   }
 
   for (const name of decks) {
-    const { resource, layoutNames } = resolveDeck(name, deckSources, deckSchema)
+    const { resource, layoutNames: usedLayoutNames } = resolveDeck(name, deckSources, deckSchema)
     selected.set(resource.id, resource)
 
-    for (const layoutName of layoutNames) {
+    for (const layoutName of usedLayoutNames) {
       addLayout(layoutName)
     }
   }
@@ -175,27 +202,41 @@ export function resolveManifest(manifest, { deckSources, deckSchema, layoutsByNa
   }
 }
 
-/** @param {string} manifestPath 呼び出し元からの相対、または絶対パス */
+/** @param {string} directory design/layouts や design/components への相対パス */
+function jsonStemsOf(directory) {
+  return readdirSync(resolve(directory))
+    .filter((file) => file.endsWith('.json'))
+    .map((file) => file.slice(0, -'.json'.length))
+}
+
+/**
+ * manifest ファイルを読み、design/ の実在ファイルに対して解決する。
+ *
+ * layout / component の一覧はハードコードせず、design/layouts・design/components
+ * ディレクトリの実際の一覧から導く。手書きの一覧を持つと、正本にファイルを
+ * 足したときにここだけ更新を忘れ、実在する契約なのに解決できないという食い違いが
+ * 起きる。deck も同様に、design/decks の実在ファイルからのみ `deckSources` を
+ * 組み立てる。manifest が渡す deck 名を直接ファイルパスへ埋め込まないことで、
+ * `../` を含む名前による design/decks/ の外への参照を構造的に防ぐ。
+ *
+ * @param {string} manifestPath 呼び出し元からの相対、または絶対パス
+ */
 export function resolveManifestFile(manifestPath) {
   const manifest = /** @type {Manifest} */ (JSON.parse(readFileSync(manifestPath, 'utf8')))
 
   const deckSchema = readJson('design/schemas/deck.schema.json')
-  const layoutsByName = Object.fromEntries(
-    LAYOUT_NAMES.map((name) => [name, readJson(`design/layouts/${name}.json`)]),
+
+  const layoutNames = jsonStemsOf('design/layouts')
+  const componentNames = jsonStemsOf('design/components')
+  const layoutsByName = Object.fromEntries(layoutNames.map((name) => [name, readJson(`design/layouts/${name}.json`)]))
+
+  const deckSources = Object.fromEntries(
+    readdirSync(resolve('design/decks'))
+      .filter((file) => file.endsWith('.md'))
+      .map((file) => [file.slice(0, -'.md'.length), readFileSync(resolve(`design/decks/${file}`), 'utf8')]),
   )
 
-  /** @type {Record<string, string>} */
-  const deckSources = {}
-  for (const name of manifest.decks ?? []) {
-    try {
-      deckSources[name] = readFileSync(resolve(`design/decks/${name}.md`), 'utf8')
-    } catch {
-      // 存在しない deck はここでは読めないだけにし、resolveManifest 側の
-      // 「Unknown deck reference」で一本化してエラーメッセージを揃える。
-    }
-  }
-
-  return resolveManifest(manifest, { deckSources, deckSchema, layoutsByName })
+  return resolveManifest(manifest, { deckSources, deckSchema, layoutNames, componentNames, layoutsByName })
 }
 
 function main() {
@@ -208,14 +249,16 @@ function main() {
   }
 
   try {
-    console.log(JSON.stringify(resolveManifestFile(manifestPath), null, 2))
+    const resolved = resolveManifestFile(manifestPath)
+    writeFileSync('HARNESS_RESOLVED.json', `${JSON.stringify(resolved, null, 2)}\n`)
+    console.log(`HARNESS_RESOLVED.json を書き出した（resources ${resolved.resources.length}件）。`)
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error))
     process.exitCode = 1
   }
 }
 
-// テストから読み込むときは走らせない。process.exit と標準出力を持つため。
+// テストから読み込むときは走らせない。process.exit と副作用（ファイル書き出し）を持つため。
 if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main()
 }

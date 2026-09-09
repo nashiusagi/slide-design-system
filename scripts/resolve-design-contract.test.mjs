@@ -1,6 +1,10 @@
 /**
  * resolveManifest が「manifest から必要な契約だけを解決できる」こと（#9 の完了条件）と、
  * 「存在しないID・component参照はエラーになる」こと（同完了条件）の両方を固定する。
+ *
+ * fixture の deck 名・文言は、正本の design/decks/harness-intro.md とは意図的に
+ * 変えてある。同名・同文にすると、正本側を変更したときにこの fixture も追随させる
+ * べきかどうかが紛らわしくなる。
  */
 import { describe, expect, it } from 'vitest'
 
@@ -47,16 +51,16 @@ const layoutsByName = {
 }
 
 const validDeckSource = `---
-title: "harness-intro: この仕組み自体の紹介"
+title: "fixture-deck: テスト用の架空のデッキ"
 ---
 
 layout: title
-keyMessage: "AI に契約を渡してスライドを書かせる仕組みを紹介する"
+keyMessage: "テスト用の見出し"
 
 ---
 
 layout: bullets
-keyMessage: "設計は5層の契約でできていて、AIはそれだけを読んで書く"
+keyMessage: "テスト用の箇条書き"
 
 - a
 - b
@@ -64,13 +68,15 @@ keyMessage: "設計は5層の契約でできていて、AIはそれだけを読�
 ---
 
 layout: statement
-keyMessage: "書くのは AI、決めるのは契約"
+keyMessage: "テスト用の結論"
 `
 
 function catalog(overrides = {}) {
   return {
-    deckSources: { 'harness-intro': validDeckSource },
+    deckSources: { 'fixture-deck': validDeckSource },
     deckSchema,
+    layoutNames: ['title', 'bullets', 'statement'],
+    componentNames: ['slide-title', 'bullet-list', 'statement', 'emphasis'],
     layoutsByName,
     ...overrides,
   }
@@ -98,13 +104,13 @@ describe('resolveManifest', () => {
   })
 
   it('deck を要求すると、そのdeckが使う layout と component をすべて解決する', () => {
-    const result = resolveManifest({ decks: ['harness-intro'] }, catalog())
+    const result = resolveManifest({ decks: ['fixture-deck'] }, catalog())
     const ids = result.resources.map((r) => r.id)
 
     expect(ids).toEqual(
       expect.arrayContaining([
         ...baseResourceIds,
-        'deck.harness-intro',
+        'deck.fixture-deck',
         'layout.title',
         'layout.bullets',
         'layout.statement',
@@ -139,6 +145,23 @@ describe('resolveManifest', () => {
     expect(() => resolveManifest({}, catalog())).toThrow('少なくとも1つ')
   })
 
+  it('layouts に配列でない値（文字列）を渡すとエラーになる', () => {
+    // 実行時の型検証そのものを試すテストなので、静的な型は意図的に無視する。
+    const manifest = /** @type {any} */ ({ layouts: 'statement' })
+
+    expect(() => resolveManifest(manifest, catalog())).toThrow(
+      "manifest の 'layouts' は文字列の配列である必要があります",
+    )
+  })
+
+  it('decks に文字列以外を含む配列を渡すとエラーになる', () => {
+    const manifest = /** @type {any} */ ({ decks: [123] })
+
+    expect(() => resolveManifest(manifest, catalog())).toThrow(
+      "manifest の 'decks' は文字列の配列である必要があります",
+    )
+  })
+
   it('frontmatter を欠いた deck は構文エラーとして止まる', () => {
     expect(() =>
       resolveManifest({ decks: ['broken'] }, catalog({ deckSources: { broken: 'layout: title\n' } })),
@@ -161,3 +184,12 @@ describe('resolveManifest', () => {
     ).toThrow('deck契約を満たさない')
   })
 })
+
+// resolveManifestFile（実ファイルを読む側）は import.meta.url からの相対パス解決に
+// URL を使っており、このプロジェクトの vitest 環境（jsdom）ではその解決が壊れる
+// （jsdom がグローバルの URL を差し替えるため）。scripts/validate-design.mjs の
+// checkSchemas 側も同じ理由でここではテストしない（validate-design.test.mjs の
+// checkDecks 側コメントを参照）。resolveManifestFile が実データに対して動くことは、
+// scripts/validate-design.mjs の checkResolveDesignContractSmoke が
+// `node scripts/validate-design.mjs`（pnpm check の design:check 段）経由で
+// 固定する。

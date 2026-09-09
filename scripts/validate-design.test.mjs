@@ -318,12 +318,30 @@ describe('checkSkillNoDesignDataDuplication', () => {
       },
     ],
     rules: { rules: [{ id: 'no-overflow', description: 'キャンバスから要素がはみ出していない。' }] },
+    designMd: '# DESIGN.md\n\n白い紙面と黒い文字。強調は赤紫の一色だけ。\n\n装飾で語らず、余白と文字の階層だけで構造を示す。\n',
   }
 
   it('契約を参照するだけなら何も返さない', () => {
     const skillSource = '契約を読み、design/layouts/*.json の whenToUse で layout を選ぶ。'
 
     expect(checkSkillNoDesignDataDuplication(skillSource, contract)).toEqual([])
+  })
+
+  it('layout の role がそのまま書かれていると捕まえる', () => {
+    const found = checkSkillNoDesignDataDuplication(
+      'title はデッキ全体の主題、または章の区切りを宣言する。ために使う。',
+      contract,
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('design/layouts/title.json')
+  })
+
+  it('layout の whenNotToUse がそのまま書かれていると捕まえる', () => {
+    const found = checkSkillNoDesignDataDuplication('複数の論点を並べて伝えたいときは title を使わない。', contract)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('design/layouts/title.json')
   })
 
   it('color の値がそのまま書かれていると捕まえる', () => {
@@ -352,6 +370,23 @@ describe('checkSkillNoDesignDataDuplication', () => {
 
     expect(found).toHaveLength(1)
     expect(found[0]).toContain("ルール 'no-overflow'")
+  })
+
+  it('DESIGN.md の記述がそのまま書かれていると捕まえる', () => {
+    const found = checkSkillNoDesignDataDuplication(
+      '北極星は、白い紙面と黒い文字。強調は赤紫の一色だけ。である。',
+      contract,
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('DESIGN.md')
+  })
+
+  it('複製の途中に改行を挟んでも検出する（折り返しによる回避を防ぐ）', () => {
+    const found = checkSkillNoDesignDataDuplication('強調は oklch(0.47 0.22\n305) を使う。', contract)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('color.accent')
   })
 })
 

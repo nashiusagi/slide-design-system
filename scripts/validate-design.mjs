@@ -10,7 +10,9 @@
  * 骨格として、契約が増えるたびに CONTRACTS と CHECKS へ足していく形にしてある。
  * 今は tokens / layouts / components / decks がある。rules は後続の Issue で入る。
  */
-import { readdirSync, readFileSync } from 'node:fs'
+import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import Ajv2020 from 'ajv/dist/2020.js'
@@ -19,6 +21,7 @@ import slidePlugin from '../packages/eslint-plugin-slide/src/index.mjs'
 import { contrastRatio, isInSrgbGamut } from './lib/color.mjs'
 import { parseDeck } from './lib/deck.mjs'
 import { IMPLEMENTED_MEASURE_RULE_IDS } from './lib/measure-rules.mjs'
+import { resolveManifestFile } from './resolve-design-contract.mjs'
 
 /** @param {string} relativePath */
 const resolve = (relativePath) => fileURLToPath(new URL(`../${relativePath}`, import.meta.url))
@@ -325,6 +328,25 @@ export function checkLayoutClasses(layouts, cssSource) {
   return [...missing, ...extra]
 }
 
+/** 連続する空白（改行を含む）を1つに畳む。Markdown の折り返しで複製の途中に
+ * 改行が挟まっただけで完全一致判定をすり抜けるのを防ぐ（DR-0013）。 */
+const normalizeWhitespace = (/** @type {string} */ text) => text.replace(/\s+/g, ' ').trim()
+
+/**
+ * DESIGN.md を、複製の検出対象になりうる程度に長い行へ分ける。見出し記号・
+ * 箇条書き記号は複製の本質ではないため取り除く。短い行（20文字未満）は
+ * 「1280x720」のような一般的な表現と衝突しやすいため対象にしない。
+ *
+ * @param {string} designMdSource
+ * @returns {string[]}
+ */
+function significantLinesOf(designMdSource) {
+  return designMdSource
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^#+\s*/, '').replace(/^[-*]\s*/, '').trim())
+    .filter((line) => line.length >= 20)
+}
+
 /**
  * skills/slide-harness/SKILL.md に設計データそのものが複製されていないか（DR-0013）。
  *
@@ -333,8 +355,9 @@ export function checkLayoutClasses(layouts, cssSource) {
  *
  * 埋め込みを検出できる高信号な値だけを見る。color は oklch(...) の文字列そのもの、
  * layout / component は role・whenToUse・whenNotToUse・usage の文章そのもの、
- * rules は各ルールの description そのもの。space や max のような小さい数値は
- * 「3」のような一般的な語と衝突するため対象にしない。
+ * rules は各ルールの description そのもの、DESIGN.md は20文字以上の行そのもの。
+ * space や max のような小さい数値は「3」のような一般的な語と衝突するため対象に
+ * しない（この絞り込みの理由は DR-0013 の帰結にも記録する）。
  *
  * @param {string} skillSource skills/slide-harness/SKILL.md の中身
  * @param {{
@@ -342,18 +365,22 @@ export function checkLayoutClasses(layouts, cssSource) {
  *   layouts: { name: string, role: string, whenToUse: string[], whenNotToUse: string[] }[],
  *   components: { name: string, role: string, usage: string[] }[],
  *   rules: { rules: { id: string, description: string }[] },
+ *   designMd: string,
  * }} contract
  * @returns {string[]}
  */
-export function checkSkillNoDesignDataDuplication(skillSource, { tokens, layouts, components, rules }) {
+export function checkSkillNoDesignDataDuplication(skillSource, { tokens, layouts, components, rules, designMd }) {
+  const normalizedSkillSource = normalizeWhitespace(skillSource)
+  const isDuplicated = (/** @type {string} */ text) => normalizedSkillSource.includes(normalizeWhitespace(text))
+
   const colorProblems = Object.entries(tokens.color)
     .filter(([name]) => !name.startsWith('$'))
-    .filter(([, value]) => skillSource.includes(value))
+    .filter(([, value]) => isDuplicated(value))
     .map(([name, value]) => `skills/slide-harness/SKILL.md: design/tokens.json の color.${name}（${value}）がそのまま書かれている`)
 
   const layoutProblems = layouts.flatMap((layout) =>
     [layout.role, ...layout.whenToUse, ...layout.whenNotToUse]
-      .filter((text) => skillSource.includes(text))
+      .filter((text) => isDuplicated(text))
       .map(
         (text) =>
           `skills/slide-harness/SKILL.md: design/layouts/${layout.name}.json の記述がそのまま書かれている: "${text}"`,
@@ -362,7 +389,7 @@ export function checkSkillNoDesignDataDuplication(skillSource, { tokens, layouts
 
   const componentProblems = components.flatMap((component) =>
     [component.role, ...component.usage]
-      .filter((text) => skillSource.includes(text))
+      .filter((text) => isDuplicated(text))
       .map(
         (text) =>
           `skills/slide-harness/SKILL.md: design/components/${component.name}.json の記述がそのまま書かれている: "${text}"`,
@@ -370,10 +397,14 @@ export function checkSkillNoDesignDataDuplication(skillSource, { tokens, layouts
   )
 
   const ruleProblems = rules.rules
-    .filter((rule) => skillSource.includes(rule.description))
+    .filter((rule) => isDuplicated(rule.description))
     .map((rule) => `skills/slide-harness/SKILL.md: design/rules.json のルール '${rule.id}' の description がそのまま書かれている`)
 
-  return [...colorProblems, ...layoutProblems, ...componentProblems, ...ruleProblems]
+  const designMdProblems = significantLinesOf(designMd)
+    .filter((line) => isDuplicated(line))
+    .map((line) => `skills/slide-harness/SKILL.md: DESIGN.md の記述がそのまま書かれている: "${line}"`)
+
+  return [...colorProblems, ...layoutProblems, ...componentProblems, ...ruleProblems, ...designMdProblems]
 }
 
 /**
@@ -472,6 +503,58 @@ export function checkCanvasMatchesRuntime(source, canvas) {
   })
 }
 
+/**
+ * scripts/resolve-design-contract.mjs（#9）が design/ の実データに対して実際に
+ * 動くかを固定する。resolveManifestFile は import.meta.url からの相対パス解決に
+ * URL を使っており、vitest（jsdom 環境、checkDecks の説明を参照）の下では壊れるため
+ * vitest では検証できない。ここで実データに対して呼び、pnpm check（design:check、
+ * 素の node 実行）経由で固定する。
+ *
+ * @returns {string[]}
+ */
+function checkResolveDesignContractSmoke() {
+  const dir = mkdtempSync(join(tmpdir(), 'validate-design-resolve-smoke-'))
+
+  try {
+    const manifestPath = join(dir, 'manifest.json')
+
+    writeFileSync(manifestPath, JSON.stringify({ decks: ['harness-intro'] }))
+
+    /** @type {{ resources: { id: string }[] }} */
+    let resolved
+
+    try {
+      resolved = resolveManifestFile(manifestPath)
+    } catch (error) {
+      return [
+        `scripts/resolve-design-contract.mjs: 実在する deck 'harness-intro' を解決できない: ${/** @type {Error} */ (error).message}`,
+      ]
+    }
+
+    const resolvedIds = new Set(resolved.resources.map((resource) => resource.id))
+    const expectedIds = ['design.md', 'tokens', 'rules', 'theme.css', 'layout.css', 'deck.harness-intro']
+    const missingIds = expectedIds.filter((id) => !resolvedIds.has(id))
+
+    if (missingIds.length > 0) {
+      return [
+        `scripts/resolve-design-contract.mjs: 'harness-intro' の解決結果に ${missingIds.join(', ')} が無い`,
+      ]
+    }
+
+    writeFileSync(manifestPath, JSON.stringify({ decks: ['no-such-deck'] }))
+
+    try {
+      resolveManifestFile(manifestPath)
+    } catch {
+      return []
+    }
+
+    return ["scripts/resolve-design-contract.mjs: 存在しない deck 参照（'no-such-deck'）がエラーにならない"]
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+}
+
 function main() {
   const tokens = readJson('design/tokens.json')
   const rules = readJson('design/rules.json')
@@ -522,7 +605,12 @@ function main() {
           layouts,
           components,
           rules,
+          designMd: readFileSync(resolve('DESIGN.md'), 'utf8'),
         }),
+    },
+    {
+      name: 'resolve-design-contract.mjs が design/ の実データを解決できる',
+      run: () => checkResolveDesignContractSmoke(),
     },
   ]
 
