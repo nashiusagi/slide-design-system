@@ -99,12 +99,15 @@
 | `code/duplicate-binary-extensions-list` | コード品質 | 同じ拡張子一覧が複数の scripts/*.mjs へ複製されている | 1 | PR #28 | PR #28 |
 | `code/measure-failure-swallowed` | コード品質 | 検査サブプロセスの失敗を握り潰し、無関係なエラーで落ちる | 1 | PR #27 | PR #27 |
 | `decisions/context-broader-than-decision` | 決定記録 | DR の「文脈」が示す範囲より「決定」「帰結」が無言で狭い | 1 | PR #27 | PR #27 |
+| `code/audit-test-env-username-coupling` | コード品質 | テストが実行環境のOSユーザー名に依存し、環境次第で無関係な理由で失敗しうる | 1 | PR #28 | PR #28 |
+| `decisions/citation-overclaims-source-scope` | 決定記録 | 正本として引用した資料の、実際の記述範囲より広い主張をしている | 1 | PR #28 | PR #28 |
+| `writing/subjectless-predicate` | 日本語 | 文の主語が省略され、何の話かが読み取りにくい | 1 | PR #28 | PR #28 |
 
 ## レビュー履歴
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #28 | 2026-09-10 | 0 | 7 | 2 | [pr-28.md](./reviews/pr-28.md) |
+| #28 | 2026-09-10 | 0 | 13 | 4 | [pr-28.md](./reviews/pr-28.md) |
 | #27 | 2026-09-09 | 0 | 10 | 0 | [pr-27.md](./reviews/pr-27.md) |
 | #26 | 2026-09-09 | 0 | 16 | 5 | [pr-26.md](./reviews/pr-26.md) |
 | #25 | 2026-09-09 | 2 | 2 | 3 | [pr-25.md](./reviews/pr-25.md) |
