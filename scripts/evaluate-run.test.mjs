@@ -276,6 +276,35 @@ describe('scoreMeasure', () => {
     },
     20000,
   )
+
+  it(
+    '同じ runDir を再スコアしたとき、直前の measurements.json を新しい失敗の隠れ蓑にしない',
+    () => {
+      const runDir = makeTempDir()
+      mkdirSync(join(runDir, 'dist'))
+      const healthyHtml = [
+        '<!doctype html><html><body>',
+        '<div class="slide-deck" data-slide-count="1" data-slide-index="0" data-step="0" data-step-count="0">',
+        '<div class="slide-canvas"><p style="font-size:20px;color:#000000">hello</p></div>',
+        '</div>',
+        '</body></html>',
+      ].join('\n')
+      writeFileSync(join(runDir, 'dist/index.html'), healthyHtml)
+
+      const first = scoreMeasure(runDir, REPO_ROOT)
+      expect(first.status).toBe('measured')
+
+      // dist を壊してから同じ runDir で再スコアする。measurements.json は
+      // 1回目の成功時のものがまだ残っている状態。
+      writeFileSync(
+        join(runDir, 'dist/index.html'),
+        '<!doctype html><html><body><div class="slide-deck" data-slide-count="1" data-slide-index="0" data-step="0" data-step-count="0"></div></body></html>',
+      )
+
+      expect(() => scoreMeasure(runDir, REPO_ROOT)).toThrow(/slide-canvas/)
+    },
+    30000,
+  )
 })
 
 describe('scoreRun', () => {

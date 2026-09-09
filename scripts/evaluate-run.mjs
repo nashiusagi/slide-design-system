@@ -12,7 +12,7 @@
  * 起動しない（DR-0020）。生成は別途サブエージェントを手動で起動して行う（DR-0019）。
  */
 import { execFileSync } from 'node:child_process'
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { basename, join, relative, resolve as resolvePath } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
@@ -230,6 +230,11 @@ export function scoreMeasure(runDir, repoRoot) {
 
   const outPath = join(runDir, 'measurements.json')
 
+  // 前回の scoreMeasure 呼び出しが残した measurements.json を先に消す。消さずに
+  // 「outPath が存在するか」だけで成否を見分けると、今回の実行が書き出す前に
+  // 失敗したときに前回の（無関係になった）結果を読み、失敗を握り潰してしまう。
+  rmSync(outPath, { force: true })
+
   try {
     execFileSync('node', [join(repoRoot, 'scripts/measure-slides.mjs'), `--dist=${distDir}`, `--out=${outPath}`], {
       stdio: 'pipe',
@@ -238,8 +243,9 @@ export function scoreMeasure(runDir, repoRoot) {
     // measure-slides.mjs は違反があると exit code 1 を返すが、measurements.json 自体は
     // 書き出し済みなので、その場合はここでは失敗として扱わず読みに行く。ただしビルド
     // 出力が壊れている等で measurements.json を書き出す前に落ちたときは outPath が
-    // 存在しない。その場合まで読みに行くと、実際の原因ではなく無関係な ENOENT を
-    // 投げてしまうので、ここで区別して本来のエラーを伝える。
+    // 存在しない（前段で消しているので、今回の実行が書いたものだけが存在しうる）。
+    // その場合まで読みに行くと、実際の原因ではなく無関係な ENOENT を投げてしまうので、
+    // ここで区別して本来のエラーを伝える。
     if (!existsSync(outPath)) {
       const stderr = /** @type {{ stderr?: Buffer | string }} */ (error).stderr?.toString() ?? ''
       throw new Error(
