@@ -13,6 +13,11 @@
  * min-font-size / contrast の3つ。deck-body-fidelity はここに含まない
  * （design/rules.json の対応する rule の description を参照）。
  *
+ * 判定対象は DOM 要素（`querySelectorAll('*')`）のみ。`::before` / `::after` の
+ * `content` で描画される疑似要素は対象に入らない。現在のコンポーネント契約
+ * （design/components/ / design/layout.css）は `content:` を使っていないため
+ * 今は到達しないが、将来使うようになった場合はここが空振りする。
+ *
  * 出力は `measurements.json`（--out で変更可）。
  */
 import { createServer } from 'node:http'
@@ -24,6 +29,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { chromium } from 'playwright'
 
 import { contrastRatioFromRgb, parseCssRgb } from './lib/color.mjs'
+import { IMPLEMENTED_MEASURE_RULE_IDS } from './lib/measure-rules.mjs'
 
 /**
  * リポジトリルート相対のパスを絶対パスへ。呼び出し側の cwd に依存させないため、
@@ -150,31 +156,41 @@ function collectElementRecords(page) {
     }
 
     /**
-     * 実際に描画されている前景色に対する、有効な背景色を探す。
-     * 透明な背景を持つ要素は、実際にはその祖先の背景の上に描画される。
+     * 要素からドキュメントへ向かって並んだ、透明でない背景レイヤー（`[r, g, b, alpha]`）。
+     * 完全に透明な背景を持つ要素は、実際にはその祖先の背景の上に描画される。半透明の
+     * 背景も、alpha を捨てて「不透明」として扱うと合成前の色のまま判定してしまい、
+     * 実際の描画結果とズレる。合成そのものは Node 側の `compositeBackgroundLayers`
+     * が行う（ブラウザ無しでテストできるようにするため、ここでは生データだけを返す）。
      *
      * @param {Element} el
+     * @returns {[number, number, number, number][]}
      */
-    function effectiveBackgroundColor(el) {
+    function backgroundLayers(el) {
+      /** @type {[number, number, number, number][]} */
+      const layers = []
       /** @type {Element | null} */
       let node = el
 
       while (node) {
         const value = getComputedStyle(node).backgroundColor
-        const match = /^rgba?\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*(?:,\s*([\d.]+)\s*)?\)$/.exec(value)
-        const alpha = match?.[1] === undefined ? 1 : Number(match[1])
+        const match = /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)$/.exec(value)
 
-        if (alpha > 0) {
-          return value
+        if (match) {
+          const alpha = match[4] === undefined ? 1 : Number(match[4])
+
+          if (alpha > 0) {
+            layers.push([Number(match[1]), Number(match[2]), Number(match[3]), alpha])
+
+            if (alpha >= 1) {
+              break
+            }
+          }
         }
 
         node = node.parentElement
       }
 
-      // どの祖先にも不透明な背景が無いなら、実際に描画されるのはキャンバスの
-      // 外側（ページの白）。判定は Node 側が rules.json の contrast.surfaces
-      // ではなく実測のみを見るため、ここでは白を実測結果として返す。
-      return 'rgb(255, 255, 255)'
+      return layers
     }
 
     const canvas = document.querySelector('.slide-canvas')
@@ -199,7 +215,7 @@ function collectElementRecords(page) {
           hasDirectText: hasDirectText(el),
           fontSizePx: Number.parseFloat(style.fontSize),
           color: style.color,
-          backgroundColor: effectiveBackgroundColor(el),
+          backgroundLayers: backgroundLayers(el),
         }
       })
       .filter((record) => record !== null)
@@ -213,7 +229,7 @@ function collectElementRecords(page) {
  *   hasDirectText: boolean,
  *   fontSizePx: number,
  *   color: string,
- *   backgroundColor: string,
+ *   backgroundLayers: [number, number, number, number][],
  * }} ElementRecord
  */
 
@@ -263,13 +279,42 @@ export function resolveTextContrastMinimum(contrastRules) {
 }
 
 /**
- * 前景色・背景色（`rgb()` / `rgba()` の CSS 文字列）からコントラスト比を求める。
+ * 要素に近い順に並んだ透明でない背景レイヤー（`[r, g, b, alpha]`、alpha は 0 超）を
+ * アルファ合成し、実際に描画される背景色を求める。
+ *
+ * ブラウザは祖先の背景から先に描き、その上へ子の（透明な場合がある）背景を重ねる。
+ * 半透明な背景を「不透明」として扱うと、実際より暗い/明るい色を背景として誤認し、
+ * コントラストの判定が実測とズレる。どの祖先にも不透明な背景が無いときは、実際に
+ * 描画されるのはキャンバスの外側（ページの白）なので、白を最下層に置く。
+ *
+ * @param {[number, number, number, number][]} layersNearestFirst
+ * @returns {[number, number, number]}
+ */
+export function compositeBackgroundLayers(layersNearestFirst) {
+  /** @type {[number, number, number]} */
+  let composite = [255, 255, 255]
+
+  for (let i = layersNearestFirst.length - 1; i >= 0; i -= 1) {
+    const [r, g, b, alpha] = layersNearestFirst[i]
+    composite = [
+      r * alpha + composite[0] * (1 - alpha),
+      g * alpha + composite[1] * (1 - alpha),
+      b * alpha + composite[2] * (1 - alpha),
+    ]
+  }
+
+  return [Math.round(composite[0]), Math.round(composite[1]), Math.round(composite[2])]
+}
+
+/**
+ * 前景色（`rgb()` / `rgba()` の CSS 文字列）と、合成済みの背景色（0..255 の3成分）から
+ * コントラスト比を求める。
  *
  * @param {string} foregroundCss
- * @param {string} backgroundCss
+ * @param {[number, number, number]} backgroundRgb
  */
-export function contrastRatioFromCss(foregroundCss, backgroundCss) {
-  return contrastRatioFromRgb(parseCssRgb(foregroundCss).rgb, parseCssRgb(backgroundCss).rgb)
+export function contrastRatioFromCss(foregroundCss, backgroundRgb) {
+  return contrastRatioFromRgb(parseCssRgb(foregroundCss).rgb, backgroundRgb)
 }
 
 /**
@@ -316,7 +361,8 @@ export function evaluateSlideMeasurements(records, context) {
         })
       }
 
-      const ratio = contrastRatioFromCss(record.color, record.backgroundColor)
+      const backgroundRgb = compositeBackgroundLayers(record.backgroundLayers)
+      const ratio = contrastRatioFromCss(record.color, backgroundRgb)
 
       if (ratio < contrastMinimum) {
         violations.push({
@@ -324,7 +370,7 @@ export function evaluateSlideMeasurements(records, context) {
           slideNumber,
           step,
           selector: record.selector,
-          detail: `${record.color} on ${record.backgroundColor} が ${ratio}:1 で、${contrastMinimum}:1 を満たさない`,
+          detail: `${record.color} on rgb(${backgroundRgb.join(', ')}) が ${ratio}:1 で、${contrastMinimum}:1 を満たさない`,
         })
       }
     }
@@ -440,7 +486,7 @@ async function measureDist({ dist, distDir }) {
       generatedAt: new Date().toISOString(),
       dist,
       canvas: thresholds.canvas,
-      rules: ['no-overflow', 'min-font-size', 'contrast'],
+      rules: IMPLEMENTED_MEASURE_RULE_IDS,
       slideCount,
       pass: violations.length === 0,
       violations,

@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  compositeBackgroundLayers,
   contrastRatioFromCss,
   evaluateSlideMeasurements,
   isWithinCanvas,
   meetsMinFontSize,
   resolveTextContrastMinimum,
 } from './measure-slides.mjs'
+
+const WHITE = /** @type {[number, number, number, number][]} */ ([[255, 255, 255, 1]])
 
 const CANVAS = { width: 1280, height: 720 }
 
@@ -54,8 +57,35 @@ describe('resolveTextContrastMinimum', () => {
 })
 
 describe('contrastRatioFromCss', () => {
-  it('rgb() の前景・背景から比を求める', () => {
-    expect(contrastRatioFromCss('rgb(0, 0, 0)', 'rgb(255, 255, 255)')).toBe(21)
+  it('rgb() の前景・合成済み背景（0..255の3成分）から比を求める', () => {
+    expect(contrastRatioFromCss('rgb(0, 0, 0)', [255, 255, 255])).toBe(21)
+  })
+})
+
+describe('compositeBackgroundLayers', () => {
+  it('不透明な背景は自身の色をそのまま返す', () => {
+    expect(compositeBackgroundLayers([[10, 20, 30, 1]])).toEqual([10, 20, 30])
+  })
+
+  it('レイヤーが無いときは白（キャンバスの外側）を返す', () => {
+    expect(compositeBackgroundLayers([])).toEqual([255, 255, 255])
+  })
+
+  it('半透明な背景は alpha を捨てず、下の層と合成する。不透明として扱うと実測とズレる', () => {
+    // rgba(0, 0, 0, 0.5) を白の上に重ねると、半分だけ暗くなった灰色になる。
+    // alpha を無視して不透明な黒として扱うと (0,0,0) になってしまう。
+    expect(compositeBackgroundLayers([[0, 0, 0, 0.5]])).toEqual([128, 128, 128])
+  })
+
+  it('半透明レイヤーを2枚重ねると、白の寄与は (1-alpha) の積になる', () => {
+    // 白地に黒50%を重ねると白は50%残る。さらにその上へ黒50%を重ねると、
+    // 白の寄与は 0.5 × 0.5 = 25%（255 × 0.25 ≈ 64）まで減る。
+    expect(compositeBackgroundLayers([[0, 0, 0, 0.5], [0, 0, 0, 0.5]])).toEqual([64, 64, 64])
+  })
+
+  it('祖先を不透明な層で打ち切る。その手前の半透明レイヤーは合成に使う', () => {
+    // 黒地の上に白50%を重ねると (128,128,128)。不透明な黒より遠い祖先は無視してよい。
+    expect(compositeBackgroundLayers([[255, 255, 255, 0.5], [0, 0, 0, 1]])).toEqual([128, 128, 128])
   })
 })
 
@@ -77,7 +107,7 @@ describe('evaluateSlideMeasurements', () => {
         hasDirectText: true,
         fontSizePx: 24,
         color: 'rgb(0, 0, 0)',
-        backgroundColor: 'rgb(255, 255, 255)',
+        backgroundLayers: WHITE,
       },
     ]
 
@@ -92,7 +122,7 @@ describe('evaluateSlideMeasurements', () => {
         hasDirectText: true,
         fontSizePx: 24,
         color: 'rgb(0, 0, 0)',
-        backgroundColor: 'rgb(255, 255, 255)',
+        backgroundLayers: WHITE,
       },
     ]
 
@@ -115,7 +145,7 @@ describe('evaluateSlideMeasurements', () => {
         hasDirectText: true,
         fontSizePx: 16,
         color: 'rgb(0, 0, 0)',
-        backgroundColor: 'rgb(255, 255, 255)',
+        backgroundLayers: WHITE,
       },
     ]
 
@@ -134,7 +164,7 @@ describe('evaluateSlideMeasurements', () => {
         hasDirectText: true,
         fontSizePx: 24,
         color: 'rgb(200, 200, 200)',
-        backgroundColor: 'rgb(255, 255, 255)',
+        backgroundLayers: WHITE,
       },
     ]
 
@@ -151,13 +181,37 @@ describe('evaluateSlideMeasurements', () => {
         hasDirectText: false,
         fontSizePx: 10,
         color: 'rgb(255, 255, 255)',
-        backgroundColor: 'rgb(255, 255, 255)',
+        backgroundLayers: WHITE,
       },
     ]
 
     const violations = evaluateSlideMeasurements(records, context)
 
     expect(violations).toEqual([expect.objectContaining({ rule: 'no-overflow' })])
+  })
+
+  it('半透明な背景を不透明として扱わず合成する。alpha を捨てると誤って pass する', () => {
+    // 白地に黒92%の半透明を重ねると、実際に描画される背景は暗い灰色（≈20,20,20）に
+    // 近く、白文字とのコントラストは基準を割る。alpha を無視して「不透明な黒」として
+    // 扱っても同じ結論（違反）にはなるが、逆方向（薄い黒を不透明と誤認して過剰に
+    // 落とす）と対になる正しさの検証として、実際に合成した値で判定できることを見る。
+    const records = [
+      {
+        selector: 'section[0] > p[0]',
+        rect: { left: 0, top: 0, right: 100, bottom: 20 },
+        hasDirectText: true,
+        fontSizePx: 24,
+        color: 'rgb(255, 255, 255)',
+        backgroundLayers: /** @type {[number, number, number, number][]} */ ([[0, 0, 0, 0.08]]),
+      },
+    ]
+
+    // rgba(0,0,0,0.08) を白地へ合成すると (235,235,235) に近い明るい背景になり、
+    // 白文字はほぼ見えない（コントラスト比が低い）。alpha を捨てて不透明な黒
+    // (0,0,0) として扱うと逆に 21:1 の最大コントラストとなり、この違反を見逃す。
+    const violations = evaluateSlideMeasurements(records, context)
+
+    expect(violations).toEqual([expect.objectContaining({ rule: 'contrast' })])
   })
 
   it('1要素が複数ルールに同時に違反しても、それぞれ個別に記録する', () => {
@@ -168,7 +222,7 @@ describe('evaluateSlideMeasurements', () => {
         hasDirectText: true,
         fontSizePx: 12,
         color: 'rgb(200, 200, 200)',
-        backgroundColor: 'rgb(255, 255, 255)',
+        backgroundLayers: WHITE,
       },
     ]
 

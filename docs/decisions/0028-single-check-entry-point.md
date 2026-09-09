@@ -2,7 +2,7 @@
 
 - **状態**: 承認済み
 - **日付**: 2026-09-06
-- **関連**: [DR-0011](./0011-lint-and-measure.md), [DR-0022](./0022-plain-vite-build-output.md), [DR-0027](./0027-build-scaffold-workspace-and-test-stack.md)
+- **関連**: [DR-0011](./0011-lint-and-measure.md), [DR-0022](./0022-plain-vite-build-output.md), [DR-0027](./0027-build-scaffold-workspace-and-test-stack.md)。measure を `check` へ組み込む時期は一時的に [DR-0038](./0038-defer-measure-in-check.md) が例外を持つ
 - **正本**: `package.json`（`scripts.check` の実際の並び）
 
 ## 文脈

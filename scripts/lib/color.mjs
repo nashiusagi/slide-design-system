@@ -124,7 +124,9 @@ export function contrastRatioFromRgb(rgbA, rgbB) {
 }
 
 /**
- * WCAG 2.1 の相対輝度。トークンの oklch を経由する版（DR-0008 の色域検査などが使う）。
+ * WCAG 2.1 の相対輝度。トークンの oklch を経由する版。
+ * `scripts/validate-design.mjs` の `checkContrast`（コントラスト検査。DR-0008 / DR-0011 /
+ * DR-0033）が使う。色域検査（`isInSrgbGamut`）はこれを使わず独立している。
  *
  * @param {string} value
  */
@@ -144,14 +146,11 @@ export function relativeLuminance(value) {
  * @param {string} background
  */
 export function contrastRatio(foreground, background) {
-  return contrastRatioFromRgb(
-    /** @type {[number, number, number]} */ ([1, 3, 5].map(
-      (offset) => parseInt(oklchToHex(foreground).slice(offset, offset + 2), 16),
-    )),
-    /** @type {[number, number, number]} */ ([1, 3, 5].map(
-      (offset) => parseInt(oklchToHex(background).slice(offset, offset + 2), 16),
-    )),
+  const [lighter, darker] = [relativeLuminance(foreground), relativeLuminance(background)].sort(
+    (a, b) => b - a,
   )
+
+  return Math.floor(((lighter + 0.05) / (darker + 0.05)) * 100) / 100
 }
 
 /** `rgb(...)` / `rgba(...)` の記法を読む。ブラウザの `getComputedStyle` が返す形式（DR-0011）。 */

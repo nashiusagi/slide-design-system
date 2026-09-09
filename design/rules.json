@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/rules.schema.json",
-  "$comment": "検査ルールの正本（DR-0009 / DR-0011）。ここに無いIDは検査として存在しない。lint の実装は packages/eslint-plugin-slide、measure の実装は scripts/measure-slides.mjs（#8。no-overflow / min-font-size / contrast まで。deck-body-fidelity は未実装）。lint 側の対応（ルールIDと実装の1対1）は pnpm design:check が検査する。measure 側の対応は、deck-body-fidelity の実装が揃ってから同様に足す。今 measure 側だけを対象に加えると、未実装の deck-body-fidelity が理由で1対1対応の検査そのものが常に赤くなり、他の3ルールの検査結果まで読めなくする。",
+  "$comment": "検査ルールの正本（DR-0009 / DR-0011）。ここに無いIDは検査として存在しない。lint の実装は packages/eslint-plugin-slide、measure の実装は scripts/measure-slides.mjs（#8。no-overflow / min-font-size / contrast まで。deck-body-fidelity は未実装）。lint 側・measure 側とも、ルールIDと実装の1対1対応は pnpm design:check が検査する（scripts/validate-design.mjs の checkLintRuleCoverage / checkMeasureRuleCoverage）。measure 側は deck-body-fidelity を『既知の未実装』としてその検査の許容リストに明示しており、実装され次第そこから外す。",
   "rules": [
     {
       "id": "no-raw-color",

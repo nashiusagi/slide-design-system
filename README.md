@@ -38,7 +38,7 @@ pnpm check            # design:check → theme:check → typecheck → lint → 
 
 検査の実行口は `pnpm check` に一本化する。契約に基づく検査は、この並びの中へ足していく。契約自体の検証は先頭の `design:check` / `theme:check` 段へ、lint は `lint` 段へ、measure はビルド出力に対して実測するため `build` より後段へ置く。
 
-**現時点では `pnpm measure` を `pnpm check` へ組み込んでいない。** `src/App.tsx` はまだ `design/theme.css` / `design/layout.css` を読み込んでおらず、実測すると既存のプレースホルダ表示（ブラウザ既定のフォントサイズ・余白）が no-overflow / min-font-size に落ちる。App が設計契約を実際に消費するようになった時点で `check` の build 後段へ足す。
+**現時点では `pnpm measure` を `pnpm check` へ組み込んでいない。** `src/App.tsx` はまだ `design/theme.css` / `design/layout.css` を読み込んでおらず、実測すると既存のプレースホルダ表示（ブラウザ既定のフォントサイズ・余白）が no-overflow / min-font-size に落ちる。App が設計契約を実際に消費するようになった時点で `check` の build 後段へ足す。根拠は [DR-0038](./docs/decisions/0038-defer-measure-in-check.md)。
 
 **「実測」はビルド出力をブラウザ上で測ること（measure 系）を指す。** トークンの数値から計算して求めるコントラストや色相差は「算出値」と呼び、区別する。算出値はビルドを要さないので先頭の段に置く。
 
