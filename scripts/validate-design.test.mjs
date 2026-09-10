@@ -242,6 +242,32 @@ describe('checkLayoutClasses', () => {
     expect(found).toHaveLength(1)
     expect(found[0]).toContain('.slide--bullets')
   })
+
+  it('疑似クラスの引数に書かれたクラス名は実装と見なさない', () => {
+    // :not() / :where() の引数はその要素を選択対象から除外・限定する条件であり、
+    // 実際にそのクラスへスタイルを与えていることを意味しない。空ルールで
+    // 「実装済み」を装えないことを固定する（PR #21 レビュー3周目）。
+    const found = checkLayoutClasses(
+      layouts,
+      ':not(.slide--bullets) {}\n:where(.slide--bullets) {}\n.slide--title { display: flex; }\n',
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('.slide--bullets')
+  })
+
+  it('属性値内に ] を含む属性セレクタでも、値の中の文字列をクラス名と見なさない', () => {
+    // 引用符付きの属性値は ] を含んでいても有効な CSS であり、そこで属性セレクタが
+    // 終わるわけではない。構文を正しく読まずに最初の ] で区切ると、区切られた
+    // 残りの文字列がセレクタの外へ漏れ出て誤判定を起こす（PR #21 レビュー3周目）。
+    const found = checkLayoutClasses(
+      layouts,
+      '[data-x="].slide--bullets"] {}\n.slide--title { display: flex; }\n',
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('.slide--bullets')
+  })
 })
 
 describe('checkLayoutComponentConsistency', () => {
