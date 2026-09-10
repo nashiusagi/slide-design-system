@@ -51,7 +51,9 @@ deck 契約 `design/decks/harness-intro.md` が宣言する3枚（title → bull
 
 ### 副産物: 実装のバグを1件発見・修正した
 
-harness の Run が `design/theme.css` の `--dh-color-*`（oklch 記法）を実際に消費する初めてのケースになったところ、`scripts/measure-slides.mjs` のコントラスト計算（`scripts/lib/color.mjs` の `parseCssRgb`）が例外で落ちた。Chromium が `getComputedStyle` の計算値を `rgb()` へ変換せず `oklch()` のまま返すようになっており、`rgb()`/`rgba()` しか読めなかったのが原因。`parseCssRgb` に `oklch()` の読み取りを追加して修正した（[コミット](https://github.com/nashiusagi/slide-design-system/commit/0276672)）。DR-0038 が「App.tsx が design/theme.css を実消費するまでは分からない」と予告していた種類の問題が、実際にこの実験で顕在化した形になる。
+harness の Run が `design/theme.css` の `--dh-color-*`（oklch 記法）を実際に消費する初めてのケースになったところ、`scripts/measure-slides.mjs` のコントラスト計算（`scripts/lib/color.mjs` の `parseCssRgb`）と背景色の合成（`backgroundLayers`）が、どちらも例外で落ちた。Chromium が `getComputedStyle` の計算値を `rgb()` へ変換せず `oklch()` のまま返すようになっており、`rgb()`/`rgba()` しか読めなかったのが原因。両箇所に `oklch()` の読み取りを追加して修正した（[コミット](https://github.com/nashiusagi/slide-design-system/commit/0276672)、背景色側は別コミット）。
+
+これは [DR-0038](../../docs/decisions/0038-defer-measure-in-check.md) が名指しした問題（App.tsx がプレースホルダのままだと `no-overflow` / `min-font-size` が実データ不在で誤って落ちる）とは別の原因によるもので、契約の値そのもの（oklch 記法）を実測系が初めて読みにいったことで顕在化した、これまで潜在していたバグである。なお本 PR では、DR-0038 が完了条件として名指ししたトリガー——ルートの `src/App.tsx` が `design/theme.css` / `design/layout.css` を実消費するようになること——は起きていない（実消費したのは各条件の実験ワークスペース側のコピーのみで、ルート側の `src/App.tsx` は未変更）。そのため DR-0038 の完了条件（`pnpm measure` を `pnpm check` へ組み込む）はまだ満たされておらず、`pnpm measure` は引き続き独立コマンドのままにしている。
 
 ## 人による品質判断（完了条件）
 

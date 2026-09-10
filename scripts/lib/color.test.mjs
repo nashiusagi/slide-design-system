@@ -115,7 +115,7 @@ describe('parseCssRgb', () => {
   it('oklch() を読む。Chromium が CSS Color 4 の計算値を保持し、rgb() へ変換せず返すことがある', () => {
     const { rgb, alpha } = parseCssRgb('oklch(0.21 0 0)')
 
-    // design/tokens.json の text（oklch(0.21 0 0)）は #181818 相当。
+    // 無彩色の一例。design/tokens.json の特定のトークン値との一致を意図したものではない。
     expect(rgb).toEqual([24, 24, 24])
     expect(alpha).toBe(1)
   })

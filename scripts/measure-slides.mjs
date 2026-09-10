@@ -156,11 +156,56 @@ function collectElementRecords(page) {
     }
 
     /**
+     * oklch(L C H) を 0..255 の sRGB へ。`scripts/lib/color.mjs` の
+     * `oklchToRgb255` と同じ式（色域外はクリップする）。ここはブラウザ内で
+     * 実行される page.evaluate のクロージャで、Node 側のモジュールを import
+     * できないため複製している。
+     *
+     * @param {number} l
+     * @param {number} c
+     * @param {number} h
+     * @returns {[number, number, number]}
+     */
+    function oklchToRgb255(l, c, h) {
+      const radians = (h * Math.PI) / 180
+      const a = c * Math.cos(radians)
+      const b = c * Math.sin(radians)
+
+      const lms = [
+        (l + 0.3963377774 * a + 0.2158037573 * b) ** 3,
+        (l - 0.1055613458 * a - 0.0638541728 * b) ** 3,
+        (l - 0.0894841775 * a - 1.291485548 * b) ** 3,
+      ]
+
+      const linear = [
+        4.0767416621 * lms[0] - 3.3077115913 * lms[1] + 0.2309699292 * lms[2],
+        -1.2684380046 * lms[0] + 2.6097574011 * lms[1] - 0.3413193965 * lms[2],
+        -0.0041960863 * lms[0] - 0.7034186147 * lms[1] + 1.707614701 * lms[2],
+      ]
+
+      return /** @type {[number, number, number]} */ (
+        linear.map((value) => {
+          const clipped = Math.min(Math.max(value, 0), 1)
+          const encoded = clipped <= 0.0031308 ? 12.92 * clipped : 1.055 * Math.pow(clipped, 1 / 2.4) - 0.055
+
+          return Math.round(encoded * 255)
+        })
+      )
+    }
+
+    /**
      * 要素からドキュメントへ向かって並んだ、透明でない背景レイヤー（`[r, g, b, alpha]`）。
      * 完全に透明な背景を持つ要素は、実際にはその祖先の背景の上に描画される。半透明の
      * 背景も、alpha を捨てて「不透明」として扱うと合成前の色のまま判定してしまい、
      * 実際の描画結果とズレる。合成そのものは Node 側の `compositeBackgroundLayers`
      * が行う（ブラウザ無しでテストできるようにするため、ここでは生データだけを返す）。
+     *
+     * `background-color` に `--dh-color-*`（oklch 記法、DR-0008）を直接当てた要素は、
+     * `getComputedStyle` が `rgb()` へ変換せず `oklch()` のまま返すことがある
+     * （`color` プロパティで実際に確認された事象と同じ。DR-0011 の帰結）。ここで
+     * 認識できない記法が来たら黙ってスキップせず例外にする。壊れていることが
+     * 見えないまま「実際より薄い背景で合成した」結果を返すと、コントラスト判定が
+     * 実測とズレていることに誰も気付けない。
      *
      * @param {Element} el
      * @returns {[number, number, number, number][]}
@@ -173,17 +218,32 @@ function collectElementRecords(page) {
 
       while (node) {
         const value = getComputedStyle(node).backgroundColor
-        const match = /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)$/.exec(value)
+        const rgbMatch = /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)$/.exec(value)
+        const oklchMatch = rgbMatch
+          ? null
+          : /^oklch\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s*(?:\/\s*([\d.]+)\s*)?\)$/.exec(value)
 
-        if (match) {
-          const alpha = match[4] === undefined ? 1 : Number(match[4])
-
-          if (alpha > 0) {
-            layers.push([Number(match[1]), Number(match[2]), Number(match[3]), alpha])
-
-            if (alpha >= 1) {
-              break
+        /** @type {{ rgb: [number, number, number], alpha: number }} */
+        const parsed = rgbMatch
+          ? {
+              rgb: [Number(rgbMatch[1]), Number(rgbMatch[2]), Number(rgbMatch[3])],
+              alpha: rgbMatch[4] === undefined ? 1 : Number(rgbMatch[4]),
             }
+          : oklchMatch
+            ? {
+                rgb: oklchToRgb255(Number(oklchMatch[1]), Number(oklchMatch[2]), Number(oklchMatch[3])),
+                alpha: oklchMatch[4] === undefined ? 1 : Number(oklchMatch[4]),
+              }
+            : (() => {
+                throw new Error(`backgroundColor が rgb()/rgba()/oklch() のいずれでもない: ${value}`)
+              })()
+        const { rgb, alpha } = parsed
+
+        if (alpha > 0) {
+          layers.push([rgb[0], rgb[1], rgb[2], alpha])
+
+          if (alpha >= 1) {
+            break
           }
         }
 
