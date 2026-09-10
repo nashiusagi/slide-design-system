@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-10（PR #39）
+最終更新: 2026-09-10（PR #39 2周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -108,12 +108,14 @@
 | `code/ci-actions-pinned-by-tag` | コード品質 | 外部 Actions がコミット SHA ではなくタグで固定されている | 1 | PR #30 | PR #30 |
 | `inspection/ci-check-cancelled-on-push` | 検査 | push トリガーの concurrency が ref 単位で、先行 commit の check が完了前に cancel されうる | 1 | PR #30 | PR #30 |
 | `code/parse-error-crashes-validator` | コード品質 | 検査対象の構文エラーを例外として投げっぱなしにし、他の検査を止める | 1 | PR #39 | PR #39 |
+| `code/parse-error-message-lacks-source-path` | コード品質 | 構文エラーのメッセージが実ファイルパスの代わりに内部プレースホルダを含む | 1 | PR #39 | PR #39 |
+| `code/non-targeting-pseudo-has-untested` | コード品質 | 意味論を書き分けた疑似クラスの一部だけ、対応する回帰テストが無い | 1 | PR #39 | PR #39 |
 
 ## レビュー履歴
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #39 | 2026-09-10 | 0 | 3 | 4 | [pr-39.md](./reviews/pr-39.md) |
+| #39 | 2026-09-10 | 0 | 3 | 7 | [pr-39.md](./reviews/pr-39.md) |
 | #31 | 2026-09-10 | 0 | 3 | 1 | [pr-31.md](./reviews/pr-31.md) |
 | #30 | 2026-09-10 | 0 | 2 | 4 | [pr-30.md](./reviews/pr-30.md) |
 | #28 | 2026-09-10 | 0 | 17 | 4 | [pr-28.md](./reviews/pr-28.md) |
