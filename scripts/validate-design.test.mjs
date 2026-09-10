@@ -220,8 +220,9 @@ describe('checkLayoutClasses', () => {
 
   it('宣言ブロックの中に書かれた文字列はセレクタと見なさない', () => {
     // カスタムプロパティの値などにクラス名らしき文字列が書かれていても、それは
-    // セレクタではない。「{ の直前までの部分」だけを見ることで、実装していない
-    // クラスを値としてだけ書いた場合に「実装済み」と誤判定しないことを固定する。
+    // 構文木の上ではセレクタの外（宣言）に置かれる。セレクタのノードだけを見る
+    // ことで、実装していないクラスを値としてだけ書いた場合に「実装済み」と
+    // 誤判定しないことを固定する。
     const found = checkLayoutClasses(
       layouts,
       ':root { --debug-note: ".slide--bullets is not implemented yet"; }\n.slide--title { display: flex; }\n',
@@ -241,6 +242,82 @@ describe('checkLayoutClasses', () => {
 
     expect(found).toHaveLength(1)
     expect(found[0]).toContain('.slide--bullets')
+  })
+
+  it(':not() の引数に書かれたクラス名は実装と見なさない', () => {
+    // :not(.x) は「.x を持つ要素を除外する」条件であり、引数の .x そのものへ
+    // スタイルを与えているわけではない。:not(.slide--bullets) {} のような
+    // 実際には何もスタイリングしないルールで「実装済み」を装えないことを
+    // 固定する（PR #21 レビュー3周目）。
+    const found = checkLayoutClasses(
+      layouts,
+      ':not(.slide--bullets) {}\n.slide--title { display: flex; }\n',
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('.slide--bullets')
+  })
+
+  it(':has() の引数に書かれたクラス名は実装と見なさない', () => {
+    // .foo:has(.bar) で実際に選択・スタイリングされるのは .foo（.bar を子孫等に
+    // 持つ要素）であって .bar 自身ではない。:not() と同じ理由で、.slide--bullets
+    // が :has() の引数にしか現れないルールを「実装済み」と装えないことを固定する。
+    const found = checkLayoutClasses(
+      layouts,
+      '.slide--title:has(.slide--bullets) { display: flex; }\n',
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('.slide--bullets')
+  })
+
+  it(':where() / :is() の引数に書かれたクラス名は、その引数自身への実装として認める', () => {
+    // :where(.x) / :is(.x) は :not() と違い、引数の要素そのものを選択して
+    // スタイルを与える（詳細度が変わるだけ）。:not() と同じ理由で一律に
+    // 除外すると、:where() / :is() で書いた実装を「実装していない」と
+    // 誤判定してしまう（DR-0041 レビューで判明）。
+    const found = checkLayoutClasses(
+      layouts,
+      ':where(.slide--title) { display: flex; }\n:is(.slide--bullets) { display: flex; }\n',
+    )
+
+    expect(found).toEqual([])
+  })
+
+  it('契約に無いクラスを :is() の引数だけで実装していても extra として捕まえる', () => {
+    // :not() 用に一律除外すると、:is() / :where() の引数越しに書かれた
+    // 契約に無いクラスの実装が extra 検査をすり抜けてしまう（DR-0041 レビューで判明）。
+    const found = checkLayoutClasses(
+      layouts,
+      `${validCss}:is(.slide--statement) { display: flex; }\n`,
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('.slide--statement')
+  })
+
+  it('属性値内に ] を含む属性セレクタでも、値の中の文字列をクラス名と見なさない', () => {
+    // 引用符付きの属性値は ] を含んでいても有効な CSS であり、そこで属性セレクタが
+    // 終わるわけではない。構文を正しく読まずに最初の ] で区切ると、区切られた
+    // 残りの文字列がセレクタの外へ漏れ出て誤判定を起こす（PR #21 レビュー3周目）。
+    const found = checkLayoutClasses(
+      layouts,
+      '[data-x="].slide--bullets"] {}\n.slide--title { display: flex; }\n',
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('.slide--bullets')
+  })
+
+  it('CSS として解析できない入力は、例外にせず問題として返す', () => {
+    // postcss.parse は不正な CSS で例外を投げる。ここで捕まえずに投げっぱなしに
+    // すると、main() の他の検査（checks の残り）が一度も走らないまま
+    // スタックトレースで落ちる。問題文字列として返し、他の検査を続けられる
+    // ことを固定する。
+    const found = checkLayoutClasses(layouts, '.slide--title { display: flex; \n')
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('design/layout.css')
   })
 })
 
