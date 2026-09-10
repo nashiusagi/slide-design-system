@@ -23,7 +23,7 @@
 | `writing/ambiguous-criterion` | 判断基準が曖昧で、契約として実行できない | 7 | PR #26 | 未着手 |
 | `writing/term-inconsistency` | 同じものが複数の呼び名を持ち、外延も揺れる | 9 | PR #27 | 未着手 |
 | `writing/notation-inconsistency` | 表記の不統一（DR 参照がリンクになっていない等） | 6 | PR #26 | 未着手 |
-| `phase/out-of-scope-addition` | フェーズのスコープ外、または DR に接続しないものが混入した | 5 | PR #20 | 未着手 |
+| `phase/out-of-scope-addition` | フェーズのスコープ外、または DR に接続しないものが混入した | 6 | PR #30 | 未着手 |
 | `decisions/undocumented-decision` | DR に無い判断が、PR説明やIssueにだけ書かれている | 9 | PR #28 | 未着手 |
 | `decisions/dr-restates-canonical-value` | DR が正本の値を本文に書き写した | 4 | PR #21 | 未着手 |
 | `contract/source-of-truth-ambiguous` | 「正本」がどのファイルを指すか一意でない | 3 | PR #19 | 未着手 |
@@ -31,11 +31,11 @@
 | `inspection/rule-scope-inconsistent` | 同じルールIDの守備範囲が文書間で食い違う | 3 | PR #20 | 未着手 |
 | `decisions/consequence-not-followed` | 既存 DR の帰結が、それを通る手順に反映されていない | 4 | PR #25 | 未着手 |
 | `contract/contract-structure-duplicated` | 正本の中身の一覧が、別の文書へ構造ごと複製された | 6 | PR #27 | 未着手 |
-| `contract/value-outside-source-of-truth` | 正本に置くと決めた値が、正本を参照できない場所にも必要になる | 3 | PR #21 | 未着手 |
+| `contract/value-outside-source-of-truth` | 正本に置くと決めた値が、正本を参照できない場所にも必要になる | 4 | PR #30 | 未着手 |
 | `contract/design-data-duplicated` | デザインの値が正本以外へ複製された | 6 | PR #28 | 未着手 |
 | `writing/inaccurate-rationale` | 説明文が書いている理由付けが、実装の挙動と食い違う | 5 | PR #28 | 未着手 |
 | `inspection/rule-coverage-partial` | 判定対象の列挙に穴があり、基準を割った組み合わせを見逃す | 5 | PR #28 | 未着手 |
-| `phase/completion-criterion-not-verified-e2e` | Issue の完了条件が、単体テストのみで統合パスを通さず検証されている | 3 | PR #27 | 未着手 |
+| `phase/completion-criterion-not-verified-e2e` | Issue の完了条件が、単体テストのみで統合パスを通さず検証されている | 4 | PR #30 | 未着手 |
 | `writing/contradictory-instruction` | 同じ状況に対する指示が文書間で食い違う | 3 | PR #28 | 未着手 |
 
 ## 全カテゴリ
@@ -43,7 +43,7 @@
 | カテゴリID | 観点 | 要約 | 累計 | 初出 | 最終指摘 |
 |---|---|---|---|---|---|
 | `contract/design-data-duplicated` | 設計契約 | デザインの値が正本以外へ複製された | 6 | PR #13 | PR #28 |
-| `contract/value-outside-source-of-truth` | 設計契約 | 正本に置くと決めた値が、正本を参照できない場所にも必要になる | 3 | PR #13 | PR #21 |
+| `contract/value-outside-source-of-truth` | 設計契約 | 正本に置くと決めた値が、正本を参照できない場所にも必要になる | 4 | PR #13 | PR #30 |
 | `contract/source-of-truth-ambiguous` | 設計契約 | 「正本」がどのファイルを指すか一意でない | 3 | PR #13 | PR #19 |
 | `contract/contract-structure-duplicated` | 設計契約 | 正本の中身の一覧が、別の文書へ構造ごと複製された | 6 | PR #13 | PR #27 |
 | `inspection/rule-scope-inconsistent` | 検査 | 同じルールIDの守備範囲が文書間で食い違う | 3 | PR #13 | PR #20 |
@@ -54,7 +54,7 @@
 | `writing/ambiguous-criterion` | 日本語 | 判断基準が曖昧で、契約として実行できない | 7 | PR #13 | PR #26 |
 | `writing/term-inconsistency` | 日本語 | 同じものが複数の呼び名を持ち、外延も揺れる | 9 | PR #13 | PR #27 |
 | `writing/notation-inconsistency` | 日本語 | 表記の不統一 | 6 | PR #13 | PR #26 |
-| `phase/out-of-scope-addition` | フェーズ | フェーズのスコープ外、または DR に接続しないものが混入した | 5 | PR #13 | PR #20 |
+| `phase/out-of-scope-addition` | フェーズ | フェーズのスコープ外、または DR に接続しないものが混入した | 6 | PR #13 | PR #30 |
 | `decisions/undocumented-decision` | 決定記録 | DR に無い判断が、PR説明やIssueにだけ書かれている | 9 | PR #13 | PR #28 |
 | `contract/workflow-constant-duplicated` | 設計契約 | 他スキルが持つ取り決め（パス・上限値）が書き写された | 2 | PR #17 | PR #18 |
 | `code/review-loop-double-counts-log` | コード品質 | 同一 PR の再レビューが指摘ログを二重に計上する | 1 | PR #17 | PR #17 |
@@ -90,7 +90,7 @@
 | `writing/inaccurate-rationale` | 日本語 | 説明文が書いている理由付けが、実装の挙動と食い違う | 5 | PR #23 | PR #28 |
 | `code/shadow-detection-misses-class-expression` | コード品質 | シャドーイング検出が class 式の代入パターンを見逃す | 1 | PR #24 | PR #24 |
 | `code/duplicate-hex-parsing-in-contrast-ratio` | コード品質 | 同じ変換ロジックが複数箇所に重複し、片方だけ直すと同期が崩れる | 1 | PR #25 | PR #25 |
-| `phase/completion-criterion-not-verified-e2e` | フェーズ | Issue の完了条件が、単体テストのみで統合パスを通さず検証されている | 3 | PR #25 | PR #27 |
+| `phase/completion-criterion-not-verified-e2e` | フェーズ | Issue の完了条件が、単体テストのみで統合パスを通さず検証されている | 4 | PR #25 | PR #30 |
 | `code/manifest-shape-not-validated` | コード品質 | manifest のフィールドが期待する型（配列等）であることを検証しておらず、誤った形を渡すと無関係なエラーになる | 1 | PR #26 | PR #26 |
 | `code/duplicate-resolve-readjson-helpers` | コード品質 | 同じ resolve/readJson ヘルパーが複数の scripts/*.mjs へ複製されている | 1 | PR #26 | PR #26 |
 | `code/generated-artifact-not-gitignored` | コード品質 | 新設した生成物が .gitignore に無く、実行のたびに untracked ファイルが残る | 1 | PR #26 | PR #26 |
@@ -103,11 +103,15 @@
 | `writing/subjectless-predicate` | 日本語 | 文の主語が省略され、何の話かが読み取りにくい | 1 | PR #28 | PR #28 |
 | `decisions/citation-points-to-wrong-file` | 決定記録 | 正本として引用したファイルが、実際にはその内容を記述していない | 1 | PR #28 | PR #28 |
 | `writing/dangling-quote-reference` | 日本語 | 文書内の引用符付き参照が、書き換え後のどの語句・項目にも対応しなくなった | 2 | PR #26 | PR #28 |
+| `code/ci-workflow-missing-permissions` | コード品質 | CI ワークフローに GITHUB_TOKEN の権限制限が明示されていない | 1 | PR #30 | PR #30 |
+| `code/ci-actions-pinned-by-tag` | コード品質 | 外部 Actions がコミット SHA ではなくタグで固定されている | 1 | PR #30 | PR #30 |
+| `inspection/ci-check-cancelled-on-push` | 検査 | push トリガーの concurrency が ref 単位で、先行 commit の check が完了前に cancel されうる | 1 | PR #30 | PR #30 |
 
 ## レビュー履歴
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
+| #30 | 2026-09-10 | 0 | 2 | 4 | [pr-30.md](./reviews/pr-30.md) |
 | #28 | 2026-09-10 | 0 | 17 | 4 | [pr-28.md](./reviews/pr-28.md) |
 | #27 | 2026-09-09 | 0 | 10 | 0 | [pr-27.md](./reviews/pr-27.md) |
 | #26 | 2026-09-09 | 0 | 16 | 5 | [pr-26.md](./reviews/pr-26.md) |
