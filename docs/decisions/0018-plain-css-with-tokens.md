@@ -6,7 +6,7 @@
 
 ## 文脈
 
-Atlas は Tailwind v4 + HeroUI という構成で、`atlas/no-raw-color` は CSS ファイルを見て生の色値を検出していた。このプロジェクトは HeroUI を使わない（[DR-0003](./0003-custom-slide-runtime.md)）ため、Tailwind を採用するかは独立した判断になる。
+参考元のデザインシステムは Tailwind v4 + HeroUI という構成で、その no-raw-color 相当のルールは CSS ファイルを見て生の色値を検出していた。このプロジェクトは HeroUI を使わない（[DR-0003](./0003-custom-slide-runtime.md)）ため、Tailwind を採用するかは独立した判断になる。
 
 ## 決定
 
@@ -17,7 +17,7 @@ Atlas は Tailwind v4 + HeroUI という構成で、`atlas/no-raw-color` は CSS
 - Tailwind のユーティリティクラス（`text-[18px]`、`bg-red-500` など）は**トークン契約を素通りする抜け道**になる。契約による制御が効かなくなる
 - lint が Tailwind のクラス名文字列まで解析する必要が生じ、実装が複雑化する
 - 素の CSS なら生の px や色値の検出を CSS AST で素直に行える
-- Atlas 方式（レイアウトのクラス名を契約が指定し、実装はそれをそのまま使う）と相性が良い
+- 参考元と同じ方式（レイアウトのクラス名を契約が指定し、実装はそれをそのまま使う）と相性が良い
 
 ## 検討した他の選択肢
 
@@ -29,7 +29,7 @@ Atlas は Tailwind v4 + HeroUI という構成で、`atlas/no-raw-color` は CSS
 
 ### Tailwind v4
 
-書く量が減り、Atlas と同じスタックに揃う。
+書く量が減り、参考元と同じスタックに揃う。
 
 **却下理由**: 上記の抜け道問題と lint の複雑化。
 

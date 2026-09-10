@@ -43,7 +43,7 @@
 
 | # | 決定 |
 |---|---|
-| [0009](./0009-five-layer-contract.md) | 契約は Atlas の 5 層をフル写像する |
+| [0009](./0009-five-layer-contract.md) | 契約は参考元のデザインシステムの 5 層をフル写像する |
 | [0010](./0010-three-layouts.md) | レイアウト variant は 3 種から始める |
 | [0016](./0016-deck-contract-markdown.md) | deck 契約は Markdown + frontmatter で書く |
 | [0017](./0017-key-message-required-body-optional.md) | deck 契約は keyMessage を必須、body を任意とする |

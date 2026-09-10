@@ -6,7 +6,7 @@
 
 ## 文脈
 
-Atlas の `experiments/` は、同じお題を「設計契約なし（baseline）」と「契約あり（harness）」で生成し、検査結果を返して修正した版（harness-corrected）と併せて比較する装置だった。自分専用の環境（[DR-0005](./0005-single-theme-personal.md)）では、この比較は日常の制作に必須ではない。
+参考元のデザインシステムの `experiments/` は、同じお題を「設計契約なし（baseline）」と「契約あり（harness）」で生成し、検査結果を返して修正した版（harness-corrected）と併せて比較する装置だった。自分専用の環境（[DR-0005](./0005-single-theme-personal.md)）では、この比較は日常の制作に必須ではない。
 
 ## 決定
 

@@ -7,7 +7,7 @@
 
 ## 文脈
 
-Atlas は 28 ルールを `method: lint | eval | review` に分類し、lint を ESLint で自動実行、review は人が判断していた。スライド領域では、Atlas に無い検査が可能になる。固定キャンバスを使うため（[DR-0004](./0004-phase-1-runtime-scope.md)）、要素が枠外へ出たかを実測で判定できる。
+参考元のデザインシステムは 28 ルールを `method: lint | eval | review` に分類し、lint を ESLint で自動実行、review は人が判断していた。スライド領域では、参考元に無い検査が可能になる。固定キャンバスを使うため（[DR-0004](./0004-phase-1-runtime-scope.md)）、要素が枠外へ出たかを実測で判定できる。
 
 ## 決定
 

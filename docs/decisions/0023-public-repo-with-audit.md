@@ -6,9 +6,9 @@
 
 ## 文脈
 
-当初は「公開しない」と判断していた。理由は、Atlas が持つ `runs:sanitize` と `public:audit` を作らずに済ませるためである。しかし対象リポジトリ `nashiusagi/slide-design-system` が public であったため、前提を再検討した。
+当初は「公開しない」と判断していた。理由は、参考元のデザインシステムが持つ `runs:sanitize` と `public:audit` を作らずに済ませるためである。しかし対象リポジトリ `nashiusagi/slide-design-system` が public であったため、前提を再検討した。
 
-保存 Run（[DR-0014](./0014-baseline-comparison.md)）の実際の保存形式は #10 で確定した（メタデータは `experiments/*/schemas/run.schema.json`、Run ディレクトリ全体の構成は各実験の `runs/README.md`——例: `experiments/harness-intro/runs/README.md`——を正本とする）。この DR を書いた時点では Atlas 由来の想定として `changes.diff` や `events.jsonl`（AI の行動ログ）も含む案があったが、#10 では実装しなかった。生成過程で端末の絶対パスや OS ユーザー名が保存 Run のどこかに紛れ込むことがある。具体的な漏洩経路と対策は `docs/PUBLICATION_POLICY.md` を参照。
+保存 Run（[DR-0014](./0014-baseline-comparison.md)）の実際の保存形式は #10 で確定した（メタデータは `experiments/*/schemas/run.schema.json`、Run ディレクトリ全体の構成は各実験の `runs/README.md`——例: `experiments/harness-intro/runs/README.md`——を正本とする）。この DR を書いた時点では参考元由来の想定として `changes.diff` や `events.jsonl`（AI の行動ログ）も含む案があったが、#10 では実装しなかった。生成過程で端末の絶対パスや OS ユーザー名が保存 Run のどこかに紛れ込むことがある。具体的な漏洩経路と対策は `docs/PUBLICATION_POLICY.md` を参照。
 
 ## 決定
 

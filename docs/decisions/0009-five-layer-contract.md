@@ -1,4 +1,4 @@
-# DR-0009: 契約は Atlas の 5 層をフル写像する
+# DR-0009: 契約は参考元のデザインシステムの 5 層をフル写像する
 
 - **状態**: 承認済み
 - **日付**: 2026-09-06
@@ -6,13 +6,13 @@
 
 ## 文脈
 
-Atlas は設計契約を `DESIGN.md` / `tokens.json` / `patterns/` / `components/` / `examples/` / `rules.json` に分け、さらに JSON Schema で契約自体を検証していた。スライド領域へ移植するにあたり、どこまでの層を持つかを決める必要がある。層が少ないほど初期実装は軽いが、AI が参照すべき正本が痩せる。
+参考元のデザインシステムは設計契約を `DESIGN.md` / `tokens.json` / `patterns/` / `components/` / `examples/` / `rules.json` に分け、さらに JSON Schema で契約自体を検証していた。スライド領域へ移植するにあたり、どこまでの層を持つかを決める必要がある。層が少ないほど初期実装は軽いが、AI が参照すべき正本が痩せる。
 
 ## 決定
 
 5 層すべてを写像する。
 
-| Atlas | スライド版 | 内容 |
+| 参考元 | スライド版 | 内容 |
 |---|---|---|
 | `DESIGN.md` | 同じ | 北極星、Do / Don't、衝突時の優先順位、Global Constraints |
 | `tokens.json` | 同じ + canvas | color / space / type / radius / shadow / canvas |
@@ -35,7 +35,7 @@ Atlas は設計契約を `DESIGN.md` / `tokens.json` / `patterns/` / `components
 
 初期実装が軽い。
 
-**却下理由**: 「意図した構成通りか」を判定できなくなる。Atlas の `component.usage` ルールに相当する検査が成立しない。
+**却下理由**: 「意図した構成通りか」を判定できなくなる。参考元の `component.usage` ルールに相当する検査が成立しない。
 
 ### 3 層（DESIGN.md + tokens + rules のみ）
 
