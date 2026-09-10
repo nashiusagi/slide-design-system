@@ -1,0 +1,38 @@
+name: check
+
+# pnpm check（DR-0028）を単一ステップとして実行する。判定の定義をリポジトリ側
+# （package.json の scripts.check）に一本化するのが目的なので、ここでは
+# 検査を分割・並列化しない（Issue #29 / DR-0028 の帰結）。
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: check-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # DR-0027: Node.js 22 以上を前提とする
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        # scripts/evaluate-run.mjs の scoreMeasure テストと
+        # scripts/measure-slides.mjs が実ブラウザ（Chromium）を起動する。
+        run: pnpm exec playwright install --with-deps chromium
+
+      - run: pnpm check
