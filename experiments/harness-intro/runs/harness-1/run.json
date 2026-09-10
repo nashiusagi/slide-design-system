@@ -1,0 +1,22 @@
+{
+  "id": "harness-1",
+  "experiment": "harness-intro",
+  "condition": "harness",
+  "createdAt": "2026-09-10T04:47:32.215Z",
+  "prompt": "experiments/harness-intro/prompt.md",
+  "source": {
+    "files": [
+      "App.tsx",
+      "index.css",
+      "main.tsx",
+      "runtime/Deck.tsx",
+      "runtime/Fragment.tsx",
+      "runtime/Slide.tsx",
+      "runtime/canvas.ts",
+      "runtime/context.ts",
+      "runtime/hash.ts",
+      "runtime/index.ts",
+      "runtime/runtime.css"
+    ]
+  }
+}

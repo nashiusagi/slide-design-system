@@ -78,16 +78,26 @@ export function isInSrgbGamut(value) {
 }
 
 /**
+ * oklch を 0..255 の sRGB 3成分へ。色域外はクリップする（ブラウザの描画に合わせる）。
+ *
+ * @param {string} value
+ * @returns {[number, number, number]}
+ */
+export function oklchToRgb255(value) {
+  return /** @type {[number, number, number]} */ (
+    oklchToLinearRgb(parseOklch(value)).map((linear) =>
+      Math.round(encodeChannel(Math.min(Math.max(linear, 0), 1)) * 255),
+    )
+  )
+}
+
+/**
  * oklch を `#rrggbb` へ。色域外はクリップする（ブラウザの描画に合わせる）。
  *
  * @param {string} value
  */
 export function oklchToHex(value) {
-  const channels = oklchToLinearRgb(parseOklch(value)).map((linear) => {
-    const byte = Math.round(encodeChannel(Math.min(Math.max(linear, 0), 1)) * 255)
-
-    return byte.toString(16).padStart(2, '0')
-  })
+  const channels = oklchToRgb255(value).map((byte) => byte.toString(16).padStart(2, '0'))
 
   return `#${channels.join('')}`
 }
@@ -157,22 +167,43 @@ export function contrastRatio(foreground, background) {
 const CSS_RGB_PATTERN = /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)$/
 
 /**
- * `getComputedStyle` が返す `rgb(...)` / `rgba(...)` 文字列を読む。
+ * `oklch(L C H)` / `oklch(L C H / A)` の記法を読む。`design/theme.css` の
+ * `--dh-color-*` は oklch で書かれており（DR-0008）、その変数をそのまま
+ * `color` 等へ当てた要素は、`getComputedStyle` が rgb() へ変換せず oklch() の
+ * まま返す（Chromium が CSS Color 4 の計算値を保持するようになったため）。
+ * `parseOklch` は透明度を持たない厳密な形（トークンの記法）しか読めないため、
+ * ここでは別に緩い正規表現で受ける。
+ */
+const CSS_OKLCH_PATTERN =
+  /^oklch\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s*(?:\/\s*([\d.]+)\s*)?\)$/
+
+/**
+ * `getComputedStyle` が返す `rgb(...)` / `rgba(...)` / `oklch(...)` 文字列を読む。
  *
  * @param {string} value
  * @returns {{ rgb: [number, number, number], alpha: number }}
  */
 export function parseCssRgb(value) {
-  const matched = CSS_RGB_PATTERN.exec(value.trim())
+  const trimmed = value.trim()
+  const rgbMatch = CSS_RGB_PATTERN.exec(trimmed)
 
-  if (matched === null) {
-    throw new Error(`rgb()/rgba() の形で書くこと: ${value}`)
+  if (rgbMatch !== null) {
+    return {
+      rgb: [Number(rgbMatch[1]), Number(rgbMatch[2]), Number(rgbMatch[3])],
+      alpha: rgbMatch[4] === undefined ? 1 : Number(rgbMatch[4]),
+    }
   }
 
-  return {
-    rgb: [Number(matched[1]), Number(matched[2]), Number(matched[3])],
-    alpha: matched[4] === undefined ? 1 : Number(matched[4]),
+  const oklchMatch = CSS_OKLCH_PATTERN.exec(trimmed)
+
+  if (oklchMatch !== null) {
+    return {
+      rgb: oklchToRgb255(`oklch(${oklchMatch[1]} ${oklchMatch[2]} ${oklchMatch[3]})`),
+      alpha: oklchMatch[4] === undefined ? 1 : Number(oklchMatch[4]),
+    }
   }
+
+  throw new Error(`rgb()/rgba()/oklch() の形で書くこと: ${value}`)
 }
 
 /**

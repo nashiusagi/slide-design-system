@@ -112,9 +112,21 @@ describe('parseCssRgb', () => {
     expect(parseCssRgb('rgba(0, 0, 0, 0)')).toEqual({ rgb: [0, 0, 0], alpha: 0 })
   })
 
+  it('oklch() を読む。Chromium が CSS Color 4 の計算値を保持し、rgb() へ変換せず返すことがある', () => {
+    const { rgb, alpha } = parseCssRgb('oklch(0.21 0 0)')
+
+    // 無彩色の一例。design/tokens.json の特定のトークン値との一致を意図したものではない。
+    expect(rgb).toEqual([24, 24, 24])
+    expect(alpha).toBe(1)
+  })
+
+  it('alpha 付きの oklch() を読む', () => {
+    expect(parseCssRgb('oklch(1 0 0 / 0.5)')).toEqual({ rgb: [255, 255, 255], alpha: 0.5 })
+  })
+
   it('別記法は受け付けない', () => {
-    expect(() => parseCssRgb('oklch(0.47 0.22 305)')).toThrow()
     expect(() => parseCssRgb('#791fba')).toThrow()
+    expect(() => parseCssRgb('hsl(0, 0%, 0%)')).toThrow()
   })
 })
 
