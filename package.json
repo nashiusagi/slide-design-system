@@ -16,10 +16,12 @@
     "theme:check": "node scripts/generate-theme.mjs --check",
     "design:check": "node scripts/validate-design.mjs",
     "experiment:starter:check": "node scripts/prepare-workspace.mjs check-starter experiments/harness-intro",
+    "public:sanitize": "node scripts/sanitize-run-artifacts.mjs",
+    "public:audit": "node scripts/audit-public-data.mjs",
     "measure": "node scripts/measure-slides.mjs",
     "lint": "eslint . --max-warnings=0",
     "test": "vitest run",
-    "check": "pnpm design:check && pnpm experiment:starter:check && pnpm theme:check && pnpm typecheck && pnpm lint && pnpm test && pnpm build"
+    "check": "pnpm design:check && pnpm experiment:starter:check && pnpm public:audit && pnpm theme:check && pnpm typecheck && pnpm lint && pnpm test && pnpm build"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

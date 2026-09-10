@@ -60,6 +60,7 @@ pnpm check            # design:check → theme:check → typecheck → lint → 
 | `design/rules.json` | 検査ルール（lint / measure / review） |
 | `design/schemas/` | 契約自体を検証する JSON Schema |
 | `docs/decisions/` | 決定記録（DR）。なぜそう決めたか、何を却下したか |
+| `docs/PUBLICATION_POLICY.md` | 公開してよいもの／してはいけないものの基準 |
 | `experiments/` | お題、共通 starter、保存済み Run |
 | `skills/slide-harness/` | AI が契約に従って実装するための Agent Skill |
 
@@ -87,9 +88,7 @@ pnpm check            # design:check → theme:check → typecheck → lint → 
 
 ## 公開時の注意
 
-保存 Run にはプロンプト、AI の行動ログ、生成ソース、検証ログが含まれる。保存時に絶対パスと OS ユーザー名をマスクし、audit で再検査する。audit は文字列検査であり公開承認ではない。最終判断は人が行う。
-
-根拠は [DR-0023](./docs/decisions/0023-public-repo-with-audit.md)。
+公開してよいもの／してはいけないものの基準は [`docs/PUBLICATION_POLICY.md`](./docs/PUBLICATION_POLICY.md) を参照。実行コマンドは `pnpm public:sanitize` / `pnpm public:audit`（`pnpm check` に組み込み済み）。根拠は [DR-0023](./docs/decisions/0023-public-repo-with-audit.md)。
 
 ## 決定記録
 

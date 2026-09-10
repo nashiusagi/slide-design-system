@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url'
 
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { buildRunRecord, collectFiles, saveRun, scoreLint, scoreMeasure, scoreRun, validateRunRecord } from './evaluate-run.mjs'
+import { buildRunRecord, saveRun, scoreLint, scoreMeasure, scoreRun, validateRunRecord } from './evaluate-run.mjs'
 
 const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url))
 const RUN_SCHEMA = JSON.parse(readFileSync(join(REPO_ROOT, 'experiments/harness-intro/schemas/run.schema.json'), 'utf8'))
@@ -28,17 +28,6 @@ afterEach(() => {
   while (tempDirs.length > 0) {
     rmSync(/** @type {string} */ (tempDirs.pop()), { recursive: true, force: true })
   }
-})
-
-describe('collectFiles', () => {
-  it('ネストしたファイルを相対パスで列挙する', () => {
-    const dir = makeTempDir()
-    mkdirSync(join(dir, 'runtime'))
-    writeFileSync(join(dir, 'App.tsx'), 'x')
-    writeFileSync(join(dir, 'runtime/Deck.tsx'), 'x')
-
-    expect(collectFiles(dir).sort()).toEqual(['App.tsx', 'runtime/Deck.tsx'])
-  })
 })
 
 describe('buildRunRecord', () => {
