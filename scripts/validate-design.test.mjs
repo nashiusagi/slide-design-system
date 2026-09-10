@@ -258,6 +258,19 @@ describe('checkLayoutClasses', () => {
     expect(found[0]).toContain('.slide--bullets')
   })
 
+  it(':has() の引数に書かれたクラス名は実装と見なさない', () => {
+    // .foo:has(.bar) で実際に選択・スタイリングされるのは .foo（.bar を子孫等に
+    // 持つ要素）であって .bar 自身ではない。:not() と同じ理由で、.slide--bullets
+    // が :has() の引数にしか現れないルールを「実装済み」と装えないことを固定する。
+    const found = checkLayoutClasses(
+      layouts,
+      '.slide--title:has(.slide--bullets) { display: flex; }\n',
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('.slide--bullets')
+  })
+
   it(':where() / :is() の引数に書かれたクラス名は、その引数自身への実装として認める', () => {
     // :where(.x) / :is(.x) は :not() と違い、引数の要素そのものを選択して
     // スタイルを与える（詳細度が変わるだけ）。:not() と同じ理由で一律に

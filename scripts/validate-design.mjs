@@ -365,7 +365,7 @@ export function checkLayoutClasses(layouts, cssSource) {
   const implemented = new Set()
 
   try {
-    postcss.parse(cssSource).walkRules((rule) => {
+    postcss.parse(cssSource, { from: resolve('design/layout.css') }).walkRules((rule) => {
       for (const className of classesTargetedBySelector(rule.selector)) {
         implemented.add(className)
       }

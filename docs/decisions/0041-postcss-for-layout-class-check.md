@@ -52,7 +52,7 @@ Issue #22 が提示したもう一方の案。「実装済み」の定義を、�
 
 ## 帰結
 
-- `packages/eslint-plugin-slide`（#7）の `no-raw-color` 等、生成されたスライドの CSS を検査するルールでも、同種の CSS 構文解析が要る場面があれば、ここで入れた `postcss` を再利用できる。[DR-0018](./0018-plain-css-with-tokens.md) の理由節が「素の CSS なら生の px や色値の検出を CSS AST で素直に行える」としており、同じ CSS AST 投資を #7 でも再利用できる可能性がある。ただし #7 でどのパーサを使うか・実際に再利用するかは、この DR では決めない
+- `packages/eslint-plugin-slide`（#7）の `no-raw-color` 等、生成されたスライドの CSS を検査するルールでも、同種の CSS 構文解析が要る場面があれば、ここで入れた `postcss` を再利用できる。[DR-0018](./0018-plain-css-with-tokens.md) の理由節が「素の CSS なら生の px や色値の検出を CSS AST で素直に行える」としており、同じ CSS 構文木への投資を #7 でも再利用できる可能性がある。ただし #7 でどのパーサを使うか・実際に再利用するかは、この DR では決めない
 - `checkLayoutClasses` のテストに、`:not()` の引数・属性値内の `]` を使った invalid ケースと、`:where()` / `:is()` の引数を実装として正しく認める（かつ contract に無いクラスを `:is()` 越しに実装しても extra として検出する）ケースを追加し、3周目で見つかった抜け道とレビューで見つかった誤判定を回帰として固定した
 - `design/layout.css` は、契約クラスを `:not()` / `:has()` の引数だけで書くと未実装として扱われる。`:where()` / `:is()` の引数であれば実装として認められる
 - `postcss.parse` が構文エラーで例外を投げた場合は、他の検査（`design:check` の残りの項目）を止めずに進められるよう、`checkLayoutClasses` 内で捕まえて問題文字列に変換する（`checkDecks` が構文エラーを扱う形と揃える）
