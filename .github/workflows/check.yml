@@ -11,8 +11,14 @@ on:
     branches: [main]
 
 concurrency:
-  group: check-${{ github.workflow }}-${{ github.ref }}
+  # push（main）は commit ごとに区別する。ref だけで束ねると、main へ短時間に
+  # 連続 push されたとき先行 commit の check が完了前に cancel され、
+  # その commit 単体では「検査を通った」ことが確認できないまま履歴に残る。
+  group: check-${{ github.workflow }}-${{ github.event_name == 'push' && github.sha || github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   check:
@@ -24,8 +30,9 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          # DR-0027: Node.js 22 以上を前提とする
-          node-version: 22
+          # Node バージョンの正本は package.json の engines.node（DR-0027）。
+          # ここへ数値を複製せず、そのファイルから読ませる。
+          node-version-file: package.json
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
