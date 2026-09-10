@@ -290,13 +290,24 @@ export function checkMeasureRuleCoverage(rules, implementedRuleIds, knownUnimple
 }
 
 /**
+ * 引数の中のクラス名が、その要素自身を選択対象にしない疑似クラス。
+ *
+ * :not(.x) は「.x を持つ要素を除外する」条件であり、引数の .x そのものを
+ * 選択・スタイリングしているわけではない。:has(.x) も同様に、実際に選択・
+ * スタイリングされるのは外側の要素であって引数の .x ではない。
+ *
+ * 一方 :where(.x) / :is(.x) は、引数の要素そのものを選択する（詳細度が
+ * 変わるだけ）。:where(.x) { color: red } は .x を実際に赤くする。ここに
+ * 含めると、:where() / :is() で書かれた実装を「実装していない」と誤判定する。
+ */
+const NON_TARGETING_PSEUDO_CLASSES = new Set([':not', ':has'])
+
+/**
  * セレクタ文字列が実際に対象とするクラス名の集合を返す（DR-0041）。
  *
- * 疑似クラスの関数引数（:not(.slide--x) / :where(.slide--x) 等）の中に現れる
- * クラス名は除く。引数の中のクラス名はその要素を選択対象から除外・限定する
- * 条件であり、そのクラスへスタイルを与えている（=実装している）ことを意味
- * しない。除かないと、:not(.slide--x) {} のような実際には何もスタイリング
- * しないルールを書くだけで「実装済み」と誤判定できてしまう。
+ * NON_TARGETING_PSEUDO_CLASSES に挙げた疑似クラスの引数の中に現れるクラス名は
+ * 除く。除かないと、:not(.slide--x) {} のような実際には何もスタイリングしない
+ * ルールを書くだけで「実装済み」と誤判定できてしまう。
  *
  * コメント内の文字列・属性セレクタの値・宣言ブロックの中身は、CSS の構文木
  * 自体がセレクタの外に置くため、ここへは渡らない。
@@ -310,18 +321,18 @@ function classesTargetedBySelector(selector) {
   selectorParser((selectors) => {
     selectors.walkClasses((classNode) => {
       let ancestor = classNode.parent
-      let insidePseudoArgument = false
+      let insideNonTargetingPseudoArgument = false
 
       while (ancestor !== undefined && ancestor !== null) {
-        if (ancestor.type === 'pseudo') {
-          insidePseudoArgument = true
+        if (ancestor.type === 'pseudo' && NON_TARGETING_PSEUDO_CLASSES.has(ancestor.value.toLowerCase())) {
+          insideNonTargetingPseudoArgument = true
           break
         }
 
         ancestor = ancestor.parent
       }
 
-      if (!insidePseudoArgument) {
+      if (!insideNonTargetingPseudoArgument) {
         classes.add(classNode.value)
       }
     })
@@ -342,6 +353,9 @@ function classesTargetedBySelector(selector) {
  * 参照）。正式な構文木を使えば、これらは元々セレクタの外か疑似クラス引数の
  * 中にしか現れないため、個別の抜け道潰しが要らなくなる。
  *
+ * 構文解析自体が失敗した場合は例外を投げず、他の検査（checks の残り）が
+ * 続けられるよう問題文字列として返す。checkDecks が構文エラーを扱う形と揃える。
+ *
  * @param {{ name: string, classes: string[] }[]} layouts
  * @param {string} cssSource design/layout.css の中身
  * @returns {string[]}
@@ -350,11 +364,15 @@ export function checkLayoutClasses(layouts, cssSource) {
   const declared = new Set(layouts.flatMap((layout) => layout.classes))
   const implemented = new Set()
 
-  postcss.parse(cssSource).walkRules((rule) => {
-    for (const className of classesTargetedBySelector(rule.selector)) {
-      implemented.add(className)
-    }
-  })
+  try {
+    postcss.parse(cssSource).walkRules((rule) => {
+      for (const className of classesTargetedBySelector(rule.selector)) {
+        implemented.add(className)
+      }
+    })
+  } catch (error) {
+    return [`design/layout.css: CSS として解析できない: ${/** @type {Error} */ (error).message}`]
+  }
 
   const missing = [...declared]
     .filter((name) => !implemented.has(name))
