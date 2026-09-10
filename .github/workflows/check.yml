@@ -1,0 +1,45 @@
+name: check
+
+# pnpm check（DR-0028）を単一ステップとして実行する。判定の定義をリポジトリ側
+# （package.json の scripts.check）に一本化するのが目的なので、ここでは
+# 検査を分割・並列化しない（Issue #29 / DR-0028 の帰結）。
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  # push（main）は commit ごとに区別する。ref だけで束ねると、main へ短時間に
+  # 連続 push されたとき先行 commit の check が完了前に cancel され、
+  # その commit 単体では「検査を通った」ことが確認できないまま履歴に残る。
+  group: check-${{ github.workflow }}-${{ github.event_name == 'push' && github.sha || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Node バージョンの正本は package.json の engines.node（DR-0027）。
+          # ここへ数値を複製せず、そのファイルから読ませる。
+          node-version-file: package.json
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        # scripts/evaluate-run.mjs の scoreMeasure テストと
+        # scripts/measure-slides.mjs が実ブラウザ（Chromium）を起動する。
+        run: pnpm exec playwright install --with-deps chromium
+
+      - run: pnpm check
