@@ -1,0 +1,948 @@
+{
+  "generatedAt": "2026-09-10T04:47:43.254Z",
+  "dist": "<workspace>/projects/slide-design-system/experiments/harness-intro/runs/baseline-1/dist",
+  "canvas": {
+    "width": 1280,
+    "height": 720
+  },
+  "rules": [
+    "no-overflow",
+    "min-font-size",
+    "contrast"
+  ],
+  "slideCount": 13,
+  "pass": false,
+  "violations": [
+    {
+      "rule": "min-font-size",
+      "slideNumber": 1,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 16px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 1,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 1,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[3] > span[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 1,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[3] > span[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 1,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[3] > span[1]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 1,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[3] > span[1]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 1,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[3] > span[2]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 1,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[3] > span[2]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 2,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 2,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 2,
+      "step": 1,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 2,
+      "step": 1,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 2,
+      "step": 2,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 2,
+      "step": 2,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 2,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 2,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 2,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 2,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 2,
+      "step": 5,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 2,
+      "step": 5,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 3,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 3,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 1,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 1,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 1,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[0] > span[0]",
+      "detail": "computed fontSize が 14px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 1,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[0] > span[0]",
+      "detail": "rgb(107, 125, 156) on rgb(18, 29, 51) が 4.03:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 1,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[0] > span[1]",
+      "detail": "computed fontSize が 14px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 1,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > span[1]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 2,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 2,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 2,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[0] > span[0]",
+      "detail": "computed fontSize が 14px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 2,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[0] > span[0]",
+      "detail": "rgb(107, 125, 156) on rgb(18, 29, 51) が 4.03:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 2,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[0] > span[1]",
+      "detail": "computed fontSize が 14px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 2,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > span[1]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 2,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[2] > span[0]",
+      "detail": "computed fontSize が 14px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 2,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[2] > span[0]",
+      "detail": "rgb(107, 125, 156) on rgb(18, 29, 51) が 4.03:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 2,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[2] > span[1]",
+      "detail": "computed fontSize が 14px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 2,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > span[3]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[0] > span[0]",
+      "detail": "computed fontSize が 14px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[0] > span[0]",
+      "detail": "rgb(107, 125, 156) on rgb(18, 29, 51) が 4.03:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[0] > span[1]",
+      "detail": "computed fontSize が 14px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > span[1]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[2] > span[0]",
+      "detail": "computed fontSize が 14px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[2] > span[0]",
+      "detail": "rgb(107, 125, 156) on rgb(18, 29, 51) が 4.03:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[2] > span[1]",
+      "detail": "computed fontSize が 14px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > span[3]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[4] > span[0]",
+      "detail": "computed fontSize が 14px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[4] > span[0]",
+      "detail": "rgb(107, 125, 156) on rgb(18, 29, 51) が 4.03:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[4] > span[1]",
+      "detail": "computed fontSize が 14px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > span[5]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[0] > span[0]",
+      "detail": "computed fontSize が 14px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[0] > span[0]",
+      "detail": "rgb(107, 125, 156) on rgb(18, 29, 51) が 4.03:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[0] > span[1]",
+      "detail": "computed fontSize が 14px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > span[1]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[2] > span[0]",
+      "detail": "computed fontSize が 14px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[2] > span[0]",
+      "detail": "rgb(107, 125, 156) on rgb(18, 29, 51) が 4.03:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[2] > span[1]",
+      "detail": "computed fontSize が 14px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > span[3]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[4] > span[0]",
+      "detail": "computed fontSize が 14px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[4] > span[0]",
+      "detail": "rgb(107, 125, 156) on rgb(18, 29, 51) が 4.03:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[4] > span[1]",
+      "detail": "computed fontSize が 14px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > span[5]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[6] > span[0]",
+      "detail": "computed fontSize が 14px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 4,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[6] > span[0]",
+      "detail": "rgb(107, 125, 156) on rgb(18, 29, 51) が 4.03:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 4,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[6] > span[1]",
+      "detail": "computed fontSize が 14px で、下限 18px を割る"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 5,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 5,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 5,
+      "step": 1,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 5,
+      "step": 1,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 5,
+      "step": 2,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 5,
+      "step": 2,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 5,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 5,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 6,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 6,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 6,
+      "step": 1,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 6,
+      "step": 1,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 7,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 7,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 7,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > span[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 7,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > span[1]",
+      "detail": "computed fontSize が 16px で、下限 18px を割る"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 7,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[2] > span[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 8,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 8,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 8,
+      "step": 1,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 8,
+      "step": 1,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 8,
+      "step": 2,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 8,
+      "step": 2,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 8,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 8,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 9,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 9,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 9,
+      "step": 1,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 9,
+      "step": 1,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 9,
+      "step": 1,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[0] > span[0]",
+      "detail": "computed fontSize が 16px で、下限 18px を割る"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 9,
+      "step": 2,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 9,
+      "step": 2,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 9,
+      "step": 2,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[0] > span[0]",
+      "detail": "computed fontSize が 16px で、下限 18px を割る"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 9,
+      "step": 2,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[1] > span[0]",
+      "detail": "computed fontSize が 16px で、下限 18px を割る"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 9,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 9,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 9,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[0] > span[0]",
+      "detail": "computed fontSize が 16px で、下限 18px を割る"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 9,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[1] > span[0]",
+      "detail": "computed fontSize が 16px で、下限 18px を割る"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 9,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[2] > span[0]",
+      "detail": "computed fontSize が 16px で、下限 18px を割る"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 9,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 9,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 9,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[0] > span[0]",
+      "detail": "computed fontSize が 16px で、下限 18px を割る"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 9,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[1] > span[0]",
+      "detail": "computed fontSize が 16px で、下限 18px を割る"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 9,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[2] > span[0]",
+      "detail": "computed fontSize が 16px で、下限 18px を割る"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 9,
+      "step": 4,
+      "selector": "div[0] > div[0] > div[0] > section[0] > div[2] > div[0] > div[3] > span[0]",
+      "detail": "computed fontSize が 16px で、下限 18px を割る"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 10,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 10,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 11,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 11,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 12,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 12,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 12,
+      "step": 1,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 12,
+      "step": 1,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 12,
+      "step": 2,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 12,
+      "step": 2,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 12,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 12,
+      "step": 3,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 13,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "computed fontSize が 15px で、下限 18px を割る"
+    },
+    {
+      "rule": "contrast",
+      "slideNumber": 13,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > p[0]",
+      "detail": "rgb(107, 125, 156) on rgb(11, 18, 32) が 4.49:1 で、4.5:1 を満たさない"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 13,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > ol[2] > li[0] > span[0]",
+      "detail": "computed fontSize が 16px で、下限 18px を割る"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 13,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > ol[2] > li[1] > span[0]",
+      "detail": "computed fontSize が 16px で、下限 18px を割る"
+    },
+    {
+      "rule": "min-font-size",
+      "slideNumber": 13,
+      "step": 0,
+      "selector": "div[0] > div[0] > div[0] > section[0] > ol[2] > li[2] > span[0]",
+      "detail": "computed fontSize が 16px で、下限 18px を割る"
+    }
+  ]
+}

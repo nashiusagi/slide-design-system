@@ -1,0 +1,49 @@
+{
+  "runId": "harness-1",
+  "condition": "harness",
+  "scoredAt": "2026-09-10T04:49:47.650Z",
+  "lint": {
+    "fileCount": 9,
+    "violationsByRule": {
+      "component-approved": 3
+    },
+    "total": 3,
+    "messages": [
+      {
+        "file": "App.tsx",
+        "ruleId": "slide/component-approved",
+        "message": "'SlideTitle' は design/components/ の契約名。ローカルで再定義せず、正規の実装を import して使うこと。",
+        "line": 20
+      },
+      {
+        "file": "App.tsx",
+        "ruleId": "slide/component-approved",
+        "message": "'BulletList' は design/components/ の契約名。ローカルで再定義せず、正規の実装を import して使うこと。",
+        "line": 28
+      },
+      {
+        "file": "App.tsx",
+        "ruleId": "slide/component-approved",
+        "message": "'Statement' は design/components/ の契約名。ローカルで再定義せず、正規の実装を import して使うこと。",
+        "line": 44
+      }
+    ]
+  },
+  "measure": {
+    "status": "measured",
+    "generatedAt": "2026-09-10T04:49:47.598Z",
+    "dist": "<workspace>/projects/slide-design-system/experiments/harness-intro/runs/harness-1/dist",
+    "canvas": {
+      "width": 1280,
+      "height": 720
+    },
+    "rules": [
+      "no-overflow",
+      "min-font-size",
+      "contrast"
+    ],
+    "slideCount": 3,
+    "pass": true,
+    "violations": []
+  }
+}

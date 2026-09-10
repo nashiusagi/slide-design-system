@@ -1,0 +1,53 @@
+/*
+ * 足場のリセットのみ。
+ * タイポグラフィ・色・余白は design/tokens.json（#4）を正本とし、
+ * そこから生成する design/theme.css の --dh-* を参照して書く（DR-0018）。
+ * ここに値を先取りして書かない。
+ */
+body {
+  margin: 0;
+}
+
+/*
+ * スライド内部品（design/components/*.json）の見た目。
+ * design/layout.css は箱の構造だけを持ち、部品自身のスタイルは持たないので
+ * ここに置く。値はすべて design/theme.css の --dh-* トークン経由（DR-0018）。
+ */
+
+.dh-slide-title {
+  margin: 0;
+  font-family: var(--dh-type-family-sans);
+  font-weight: var(--dh-type-weight-bold);
+  line-height: var(--dh-type-line-height-tight);
+  color: var(--dh-color-text);
+  font-size: var(--dh-type-size-slide-title);
+}
+
+/* title レイアウトはデッキ全体の表紙なので、見出しは deckTitle の寸法を使う。 */
+.slide--title .dh-slide-title {
+  font-size: var(--dh-type-size-deck-title);
+}
+
+.dh-bullet-list {
+  margin: 0;
+  padding-left: var(--dh-space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--dh-space-md);
+  font-family: var(--dh-type-family-sans);
+}
+
+.dh-bullet-list__item {
+  font-size: var(--dh-type-size-body);
+  line-height: var(--dh-type-line-height-normal);
+  color: var(--dh-color-text);
+}
+
+.dh-statement {
+  margin: 0;
+  font-family: var(--dh-type-family-sans);
+  font-weight: var(--dh-type-weight-bold);
+  font-size: var(--dh-type-size-statement);
+  line-height: var(--dh-type-line-height-tight);
+  color: var(--dh-color-text);
+}

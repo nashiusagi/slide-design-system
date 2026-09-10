@@ -1,0 +1,28 @@
+{
+  "runId": "harness-corrected-1",
+  "condition": "harness-corrected",
+  "scoredAt": "2026-09-10T04:52:27.059Z",
+  "lint": {
+    "fileCount": 9,
+    "violationsByRule": {},
+    "total": 0,
+    "messages": []
+  },
+  "measure": {
+    "status": "measured",
+    "generatedAt": "2026-09-10T04:52:27.014Z",
+    "dist": "<workspace>/projects/slide-design-system/experiments/harness-intro/runs/harness-corrected-1/dist",
+    "canvas": {
+      "width": 1280,
+      "height": 720
+    },
+    "rules": [
+      "no-overflow",
+      "min-font-size",
+      "contrast"
+    ],
+    "slideCount": 3,
+    "pass": true,
+    "violations": []
+  }
+}

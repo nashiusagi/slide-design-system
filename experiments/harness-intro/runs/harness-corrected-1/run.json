@@ -1,0 +1,23 @@
+{
+  "id": "harness-corrected-1",
+  "experiment": "harness-intro",
+  "condition": "harness-corrected",
+  "createdAt": "2026-09-10T04:52:24.575Z",
+  "prompt": "experiments/harness-intro/prompt.md",
+  "source": {
+    "files": [
+      "App.tsx",
+      "index.css",
+      "main.tsx",
+      "runtime/Deck.tsx",
+      "runtime/Fragment.tsx",
+      "runtime/Slide.tsx",
+      "runtime/canvas.ts",
+      "runtime/context.ts",
+      "runtime/hash.ts",
+      "runtime/index.ts",
+      "runtime/runtime.css"
+    ]
+  },
+  "correctedFrom": "harness-1"
+}

@@ -1,0 +1,35 @@
+/*
+ * ランタイムの最低限の CSS。16:9 の固定キャンバスとその配置だけを持つ。
+ *
+ * ここは Baseline と Harness の両方へ共通で渡る（DR-0021）。設計契約に属する値
+ * （色・余白・文字）は書かない。それらは design/theme.css と design/layout.css が持つ。
+ * キャンバスの寸法も書かない。Deck が canvas.ts の値をインラインで当てる。
+ */
+
+.slide-deck {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.slide-canvas {
+  /* 倍率は Deck が算出して当てる。中心から拡縮し、grid の中央寄せと噛み合う。 */
+  transform-origin: center center;
+  position: relative;
+
+  /*
+   * ここでクリップする。だから no-overflow（DR-0011）は必ずレイアウト矩形
+   * （getBoundingClientRect）で比較すること。可視性やスクリーンショットで
+   * 判定すると、はみ出した要素はクリップで消えているので「収まっている」と
+   * 誤って通る。本命のルールが丸ごと空振りする。
+   */
+  overflow: hidden;
+}
+
+.slide {
+  inline-size: 100%;
+  block-size: 100%;
+  box-sizing: border-box;
+}
