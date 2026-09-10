@@ -6,7 +6,7 @@
 
 ## 文脈
 
-Atlas は契約を AI へ配る経路を 3 つ持っていた。Agent Skill（`skills/atlas-design-system/SKILL.md`）、MCP サーバー（`scripts/mcp/server.mjs`）、manifest から必要ファイルだけを解決する `resolve-design-contract.mjs` である。重要なのは、Skill の中に設計データを複製せず必ず manifest から解決させる原則で、SKILL.md にも "Do not copy its design data into this Skill" と明記されている。
+参考元のデザインシステムは契約を AI へ配る経路を 3 つ持っていた。Agent Skill、MCP サーバー（`scripts/mcp/server.mjs`）、manifest から必要ファイルだけを解決する `resolve-design-contract.mjs` である。重要なのは、Skill の中に設計データを複製せず必ず manifest から解決させる原則で、その SKILL.md にも「設計データを Skill 側へ複製しない」旨が明記されている。
 
 ## 決定
 
@@ -20,7 +20,7 @@ Agent Skill と resolve スクリプトを作る。MCP サーバーは作らな�
 
 ## 検討した他の選択肢
 
-### Skill + MCP サーバー両方（Atlas 完写）
+### Skill + MCP サーバー両方（参考元と同じ構成）
 
 他の CLI からも同じ契約を引ける。
 

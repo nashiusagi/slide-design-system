@@ -6,11 +6,11 @@
 
 ## 文脈
 
-Atlas の starter を調べたところ、中身はビルド設定と空の `App.tsx` だけで、デザインは一切入っていなかった。条件の差は `manifest.json` の `conditions` にある 2 つだけである。
+参考元のデザインシステムの starter を調べたところ、中身はビルド設定と空の `App.tsx` だけで、デザインは一切入っていなかった。条件の差は `manifest.json` の `conditions` にある 2 つだけである。
 
 ```json
 "baseline": { "includesDesignContract": false, "agentSkills": [] }
-"harness":  { "includesDesignContract": true,  "agentSkills": ["atlas-design-system", ...] }
+"harness":  { "includesDesignContract": true,  "agentSkills": ["<design-system-skill>", ...] }
 ```
 
 つまり実験の公平性は「starter は完全に同一、渡す情報だけが違う」で担保されている。
@@ -30,7 +30,7 @@ starter にはビルド設定とスライド機構（ランタイム + 16:9 キ�
 
 ## 検討した他の選択肢
 
-### Atlas 完写（空の App のみ）
+### 参考元と同じ構成にする（空の App のみ）
 
 現実の「何もないところから AI に作らせる」を再現できる。
 

@@ -6,7 +6,7 @@
 
 ## 文脈
 
-Atlas は `scripts/agent-runners/` に `codex.mjs` と `claude.mjs` を持ち、`--runner` で切り替えていた。複数モデルで回せると「契約の効果はモデルに依らない」と主張できる。
+参考元のデザインシステムは `scripts/agent-runners/` に `codex.mjs` と `claude.mjs` を持ち、`--runner` で切り替えていた。複数モデルで回せると「契約の効果はモデルに依らない」と主張できる。
 
 この環境を調べたところ、`claude` は導入済み（2.1.263）だが `codex` は未導入だった。また非対話実行（`claude -p`）については、トークン消費が読めないことと、Claude Code のサブエージェントで回したいという要望がある。
 
