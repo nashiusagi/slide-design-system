@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-11（PR #41 1周目）
+最終更新: 2026-09-11（PR #41 2周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -77,7 +77,7 @@
 | `code/fix-lacks-regression-test` | コード品質 | 指摘を受けた修正に、それを守る回帰テストが無い | 2 | PR #19 | PR #24 |
 | `code/check-false-negative-on-empty-output` | コード品質 | 生成物が空ファイルのとき突き合わせが偽陰性を出す | 1 | PR #20 | PR #20 |
 | `inspection/rule-coverage-partial` | 検査 | 判定対象の列挙に穴があり、基準を割った組み合わせを見逃す | 5 | PR #20 | PR #28 |
-| `inspection/invalid-case-untested` | 検査 | 検査そのものに invalid ケースのテストが無い | 1 | PR #20 | PR #20 |
+| `inspection/invalid-case-untested` | 検査 | 検査そのものに invalid ケースのテストが無い | 2 | PR #20 | PR #41 |
 | `inspection/checked-artifact-not-in-build` | 検査 | 検査した生成物がビルド出力へ入っておらず、緑が実物を保証しない | 1 | PR #20 | PR #20 |
 | `code/test-misses-core-path` | コード品質 | 中核の変換経路がテストで固定されていない | 2 | PR #20 | PR #40 |
 | `code/dead-check-entry` | コード品質 | より強い条件に覆われ、単独では決して落ちない検査項目がある | 2 | PR #20 | PR #23 |
@@ -116,7 +116,7 @@
 | `code/unvalidated-id-format` | コード品質 | 識別子が許容書式に収まることを型でもテストでも保証していない | 1 | PR #40 | PR #40 |
 | `writing/ungrammatical-sentence` | 日本語 | 述語が欠けた文があり、意味が確定しない | 1 | PR #40 | PR #40 |
 | `writing/incomplete-pr-description` | 日本語 | PR 本文が着手時のままで、完成度と残りが読み取れない | 2 | PR #40 | PR #41 |
-| `code/test-cannot-detect-regression` | コード品質 | テストが、その名前が示す回帰をフィクスチャの都合で検出できない | 1 | PR #40 | PR #40 |
+| `code/test-cannot-detect-regression` | コード品質 | テストが、その名前が示す回帰をフィクスチャの都合で検出できない | 2 | PR #40 | PR #41 |
 | `code/duplicate-test-case` | コード品質 | 追加したテストが既存ケースと同一のアサーションになっている | 1 | PR #40 | PR #40 |
 | `decisions/citation-incomplete-after-rewrite` | 決定記録 | 本文を書き換えたが、冒頭の要約欄（実装・関連）が古いまま取り残された | 1 | PR #40 | PR #40 |
 | `code/restricted-module-list-duplicated-across-mechanisms` | コード品質 | 同じ禁止対象を別々の記法で二重管理し、片方だけ更新されうる | 1 | PR #40 | PR #40 |
@@ -127,7 +127,7 @@
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #41 | 2026-09-11 | 1 | 5 | 1 | [pr-41.md](./reviews/pr-41.md) |
+| #41 | 2026-09-11 | 1 | 7 | 1 | [pr-41.md](./reviews/pr-41.md) |
 | #40 | 2026-09-11 | 0 | 10 | 8 | [pr-40.md](./reviews/pr-40.md) |
 | #39 | 2026-09-10 | 0 | 3 | 7 | [pr-39.md](./reviews/pr-39.md) |
 | #31 | 2026-09-10 | 0 | 3 | 1 | [pr-31.md](./reviews/pr-31.md) |
