@@ -5,7 +5,7 @@
  * 契約ファイルから引く。ページ側は「どう見せるか」だけを持つ。
  *
  * 表示する値は `design/theme.css` から取る。`design/tokens.json` の生の数値には
- * 単位が付いておらず（`space.lg` は `24`）、px を付けるかどうかの規則は
+ * 単位が付いておらず、px を付けるかどうかの規則は
  * `scripts/generate-theme.mjs` の `UNITLESS_PATHS` が持っている。同じ規則を
  * こちらへ書くと、片方だけ変わったときに表示が静かにずれる。生成された CSS の
  * 値をそのまま読めば、カタログは実際に効いている値を見せることになる。
@@ -56,7 +56,7 @@ export function cssVar(path: string[]): string {
 }
 
 /**
- * `design/theme.css` の宣言（`--dh-space-lg: 24px;`）を名前から値へ引ける形にする。
+ * `design/theme.css` の宣言（`--dh-*: <値>;`）を名前から値へ引ける形にする。
  *
  * theme.css は1宣言1行で生成される（`generate-theme.mjs` の `renderTheme`）ので、
  * 行単位の走査で足りる。CSS のパーサを持ち込むほどの構造ではない。

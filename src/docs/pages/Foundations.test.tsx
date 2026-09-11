@@ -90,10 +90,6 @@ describe('Foundations', () => {
     expect(swatch?.getAttribute('style')).toContain(`var(${cssVarName(['color', 'background'])})`)
   })
 
-  /*
-   * 枠の幅・高さは名前で引いている。宣言順の先頭2つを取る書き方へ戻ると、tokens.json の
-   * キーが入れ替わっただけで縦横が入れ替わる（どの検査も落ちない）。
-   */
   it('キャンバスの枠は、幅に canvas.width、高さに canvas.height を当てる', () => {
     const { container } = render(<Foundations />)
 
@@ -103,6 +99,38 @@ describe('Foundations', () => {
       width: `var(${cssVarName(['canvas', 'width'])})`,
       height: `var(${cssVarName(['canvas', 'height'])})`,
     })
+  })
+
+  /*
+   * 上のテストは、tokens.json の canvas がたまたま width, height の順で書かれているため、
+   * 宣言順の先頭2つを幅・高さに当てる実装でも通ってしまう。キーの並びを入れ替えた木を
+   * 描かせて、名前で引いていること自体を固定する。
+   */
+  it('canvas のキーの並びが入れ替わっても、幅と高さを取り違えない', async () => {
+    const canvas = TOKENS.canvas as TokenNode
+    const reversed: TokenNode = {
+      ...TOKENS,
+      canvas: Object.fromEntries([...Object.entries(canvas)].reverse()),
+    }
+
+    vi.resetModules()
+    vi.doMock('../tokens', async () => ({
+      ...(await vi.importActual<typeof import('../tokens')>('../tokens')),
+      TOKENS: reversed,
+    }))
+
+    try {
+      const { Foundations: WithReversedCanvas } = await import('./Foundations')
+      const { container } = render(<WithReversedCanvas />)
+
+      expect(container.querySelector('.doc-canvas__frame')).toHaveStyle({
+        width: `var(${cssVarName(['canvas', 'width'])})`,
+        height: `var(${cssVarName(['canvas', 'height'])})`,
+      })
+    } finally {
+      vi.doUnmock('../tokens')
+      vi.resetModules()
+    }
   })
 
   it('色には rules.json の面ごとのコントラスト比を併記する', () => {

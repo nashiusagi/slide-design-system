@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import themeCss from '../../design/theme.css?raw'
 import rulesJson from '../../design/rules.json'
@@ -47,6 +47,25 @@ describe('cssVarName', () => {
 
   it('var() 参照を組み立てる', () => {
     expect(cssVar(['type', 'lineHeight'])).toBe('var(--dh-type-line-height)')
+  })
+})
+
+describe('theme.css の読み込み', () => {
+  /*
+   * vitest は CSS の読み込みを空文字へ差し替える。vite.config.ts の test.css.include への
+   * 列挙が漏れると、表示も期待値も空のまま検査が素通りするので、読み込み側で落としている
+   * （DR-0043 決定1）。そのガード自体をここで固定する。
+   */
+  it('読み込んだ theme.css が空なら、読み込んだ時点で落ちる', async () => {
+    vi.resetModules()
+    vi.doMock('../../design/theme.css?raw', () => ({ default: '' }))
+
+    try {
+      await expect(import('./tokens')).rejects.toThrow('design/theme.css を読み込めなかった')
+    } finally {
+      vi.doUnmock('../../design/theme.css?raw')
+      vi.resetModules()
+    }
   })
 })
 
