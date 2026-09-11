@@ -109,3 +109,133 @@ body {
   margin: 0;
   color: var(--dh-color-text-muted);
 }
+
+/*
+ * 基礎（トークン）のページ。見本の図形はここが持ち、値は JSX 側で var(--dh-*) を
+ * 当てる。ここへ書く長さ・色も --dh-* からのみ取る（DR-0018）。例外は
+ * design/rules.json の noRawScale.allowedLiterals に挙がっている値だけで、
+ * このファイルではヘアライン境界線の 1px を使っている。
+ */
+.doc-token-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dh-space-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * 見本を上、名前と値を下に置く。見本の幅を固定すると、実寸で見せたい文字の見本が
+ * 狭い欄の中で折り返し、大きさの比較にならない。
+ */
+.doc-token {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dh-space-2xs);
+}
+
+.doc-token__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--dh-space-xs) var(--dh-space-md);
+  min-width: 0;
+}
+
+.doc-token__name {
+  font-weight: var(--dh-type-weight-bold);
+}
+
+.doc-token__value {
+  color: var(--dh-color-text-muted);
+}
+
+.doc-token-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dh-space-md);
+}
+
+.doc-token-group__title {
+  margin: 0;
+  color: var(--dh-color-text-muted);
+  font-size: var(--dh-type-size-caption);
+  font-weight: var(--dh-type-weight-bold);
+  line-height: var(--dh-type-line-height-tight);
+}
+
+/* 色。面の上に置いて、白い色も境界で分かるようにする。 */
+.doc-swatch {
+  display: block;
+  width: var(--dh-space-4xl);
+  height: var(--dh-space-xl);
+  border: 1px solid var(--dh-color-border);
+  border-radius: var(--dh-radius-sm);
+}
+
+.doc-contrast {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dh-space-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--dh-color-text-muted);
+}
+
+.doc-contrast__item {
+  display: flex;
+  gap: var(--dh-space-2xs);
+}
+
+.doc-contrast__ratio {
+  color: var(--dh-color-text);
+}
+
+/* 余白。トークンの値がそのままバーの幅になる。 */
+.doc-space-bar {
+  display: block;
+  height: var(--dh-space-md);
+  background: var(--dh-color-accent);
+}
+
+/* 角丸。面と同系色なので、境界線を引かないと角の丸みが見えない。 */
+.doc-radius-box {
+  display: block;
+  width: var(--dh-space-3xl);
+  height: var(--dh-space-xl);
+  border: 1px solid var(--dh-color-border);
+  background: var(--dh-color-accent-soft);
+}
+
+/* 影。背景（surface）の上では見えないので、background の面の上に置く。 */
+.doc-shadow-box {
+  display: block;
+  width: var(--dh-space-3xl);
+  height: var(--dh-space-xl);
+  border-radius: var(--dh-radius-sm);
+  background: var(--dh-color-background);
+}
+
+.doc-sample {
+  margin: 0;
+}
+
+/* 行送りは折り返して初めて見える。トークンから作った幅で折り返させる。 */
+.doc-sample--wrapped {
+  max-width: calc(var(--dh-space-4xl) * 4);
+}
+
+/*
+ * キャンバス。実寸（1280x720）のまま置くと画面に収まらないので、縮めて見せる。
+ * zoom は枠の外側の寸法も縮むので、囲みの高さを別に指定せずに済む。
+ */
+.doc-canvas {
+  zoom: 0.25;
+}
+
+.doc-canvas__frame {
+  border: 1px solid var(--dh-color-border);
+  background: var(--dh-color-background);
+}
