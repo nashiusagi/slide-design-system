@@ -9,21 +9,22 @@
  * 構成（Phase 2 の人間オーサリング）にどう対応するかは、実際にそういう構成が
  * 必要になった時点で決める。
  *
- * `body` がある場合の素材の欠落・改変はここでは見ない。静的解析では変数や
- * テンプレートリテラルを経由した本文を復元できないため、レンダリング後の DOM
- * テキストと照合する measure 系の `deck-body-fidelity`（#8）が持つ。
+ * **このルールが意図的に見ない領域は design/rules.json の scopeExclusions が
+ * 正本**（DR-0044）。`body` の素材照合をここが持たないことも、そこに書いてある。
  */
 import { readFileSync } from 'node:fs'
 import { resolve as resolvePath } from 'node:path'
 
 import { parseDeck } from '../../../../scripts/lib/deck.mjs'
+import { descriptionOf } from '../lib/design-contracts.mjs'
+import { jsxAttributeStringValue } from '../lib/jsx-style.mjs'
 
 /** @type {import('eslint').Rule.RuleModule} */
 const rule = {
   meta: {
     type: 'problem',
     docs: {
-      description: '実装ファイルの Slide の並びが対応する deck 契約と一致する',
+      description: descriptionOf('deck-conformance'),
     },
     schema: [
       {
@@ -67,8 +68,11 @@ const rule = {
         const layoutAttribute = attributes.find(
           (attribute) => attribute.type === 'JSXAttribute' && attribute.name?.name === 'layout',
         )
-        const value = layoutAttribute?.value
-        const layout = value?.type === 'Literal' && typeof value.value === 'string' ? value.value : undefined
+        // layout の読み取りは layout-approved と同じ経路を通す。ここだけ独自に
+        // Literal を見ると、layout={"title"} のような別記法が「静的に読めない」
+        // 扱いになり、同じ値が2つのルールで違う結果になる。
+        const layout =
+          layoutAttribute === undefined ? undefined : jsxAttributeStringValue(layoutAttribute)?.text
 
         slideElements.push({ node, layout })
       },

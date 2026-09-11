@@ -20,6 +20,7 @@ import postcss from 'postcss'
 import selectorParser from 'postcss-selector-parser'
 
 import slidePlugin from '../packages/eslint-plugin-slide/src/index.mjs'
+import { fixturePathFor, loadBypassFixtures } from './lib/bypass-fixtures.mjs'
 import { contrastRatio, isInSrgbGamut } from './lib/color.mjs'
 import { parseDeck } from './lib/deck.mjs'
 import { IMPLEMENTED_MEASURE_RULE_IDS } from './lib/measure-rules.mjs'
@@ -41,6 +42,13 @@ const readJson = (relativePath) => JSON.parse(readFileSync(resolve(relativePath)
  * の静的な列挙なので、ここと独立に更新が要る。増減させたときは3つのスキーマすべてを
  * 合わせて直すこと。
  */
+/**
+ * 宣言だけがあり、実装がまだ無いルールID。実装との対応検査（checkMeasureRuleCoverage）と
+ * bypass フィクスチャの検査（checkBypassFixtureCoverage）の両方がこの一覧を免除に使う。
+ * 2箇所に別々の一覧を置くと、実装した日に片方だけ外れて食い違う。
+ */
+const UNIMPLEMENTED_RULE_IDS = ['deck-body-fidelity']
+
 const LAYOUT_NAMES = ['title', 'bullets', 'statement']
 const COMPONENT_NAMES = ['slide-title', 'bullet-list', 'statement', 'emphasis']
 
@@ -287,6 +295,199 @@ export function checkMeasureRuleCoverage(rules, implementedRuleIds, knownUnimple
     )
 
   return [...missing, ...extra, ...staleKnownUnimplemented]
+}
+
+/**
+ * lint ルールの `meta.docs.description` が、design/rules.json の description と
+ * 一致しているか（DR-0044）。
+ *
+ * 同じルールの守備範囲を述べる場所が正本と実装の2つにあると、片方だけ書き換わった
+ * ときに食い違う（`inspection/rule-scope-inconsistent`）。実装側は正本から引くこと
+ * にしてあり（packages/eslint-plugin-slide/src/lib/design-contracts.mjs の
+ * descriptionOf）、この検査は「引かずに書き下ろした」状態を捕まえる。等しいかどうかを
+ * 見るだけなので、引いている限り必ず通る。
+ *
+ * @param {{ id: string, method: string, description: string }[]} rules
+ * @param {Record<string, any>} implementations packages/eslint-plugin-slide が export するルール
+ * @returns {string[]}
+ */
+export function checkLintRuleDescriptionsMatch(rules, implementations) {
+  return rules
+    .filter((rule) => rule.method === 'lint' && implementations[rule.id] !== undefined)
+    .flatMap((rule) => {
+      const implemented = implementations[rule.id].meta?.docs?.description
+
+      if (implemented === rule.description) {
+        return []
+      }
+
+      return [
+        `packages/eslint-plugin-slide: '${rule.id}' の meta.docs.description が design/rules.json と食い違う。design-contracts.mjs の descriptionOf で正本から引くこと`,
+      ]
+    })
+}
+
+/**
+ * 違反を期待する事例が、何をもって違反とするかを書いているか。
+ *
+ * lint は報告の messageId、measure は評価にかける要素データ（records）がそれに
+ * あたる。ここを問わないと「落ちさえすればよい」事例が書け、別の理由で落ちている
+ * ことに気付けない。
+ *
+ * @param {any} one
+ * @param {string} method
+ */
+function hasExpectedReport(one, method) {
+  if (method === 'lint') {
+    return typeof one.messageId === 'string' || Array.isArray(one.messageIds)
+  }
+
+  return typeof one.records === 'function'
+}
+
+/**
+ * design/rules.json の各ルールに bypass フィクスチャがあり、宣言した軸と
+ * 除外をすべて事例で埋めているか（DR-0044）。
+ *
+ * 軸（bypassAxes）は「このルールが塞いだことを示すべき書き方の種類」で、
+ * 除外（scopeExclusions）は「意図的に見ない領域」。前者は違反として捕まること、
+ * 後者は通ることを、それぞれ事例が固定する。宣言だけして事例を書かなければ
+ * ここで落ちるので、軸を増やす判断と、それを満たす事例を書く手間が切り離せない。
+ *
+ * 境界（boundary）の軸だけは、違反側と通る側の両方を要求する。片側だけでは
+ * 「閾値を割ったら落ちる」ことは示せても「閾値ちょうどは通る」ことを示せず、
+ * 判定を一段厳しくする変更が誰にも気付かれずに入る。
+ *
+ * `skippedRuleIds` は実装がまだ無いルール。実装が無ければ事例を実行できないため
+ * 免除するが、実装されたのに免除が残っている状態（陳腐化した免除）は報告する。
+ *
+ * @param {{ id: string, method: string, bypassAxes: string[], scopeExclusions: { id: string }[] }[]} rules
+ * @param {Map<string, { fixture: any, error: string | null }>} loaded ルールIDごとの読み込み結果
+ * @param {string[]} skippedRuleIds 実装がまだ無く、フィクスチャを免除するルールID
+ * @returns {string[]}
+ */
+export function checkBypassFixtureCoverage(rules, loaded, skippedRuleIds) {
+  const skipped = new Set(skippedRuleIds)
+
+  return rules.flatMap((rule) => {
+    const entry = loaded.get(rule.id)
+    const path = fixturePathFor(rule)
+
+    if (entry?.error != null) {
+      return [entry.error]
+    }
+
+    const fixture = entry?.fixture ?? null
+
+    if (skipped.has(rule.id)) {
+      return fixture === null
+        ? []
+        : [
+            `scripts/validate-design.mjs: '${rule.id}' はフィクスチャの免除リストにあるが、${path} が存在する。免除から外すこと`,
+          ]
+    }
+
+    if (fixture === null) {
+      return [`${path} が無い。design/rules.json の '${rule.id}' には bypass フィクスチャが要る（DR-0044）`]
+    }
+
+    if (!Array.isArray(fixture.cases) || fixture.cases.length === 0) {
+      return [`${path}: cases が空。軸ごとの事例が要る`]
+    }
+
+    /** @type {string[]} */
+    const problems = []
+    const declaredAxes = new Set(rule.bypassAxes)
+    const declaredExclusions = new Set(rule.scopeExclusions.map((exclusion) => exclusion.id))
+    /** @type {Map<string, Set<string>>} */
+    const axisExpectations = new Map()
+    /** @type {Set<string>} */
+    const coveredExclusions = new Set()
+    /** @type {Set<string>} */
+    const seenNames = new Set()
+
+    for (const one of fixture.cases) {
+      const label = `${path}: 事例 '${one.name ?? '(名前が無い)'}'`
+
+      if (typeof one.name !== 'string' || one.name === '') {
+        problems.push(`${path}: 名前の無い事例がある。何を固定しているかが読めない`)
+      } else if (seenNames.has(one.name)) {
+        problems.push(`${label}: 同じ名前の事例が2つある`)
+      } else {
+        seenNames.add(one.name)
+      }
+
+      if (one.expect !== 'violation' && one.expect !== 'ok') {
+        problems.push(`${label}: expect は 'violation' か 'ok'`)
+        continue
+      }
+
+      const hasAxis = typeof one.axis === 'string'
+      const hasExclusion = typeof one.exclusion === 'string'
+
+      if (hasAxis === hasExclusion) {
+        problems.push(`${label}: axis と exclusion のどちらか一方だけを持つこと`)
+        continue
+      }
+
+      if (one.expect === 'violation' && !hasExpectedReport(one, rule.method)) {
+        problems.push(
+          `${label}: 違反を期待する事例には、どの報告になるか（lint は messageId / messageIds、measure は records）が要る`,
+        )
+        continue
+      }
+
+      if (hasAxis) {
+        if (!declaredAxes.has(one.axis)) {
+          problems.push(
+            `${label}: 軸 '${one.axis}' は design/rules.json の '${rule.id}' の bypassAxes に無い`,
+          )
+          continue
+        }
+
+        const expectations = axisExpectations.get(one.axis) ?? new Set()
+        expectations.add(one.expect)
+        axisExpectations.set(one.axis, expectations)
+        continue
+      }
+
+      if (!declaredExclusions.has(one.exclusion)) {
+        problems.push(
+          `${label}: 除外 '${one.exclusion}' は design/rules.json の '${rule.id}' の scopeExclusions に無い`,
+        )
+        continue
+      }
+
+      if (one.expect !== 'ok') {
+        problems.push(`${label}: 除外の事例は expect: 'ok'。落ちるなら除外ではない`)
+        continue
+      }
+
+      coveredExclusions.add(one.exclusion)
+    }
+
+    for (const axis of declaredAxes) {
+      const expectations = axisExpectations.get(axis) ?? new Set()
+
+      if (!expectations.has('violation')) {
+        problems.push(`${path}: 軸 '${axis}' に、違反として捕まる事例（expect: 'violation'）が無い`)
+      }
+
+      if (axis === 'boundary' && !expectations.has('ok')) {
+        problems.push(
+          `${path}: 軸 'boundary' に、閾値の内側で通る事例（expect: 'ok'）が無い。片側だけでは判定を厳しくする変更を捕まえられない`,
+        )
+      }
+    }
+
+    for (const exclusion of declaredExclusions) {
+      if (!coveredExclusions.has(exclusion)) {
+        problems.push(`${path}: 除外 '${exclusion}' に、通ることを固定する事例が無い`)
+      }
+    }
+
+    return problems
+  })
 }
 
 /**
@@ -633,7 +834,7 @@ function checkResolveDesignContractSmoke() {
   }
 }
 
-function main() {
+async function main() {
   const tokens = readJson('design/tokens.json')
   const rules = readJson('design/rules.json')
   const canvasSource = readFileSync(resolve('src/runtime/canvas.ts'), 'utf8')
@@ -646,6 +847,8 @@ function main() {
       path: `design/decks/${name}`,
       source: readFileSync(resolve(`design/decks/${name}`), 'utf8'),
     }))
+
+  const bypassFixtures = await loadBypassFixtures(rules.rules)
 
   const checks = [
     { name: '契約が JSON Schema を満たす', run: () => checkSchemas() },
@@ -673,7 +876,15 @@ function main() {
     },
     {
       name: 'design/rules.json の measure ルールと measure-slides.mjs の実装が対応する',
-      run: () => checkMeasureRuleCoverage(rules.rules, IMPLEMENTED_MEASURE_RULE_IDS, ['deck-body-fidelity']),
+      run: () => checkMeasureRuleCoverage(rules.rules, IMPLEMENTED_MEASURE_RULE_IDS, UNIMPLEMENTED_RULE_IDS),
+    },
+    {
+      name: 'lint ルールの説明が design/rules.json と一致する',
+      run: () => checkLintRuleDescriptionsMatch(rules.rules, slidePlugin.rules),
+    },
+    {
+      name: '検査ルールに bypass フィクスチャがあり、宣言した軸と除外を埋めている',
+      run: () => checkBypassFixtureCoverage(rules.rules, bypassFixtures, UNIMPLEMENTED_RULE_IDS),
     },
     {
       name: 'skills/slide-harness/SKILL.md に設計データが複製されていない',
@@ -708,5 +919,5 @@ function main() {
 
 // テストから読み込むときは走らせない。process.exit と標準出力を持つため。
 if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main()
+  await main()
 }

@@ -10,6 +10,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import {
+  checkBypassFixtureCoverage,
   checkCanvasMatchesRuntime,
   checkContrast,
   checkDecks,
@@ -17,6 +18,7 @@ import {
   checkLayoutClasses,
   checkLayoutComponentConsistency,
   checkLintRuleCoverage,
+  checkLintRuleDescriptionsMatch,
   checkMeasureRuleCoverage,
   checkSkillNoDesignDataDuplication,
 } from './validate-design.mjs'
@@ -665,5 +667,172 @@ speakerNotes: "台本"
 
     expect(found).toHaveLength(1)
     expect(found[0]).toContain('additional')
+  })
+})
+
+describe('checkBypassFixtureCoverage', () => {
+  /** 軸1つ・除外1つを宣言した lint ルール。各テストはこれに対する事例側だけを壊す。 */
+  const rule = {
+    id: 'no-raw-color',
+    method: 'lint',
+    bypassAxes: ['alternate-notation'],
+    scopeExclusions: [{ id: 'keyword-color' }],
+  }
+
+  /** 宣言をすべて埋めた事例一式。 */
+  const completeCases = [
+    { axis: 'alternate-notation', name: '別記法', code: 'x', expect: 'violation', messageId: 'rawColor' },
+    { exclusion: 'keyword-color', name: '除外', code: 'y', expect: 'ok' },
+  ]
+
+  /** @param {any[]} cases */
+  const loadedWith = (cases) => new Map([['no-raw-color', { fixture: { cases }, error: null }]])
+
+  it('宣言をすべて埋めていれば問題を返さない', () => {
+    expect(checkBypassFixtureCoverage([rule], loadedWith(completeCases), [])).toEqual([])
+  })
+
+  it('フィクスチャ自体が無いルールを捕まえる', () => {
+    const found = checkBypassFixtureCoverage(
+      [rule],
+      new Map([['no-raw-color', { fixture: null, error: null }]]),
+      [],
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('no-raw-color.bypass.mjs')
+  })
+
+  it('宣言した軸に、違反として捕まる事例が無いことを捕まえる', () => {
+    const found = checkBypassFixtureCoverage(
+      [rule],
+      loadedWith([
+        { axis: 'alternate-notation', name: '通るだけの事例', code: 'x', expect: 'ok' },
+        completeCases[1],
+      ]),
+      [],
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('alternate-notation')
+  })
+
+  it('宣言した除外に、通ることを固定する事例が無いことを捕まえる', () => {
+    const found = checkBypassFixtureCoverage([rule], loadedWith([completeCases[0]]), [])
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('keyword-color')
+  })
+
+  it('境界の軸で片側（通る側）が欠けていることを捕まえる', () => {
+    const boundaryRule = { ...rule, bypassAxes: ['boundary'], scopeExclusions: [] }
+    const found = checkBypassFixtureCoverage(
+      [boundaryRule],
+      loadedWith([
+        { axis: 'boundary', name: '割ると落ちる', code: 'x', expect: 'violation', messageId: 'rawScale' },
+      ]),
+      [],
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('expect: \'ok\'')
+  })
+
+  it('契約に宣言の無い軸を事例が使っていることを捕まえる', () => {
+    const found = checkBypassFixtureCoverage(
+      [rule],
+      loadedWith([
+        ...completeCases,
+        { axis: 'boundary', name: '宣言の無い軸', code: 'z', expect: 'violation', messageId: 'rawColor' },
+      ]),
+      [],
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('bypassAxes に無い')
+  })
+
+  it('違反を期待する事例が、どの報告になるかを書いていないことを捕まえる', () => {
+    const found = checkBypassFixtureCoverage(
+      [rule],
+      loadedWith([
+        { axis: 'alternate-notation', name: '落ちさえすればよい事例', code: 'x', expect: 'violation' },
+        completeCases[1],
+      ]),
+      [],
+    )
+
+    // messageId が無いこと自体と、その結果として軸が埋まらないことの2件。
+    expect(found).toHaveLength(2)
+    expect(found[0]).toContain('messageId')
+  })
+
+  it('除外の事例が落ちる側になっていることを捕まえる', () => {
+    const found = checkBypassFixtureCoverage(
+      [rule],
+      loadedWith([
+        completeCases[0],
+        { exclusion: 'keyword-color', name: '落ちる除外', code: 'y', expect: 'violation', messageId: 'rawColor' },
+      ]),
+      [],
+    )
+
+    expect(found).toHaveLength(2)
+    expect(found[0]).toContain("expect: 'ok'")
+  })
+
+  it('同じ名前の事例が2つあることを捕まえる', () => {
+    const found = checkBypassFixtureCoverage(
+      [rule],
+      loadedWith([completeCases[0], { ...completeCases[0] }, completeCases[1]]),
+      [],
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('同じ名前')
+  })
+
+  it('免除したルールにフィクスチャが現れたら、陳腐化した免除として捕まえる', () => {
+    const found = checkBypassFixtureCoverage([rule], loadedWith(completeCases), ['no-raw-color'])
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('免除')
+  })
+
+  it('免除したルールにフィクスチャが無いのは問題にしない', () => {
+    const loaded = new Map([['no-raw-color', { fixture: null, error: null }]])
+
+    expect(checkBypassFixtureCoverage([rule], loaded, ['no-raw-color'])).toEqual([])
+  })
+
+  it('フィクスチャが読み込めないとき、例外ではなく問題として返す', () => {
+    const loaded = new Map([['no-raw-color', { fixture: null, error: '読み込めない: 構文エラー' }]])
+    const found = checkBypassFixtureCoverage([rule], loaded, [])
+
+    expect(found).toEqual(['読み込めない: 構文エラー'])
+  })
+})
+
+describe('checkLintRuleDescriptionsMatch', () => {
+  const rules = [{ id: 'no-raw-color', method: 'lint', description: '契約が述べる守備範囲' }]
+
+  it('正本から引いた説明は一致する', () => {
+    const implementations = { 'no-raw-color': { meta: { docs: { description: '契約が述べる守備範囲' } } } }
+
+    expect(checkLintRuleDescriptionsMatch(rules, implementations)).toEqual([])
+  })
+
+  it('実装側に書き下ろされた説明が正本とずれていることを捕まえる', () => {
+    const implementations = { 'no-raw-color': { meta: { docs: { description: '実装だけが述べる別の範囲' } } } }
+    const found = checkLintRuleDescriptionsMatch(rules, implementations)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('no-raw-color')
+  })
+
+  it('説明そのものが無い実装を捕まえる', () => {
+    const implementations = { 'no-raw-color': { meta: { docs: {} } } }
+
+    expect(checkLintRuleDescriptionsMatch(rules, implementations)).toHaveLength(1)
   })
 })

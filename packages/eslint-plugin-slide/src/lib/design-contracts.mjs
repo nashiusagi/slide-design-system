@@ -52,6 +52,29 @@ export function readRules() {
 }
 
 /**
+ * ルールの説明を design/rules.json から引く。
+ *
+ * ルール実装の `meta.docs.description` に説明を書き下ろすと、同じルールの守備範囲を
+ * 述べる場所が正本と実装の2つになり、片方だけ書き換わったときに食い違う
+ * （`inspection/rule-scope-inconsistent`、DR-0044）。引いてくれば食い違いようが無い。
+ * 引かずに書き下ろしていないことは scripts/validate-design.mjs が検査する。
+ *
+ * @param {string} ruleId
+ * @returns {string}
+ */
+export function descriptionOf(ruleId) {
+  const rule = /** @type {{ id: string, description: string }[]} */ (readRules().rules).find(
+    (one) => one.id === ruleId,
+  )
+
+  if (rule === undefined) {
+    throw new Error(`design/rules.json に '${ruleId}' が無い`)
+  }
+
+  return rule.description
+}
+
+/**
  * kebab-case の契約名を、JSX で使う PascalCase の component 名へ変える。
  * `slide-title` → `SlideTitle`。
  *

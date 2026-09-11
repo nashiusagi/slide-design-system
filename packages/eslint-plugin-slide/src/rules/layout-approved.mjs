@@ -2,20 +2,22 @@
  * `layout-approved` — `<Slide layout="...">` の値が design/layouts/ の契約に無い
  * 名前を弾く（design/rules.json / DR-0030）。
  *
- * `layout` の値が文字列リテラル（`layout="x"` と、波括弧で包んだ `layout={"x"}` の
- * 両方を含む）でないとき（変数・式）は静的に判定できないため対象にしない。
- * ランタイム（src/runtime/Slide.tsx）は値を検査しない設計（DR-0030）なので、
- * 動的な値そのものを禁止する根拠は無い。
+ * `layout` の値の読み取りは jsx-style.mjs の jsxAttributeStringValue に寄せる。
+ * `layout="x"` / `layout={"x"}` / `` layout={`x`} `` は同じ値であり、記法ごとに
+ * 別の結果になってはいけない。
+ *
+ * **このルールが意図的に見ない領域は design/rules.json の scopeExclusions が
+ * 正本**（DR-0044）。
  */
 import { jsxAttributeStringValue } from '../lib/jsx-style.mjs'
-import { listLayouts } from '../lib/design-contracts.mjs'
+import { descriptionOf, listLayouts } from '../lib/design-contracts.mjs'
 
 /** @type {import('eslint').Rule.RuleModule} */
 const rule = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Slide の layout に design/layouts/ の契約に無い名前を使わない',
+      description: descriptionOf('layout-approved'),
     },
     schema: [],
     messages: {

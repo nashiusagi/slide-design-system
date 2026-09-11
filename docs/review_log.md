@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-11（PR #41 3周目、収束）
+最終更新: 2026-09-11（#43 で検査系3カテゴリを仕組み化）
 
 ## ルール化候補（累計3回以上）
 
@@ -27,14 +27,14 @@
 | `decisions/undocumented-decision` | DR に無い判断が、PR説明やIssueにだけ書かれている | 10 | PR #40 | 未着手 |
 | `decisions/dr-restates-canonical-value` | DR が正本の値を本文に書き写した | 5 | PR #41 | 未着手 |
 | `contract/source-of-truth-ambiguous` | 「正本」がどのファイルを指すか一意でない | 3 | PR #19 | 未着手 |
-| `inspection/rule-has-bypass` | 検査ルールに抜け道があり、書き方を変えると素通りする | 13 | PR #40 | 未着手 |
-| `inspection/rule-scope-inconsistent` | 同じルールIDの守備範囲が文書間で食い違う | 4 | PR #40 | 未着手 |
+| `inspection/rule-has-bypass` | 検査ルールに抜け道があり、書き方を変えると素通りする | 13 | PR #40 | 仕組み化済み（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43） |
+| `inspection/rule-scope-inconsistent` | 同じルールIDの守備範囲が文書間で食い違う | 4 | PR #40 | 仕組み化済み（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43）。守備範囲の宣言を `design/rules.json` に一本化した |
 | `decisions/consequence-not-followed` | 既存 DR の帰結が、それを通る手順に反映されていない | 6 | PR #40 | 未着手 |
 | `contract/contract-structure-duplicated` | 正本の中身の一覧が、別の文書へ構造ごと複製された | 6 | PR #27 | 未着手 |
 | `contract/value-outside-source-of-truth` | 正本に置くと決めた値が、正本を参照できない場所にも必要になる | 4 | PR #30 | 未着手 |
 | `contract/design-data-duplicated` | デザインの値が正本以外へ複製された | 8 | PR #40 | 未着手 |
 | `writing/inaccurate-rationale` | 説明文が書いている理由付けが、実装の挙動と食い違う | 8 | PR #41 | 未着手 |
-| `inspection/rule-coverage-partial` | 判定対象の列挙に穴があり、基準を割った組み合わせを見逃す | 5 | PR #28 | 未着手 |
+| `inspection/rule-coverage-partial` | 判定対象の列挙に穴があり、基準を割った組み合わせを見逃す | 5 | PR #28 | 一部（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43）。`enumeration-tail` の軸で事例を要求するが、網羅性の証明ではない |
 | `phase/completion-criterion-not-verified-e2e` | Issue の完了条件が、単体テストのみで統合パスを通さず検証されている | 4 | PR #30 | 未着手 |
 | `writing/contradictory-instruction` | 同じ状況に対する指示が文書間で食い違う | 3 | PR #28 | 未着手 |
 | `writing/dangling-quote-reference` | 文書内の引用符付き参照が、書き換え後のどの語句・項目にも対応しなくなった | 5 | PR #41 | 未着手 |

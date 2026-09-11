@@ -8,11 +8,16 @@
  * 実装の中身を検査するのではなく、契約名と同じ名前を**この JSX 契約と無関係な
  * 実装で埋めていないか**（別モジュールが提供する正規の実装をインポートせず、
  * 同名のローカル関数・変数・クラスをこのファイルで定義していないか）と、
- * 使う場所が `allowedIn` と一致しているかだけを見る。import による参照は
- * 対象にしない（正規の実装をインポートして使うことを妨げないため）。
+ * 使う場所が `allowedIn` と一致しているかだけを見る。
+ *
+ * 再定義は関数宣言・アロー関数・関数式・class 宣言・class 式と記法が分かれる。
+ * どれか1つを見落とすと、記法を変えるだけで素通りする（component-approved.bypass.mjs）。
+ *
+ * **このルールが意図的に見ない領域は design/rules.json の scopeExclusions が
+ * 正本**（DR-0044）。
  */
 import { jsxAttributeStringValue } from '../lib/jsx-style.mjs'
-import { listComponents, toPascalCase } from '../lib/design-contracts.mjs'
+import { descriptionOf, listComponents, toPascalCase } from '../lib/design-contracts.mjs'
 
 /**
  * ノードの直近の祖先から、layout 属性が静的に読める `<Slide>` を探す。
@@ -51,8 +56,7 @@ const rule = {
   meta: {
     type: 'problem',
     docs: {
-      description:
-        'design/components/ の契約名をローカルで再定義しない。契約名の使用箇所は allowedIn の layout と一致させる',
+      description: descriptionOf('component-approved'),
     },
     schema: [],
     messages: {

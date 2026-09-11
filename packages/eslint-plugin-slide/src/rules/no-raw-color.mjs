@@ -1,17 +1,16 @@
 /**
  * `no-raw-color` — JSX の `style` に生の色値を書かない（design/rules.json）。
  *
- * 色を運ぶ CSS プロパティを固定の一覧で持つ。`background` / `border` のような
- * ショートハンドは色以外（長さ・スタイル種別）も同じ文字列に混ざるため対象に
- * 含めない。ショートハンドを対象にすると「色ではない部分」を色として誤検出する。
+ * 色を運ぶ CSS プロパティを固定の一覧で持ち、生の色値は hex（`#fff` 等）と
+ * CSS の色関数（`rgb()` / `oklch()` 等）をパターンとして検出する。値が `var()` に
+ * 包まれていても、フォールバックに書かれた色は実際に描かれるので中身まで見る。
  *
- * 生の色値は hex（`#fff` 等）と CSS の色関数（`rgb()` / `oklch()` 等）だけを
- * パターンとして検出する。CSS の名前付きキーワード色（`red` 等）は語彙が広く
- * 誤検出が増えるため対象にしない（DR-0037）。これは既知の未検査領域であり、
- * `red` のようなキーワード色で `--dh-*` トークンを経由しない書き方は
- * このルールをすり抜ける。
+ * **このルールが意図的に見ない領域は design/rules.json の scopeExclusions が
+ * 正本**（DR-0044）。ここに書き写さない。除外の一つひとつは
+ * no-raw-color.bypass.mjs が「通ること」として固定している。
  */
-import { extractStyleProperties, literalText } from '../lib/jsx-style.mjs'
+import { expandVarFallbacks, extractStyleProperties, literalText, varReferenceNames } from '../lib/jsx-style.mjs'
+import { descriptionOf } from '../lib/design-contracts.mjs'
 
 const COLOR_PROPERTIES = new Set([
   'color',
@@ -30,20 +29,24 @@ const COLOR_PROPERTIES = new Set([
   'stopColor',
 ])
 
-const TOKEN_REFERENCE = /^var\(--dh-[\w-]+\)$/
-const RAW_COLOR = /^#[0-9a-f]{3,8}$|^(rgb|rgba|hsl|hsla|oklch|oklab|lab|lch|color)\(/i
+const TOKEN_PREFIX = '--dh-'
+// 値のどこに現れても捕まえる。先頭に錨を打つと `var(--dh-x, #fff)` のように
+// 何かに包むだけで素通りする。
+const RAW_COLOR = /#[0-9a-f]{3,8}\b|\b(rgb|rgba|hsl|hsla|oklch|oklab|lab|lch|color)\(/i
 
 /** @type {import('eslint').Rule.RuleModule} */
 const rule = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'JSX の style に生の色値を書かず、--dh-* トークン変数を経由する',
+      description: descriptionOf('no-raw-color'),
     },
     schema: [],
     messages: {
       rawColor:
         "'{{property}}' に生の色値 '{{value}}' が書かれている。design/theme.css の --dh-* トークン変数（var(--dh-color-*)）を経由すること。",
+      nonTokenVariable:
+        "'{{property}}' が参照している '{{variable}}' は --dh-* トークン変数ではない。design/theme.css が定義する --dh-color-* を経由すること。",
     },
   },
   create(context) {
@@ -57,11 +60,23 @@ const rule = {
 
           const text = literalText(valueNode)
 
-          if (text === null || TOKEN_REFERENCE.test(text)) {
+          if (text === null) {
             continue
           }
 
-          if (RAW_COLOR.test(text.trim())) {
+          for (const variable of varReferenceNames(text)) {
+            if (!variable.startsWith(TOKEN_PREFIX)) {
+              context.report({
+                node: valueNode,
+                messageId: 'nonTokenVariable',
+                data: { property: key, variable },
+              })
+            }
+          }
+
+          // var() のフォールバックは、その変数が未定義のときに実際に描画される値。
+          // 中身を見ないと var() に包むだけで素通りする。
+          if (RAW_COLOR.test(expandVarFallbacks(text).trim())) {
             context.report({
               node: valueNode,
               messageId: 'rawColor',

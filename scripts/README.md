@@ -13,7 +13,8 @@
 | `compare-runs.mjs` | 複数の Run の採点結果（`scoring.json`）を比較表にする（DR-0020） |
 | `sanitize-run-artifacts.mjs` | 保存 Run から端末の絶対パスと OS ユーザー名を機械的に置換する（DR-0023） |
 | `audit-public-data.mjs` | 公開データに既知の漏洩パターン（絶対パス・API キー/token らしき文字列）が残っていないか検査する。公開の承認ではない（DR-0023、`docs/PUBLICATION_POLICY.md`） |
-| `lib/` | 色の変換とコントラストの算出（`color.mjs`）、deck.md を JSON へ正規化するパーサ（`deck.mjs`、DR-0016）、ディレクトリ配下のファイル列挙（`fs-walk.mjs`） |
+| `measure-bypass.test.mjs` | measure ルールの bypass フィクスチャを実行する（DR-0044）。ブラウザは要らない |
+| `lib/` | 色の変換とコントラストの算出（`color.mjs`）、deck.md を JSON へ正規化するパーサ（`deck.mjs`、DR-0016）、ディレクトリ配下のファイル列挙（`fs-walk.mjs`）、bypass フィクスチャの置き場所と読み込み（`bypass-fixtures.mjs`、DR-0044）、measure ルールの bypass フィクスチャ本体（`measure-bypass/`） |
 
 **スクリプトは AI を起動しない**（[DR-0020](../docs/decisions/0020-scripts-do-not-invoke-ai.md)）。
 
