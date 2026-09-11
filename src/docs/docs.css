@@ -1,0 +1,111 @@
+/*
+ * デザインカタログの共通スタイル（DR-0042）。
+ *
+ * 値は design/theme.css の --dh-* からのみ取る（DR-0018）。生の色値・長さリテラルは
+ * 書かない。長さリテラルの例外は design/rules.json の noRawScale.allowedLiterals に従う。
+ *
+ * ただし no-raw-color / no-raw-scale が見るのは JSX の style だけで、CSS ファイルは
+ * 対象外（DR-0037）。このファイルは lint されないので、上の規約は人が守る。
+ *
+ * ここはカタログの外枠（ナビゲーション・ページ枠・カード）だけを持つ。スライドの
+ * 見た目は design/layout.css が持ち、こちらへは持ち込まない。
+ */
+@import '../../design/theme.css';
+
+html,
+body,
+#docs-root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--dh-color-background);
+  color: var(--dh-color-text);
+  font-family: var(--dh-type-family-sans);
+  font-size: var(--dh-type-size-caption);
+  line-height: var(--dh-type-line-height-normal);
+}
+
+.docs-shell {
+  display: flex;
+  min-height: 100%;
+}
+
+.docs-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dh-space-xs);
+  padding: var(--dh-space-xl) var(--dh-space-lg);
+  background: var(--dh-color-surface);
+}
+
+.docs-nav__title {
+  margin: 0 0 var(--dh-space-md);
+  font-size: var(--dh-type-size-caption);
+  font-weight: var(--dh-type-weight-bold);
+  line-height: var(--dh-type-line-height-tight);
+}
+
+.docs-nav__link {
+  padding: var(--dh-space-xs) var(--dh-space-sm);
+  border-radius: var(--dh-radius-sm);
+  color: var(--dh-color-text);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.docs-nav__link:hover {
+  background: var(--dh-color-accent-soft);
+}
+
+.docs-nav__link[aria-current='page'] {
+  background: var(--dh-color-accent-soft);
+  color: var(--dh-color-accent);
+  font-weight: var(--dh-type-weight-bold);
+}
+
+.docs-main {
+  flex: 1;
+  padding: var(--dh-space-3xl) var(--dh-space-2xl);
+}
+
+.doc-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dh-space-xl);
+}
+
+.doc-page__title {
+  margin: 0;
+  font-size: var(--dh-type-size-slide-title);
+  font-weight: var(--dh-type-weight-bold);
+  line-height: var(--dh-type-line-height-tight);
+}
+
+.doc-page__lead {
+  margin: 0;
+  max-width: 100%;
+  color: var(--dh-color-text-muted);
+}
+
+.doc-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dh-space-md);
+  padding: var(--dh-space-lg);
+  border-radius: var(--dh-radius-md);
+  background: var(--dh-color-surface);
+}
+
+.doc-card__title {
+  margin: 0;
+  font-size: var(--dh-type-size-caption);
+  font-weight: var(--dh-type-weight-bold);
+  line-height: var(--dh-type-line-height-tight);
+}
+
+.doc-card__body {
+  margin: 0;
+  color: var(--dh-color-text-muted);
+}

@@ -25,7 +25,7 @@ Node.js 22 以上と pnpm が要る。
 pnpm install
 npx playwright install chromium  # pnpm measure が使うブラウザ本体。初回のみ
 pnpm dev              # 開発サーバ
-pnpm build            # dist/index.html + dist/assets/ を出力
+pnpm build            # dist/index.html（スライド）+ dist/docs.html（デザインカタログ）+ dist/assets/ を出力
 pnpm theme:generate   # design/tokens.json から design/theme.css を生成
 pnpm measure          # dist/ を実測し measurements.json を出力（要 pnpm build。DR-0011）
 pnpm check            # design:check → theme:check → typecheck → lint → test → build
@@ -35,6 +35,8 @@ pnpm check            # design:check → theme:check → typecheck → lint → 
 `pnpm check` の `theme:check` が、theme.css とトークンの乖離、および記録済みのコントラスト算出値と再計算の乖離を検出する。
 
 出力形式の根拠は [DR-0022](./docs/decisions/0022-plain-vite-build-output.md)、足場の構成は [DR-0027](./docs/decisions/0027-build-scaffold-workspace-and-test-stack.md)。
+
+`design/` の契約を目で確かめるデザインカタログは、スライド本体とは別のビルドエントリ（`docs.html` / `src/docs/`）に置く。カタログのコードはスライドのバンドルへ入らない。根拠は [DR-0042](./docs/decisions/0042-design-catalog-as-separate-build-entry.md)。
 
 検査の実行口は `pnpm check` に一本化する。契約に基づく検査は、この並びの中へ足していく。契約自体の検証は先頭の `design:check` / `theme:check` 段へ、lint は `lint` 段へ、measure はビルド出力に対して実測するため `build` より後段へ置く。
 

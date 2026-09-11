@@ -5,6 +5,47 @@ import tseslint from 'typescript-eslint'
 import slidePlugin from './packages/eslint-plugin-slide/src/index.mjs'
 
 /**
+ * カタログ（src/docs/）とスライド本体（src/App.tsx / src/runtime/）は別のビルドエントリで、
+ * 互いを参照しないと決めている（DR-0042）。禁止する相手の名前はここにだけ書き、静的 import 用の
+ * glob と動的 import 用の正規表現の両方をここから組み立てる。2系統へ別々に書くと、対象が増えた
+ * ときに片方だけ更新され、同じ抜け道が再発する。
+ *
+ * @param {string[]} names 禁止する相手のモジュール名（パスの最終セグメント）
+ * @param {string} message 違反時に出す説明
+ * @returns {import('eslint').Linter.RulesRecord}
+ */
+function forbidCrossEntryImports(names, message) {
+  return {
+    // 静的 import。拡張子付き（'../App.js'）は `**/App` に一致しないので別に挙げる。
+    'no-restricted-imports': [
+      'error',
+      {
+        patterns: [
+          {
+            group: names.flatMap((name) => [`**/${name}`, `**/${name}.*`, `**/${name}/*`]),
+            message,
+          },
+        ],
+      },
+    ],
+    // 動的 import。no-restricted-imports は ImportExpression を見ないので、ここで塞ぐ。
+    // 引数がリテラルでないと値を静的に読めず素通りするため、リテラル以外の import() 自体を禁じる。
+    'no-restricted-syntax': [
+      'error',
+      {
+        selector: `ImportExpression[source.value=/(^|\\/)(${names.join('|')})(\\.|\\/|$)/]`,
+        message,
+      },
+      {
+        selector: "ImportExpression:not([source.type='Literal'])",
+        message:
+          'import() の引数はリテラルで書く。組み立てたパスは lint が読めず、ビルドエントリの境界検査を素通りする（DR-0042）。',
+      },
+    ],
+  }
+}
+
+/**
  * 契約に基づく検査（no-raw-color / no-raw-scale / layout-approved /
  * component-approved / deck-conformance）は packages/eslint-plugin-slide が持つ
  * （DR-0011）。ルールIDと design/rules.json の対応は pnpm design:check が検査する。
@@ -42,6 +83,24 @@ export default tseslint.config(
     rules: {
       'slide/deck-conformance': ['error', { deck: 'design/decks/harness-intro.md' }],
     },
+  },
+  {
+    // 参照が生えるとカタログのコードがスライドのバンドルへ入り、measure が実測する対象が
+    // 本番と同一の物でなくなる（DR-0011 / DR-0022）。ビルドは通ってしまうのでここで弾く。
+    // 禁止の組み立ては forbidCrossEntryImports が持つ（DR-0042）。
+    files: ['src/docs/**/*.{ts,tsx}'],
+    rules: forbidCrossEntryImports(
+      ['App', 'runtime'],
+      'カタログはスライド本体（src/App.tsx / src/runtime/）を参照しない（DR-0042）。',
+    ),
+  },
+  {
+    // 逆向き。スライド本体からカタログを参照しない（DR-0042）。
+    // src/docs/ 以外の src 配下すべて。ファイルを列挙すると、後から src 直下へ足した
+    // ファイルが検査から漏れる。
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/docs/**'],
+    rules: forbidCrossEntryImports(['docs'], 'スライド本体はカタログ（src/docs/）を参照しない（DR-0042）。'),
   },
   {
     // 開発用パッケージ（契約検査プラグインなど）。ここは Node で動く。

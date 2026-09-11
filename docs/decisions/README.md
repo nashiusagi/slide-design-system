@@ -39,6 +39,7 @@
 | [0032](./0032-ajv-for-contract-validation.md) | 契約の JSON Schema 検証は ajv で行い、strict モードで走らせる |
 | [0036](./0036-js-yaml-for-deck-frontmatter.md) | deck の frontmatter パースは js-yaml で行う |
 | [0041](./0041-postcss-for-layout-class-check.md) | `checkLayoutClasses` は postcss + postcss-selector-parser の構文木で判定する |
+| [0042](./0042-design-catalog-as-separate-build-entry.md) | デザインカタログはスライド本体と別のビルドエントリに置く |
 
 ### 契約の構造
 
