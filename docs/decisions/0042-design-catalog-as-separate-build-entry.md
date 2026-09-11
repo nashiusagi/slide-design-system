@@ -3,7 +3,7 @@
 - **状態**: 承認済み
 - **日付**: 2026-09-11
 - **関連**: [DR-0011](./0011-lint-and-measure.md), [DR-0018](./0018-plain-css-with-tokens.md), [DR-0021](./0021-starter-contains-runtime-only.md), [DR-0022](./0022-plain-vite-build-output.md), [DR-0028](./0028-single-check-entry-point.md), [DR-0029](./0029-position-in-url-and-explicit-fragment-index.md), [DR-0031](./0031-navigation-keys-and-no-history.md), [DR-0037](./0037-eslint-plugin-slide-rule-scope.md)
-- **実装**: `vite.config.ts`（`build.rollupOptions.input`）, `docs.html`, `src/docs/`, `eslint.config.js`（`no-restricted-imports`）
+- **実装**: `vite.config.ts`（`build.rollupOptions.input`）, `docs.html`, `src/docs/`, `eslint.config.js`（`no-restricted-imports` / `no-restricted-syntax`）
 
 ## 文脈
 
@@ -21,7 +21,7 @@
 
 移動は素の `<a href>` に任せ、履歴を積む。ブラウザの戻る・進むがそのままページ間の移動になる。[DR-0031](./0031-navigation-keys-and-no-history.md) が履歴を積まないと決めたのはスライドのページ送りであり、対象が違う。未知・不正な hash はエラーにせず先頭のページへ落とす（カタログは 404 のページを持たない）。
 
-この分離は規約だけでは守れないので、`eslint.config.js` で `src/docs/` ↔ `src/App.tsx` / `src/runtime/` の相互参照を禁止する。静的 import は `no-restricted-imports` が、動的 import（`import()`）は `no-restricted-syntax` が受け持つ。前者は `ImportExpression` を見ないので、片方だけでは動的 import が素通りする。lint 段に載るだけなので `pnpm check` のコマンド列は変わらない。
+この分離は規約だけでは守れないので、`eslint.config.js` で `src/docs/` ↔ `src/App.tsx` / `src/runtime/` の相互参照を禁止する。静的 import は `no-restricted-imports` が、動的 import（`import()`）は `no-restricted-syntax` が受け持つ。前者は `ImportExpression` を見ないので、片方だけでは動的 import が素通りする。動的 import の引数がリテラルでないと lint はパスを読めないため、リテラル以外の `import()` 自体も禁じる。lint 段に載るだけなので `pnpm check` のコマンド列は変わらない。
 
 ### 2. カタログは `design/` の契約ファイルを読み込んで描画する
 
