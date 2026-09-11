@@ -61,6 +61,18 @@ export function cssVar(path: string[]): string {
  * theme.css は1宣言1行で生成される（`generate-theme.mjs` の `renderTheme`）ので、
  * 行単位の走査で足りる。CSS のパーサを持ち込むほどの構造ではない。
  */
+/*
+ * 読み込みが空なら、そこで落とす。vitest は CSS の読み込みを空文字へ差し替えるので、
+ * vite.config.ts の test.css.include への列挙が漏れると、表示も期待値も空になったまま
+ * 値を突き合わせるテストが通る（DR-0043 決定3）。空を許さなければ、列挙漏れは実行した
+ * 瞬間に落ちる。
+ */
+if (themeCss.length === 0) {
+  throw new Error(
+    'design/theme.css を読み込めなかった（中身が空）。vite.config.ts の test.css.include へ入っているか確認すること（DR-0043）。',
+  )
+}
+
 const THEME_VALUES: Record<string, string> = Object.fromEntries(
   [...themeCss.matchAll(/^\s*(--dh-[\w-]+):\s*(.+);$/gm)].map(([, name, value]) => [name, value]),
 )

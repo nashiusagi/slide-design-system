@@ -112,7 +112,9 @@ body {
 
 /*
  * 基礎（トークン）のページ。見本の図形はここが持ち、値は JSX 側で var(--dh-*) を
- * 当てる。ここへ書く長さ・色も --dh-* からのみ取る（DR-0018）。
+ * 当てる。ここへ書く長さ・色も --dh-* からのみ取る（DR-0018）。例外は
+ * design/rules.json の noRawScale.allowedLiterals に挙がっている値だけで、
+ * このファイルではヘアライン境界線の 1px を使っている。
  */
 .doc-token-list {
   display: flex;

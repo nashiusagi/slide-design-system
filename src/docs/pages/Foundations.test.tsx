@@ -62,12 +62,47 @@ describe('Foundations', () => {
     expect(values).toEqual(leaves(TOKENS).map(({ path }) => themeValue(path)))
   })
 
-  it('見本には var(--dh-*) を当てる（値を書き写さない）', () => {
+  /*
+   * 見本の種類ごとに当てるプロパティが違う（背景色・幅・角丸・影・字）ので、1種類だけを
+   * 見ると他の枝が生の値を渡す書き方へ変わっても落ちない。全種類を1件ずつ通す。
+   */
+  it('どの種類の見本も、style の値が var(--dh-*) 参照になっている', () => {
+    const { container } = render(<Foundations />)
+
+    const sampleClasses = ['.doc-swatch', '.doc-space-bar', '.doc-radius-box', '.doc-shadow-box', '.doc-sample']
+
+    for (const selector of sampleClasses) {
+      const samples = [...container.querySelectorAll(selector)]
+
+      expect(samples.length).toBeGreaterThan(0)
+
+      for (const sample of samples) {
+        expect(sample.getAttribute('style')).toMatch(/var\(--dh-[\w-]+\)/)
+      }
+    }
+  })
+
+  it('色の見本には、その色のトークンの var(--dh-*) を当てる', () => {
     const { container } = render(<Foundations />)
 
     const swatch = container.querySelector('.doc-swatch')
 
     expect(swatch?.getAttribute('style')).toContain(`var(${cssVarName(['color', 'background'])})`)
+  })
+
+  /*
+   * 枠の幅・高さは名前で引いている。宣言順の先頭2つを取る書き方へ戻ると、tokens.json の
+   * キーが入れ替わっただけで縦横が入れ替わる（どの検査も落ちない）。
+   */
+  it('キャンバスの枠は、幅に canvas.width、高さに canvas.height を当てる', () => {
+    const { container } = render(<Foundations />)
+
+    const frame = container.querySelector('.doc-canvas__frame')
+
+    expect(frame).toHaveStyle({
+      width: `var(${cssVarName(['canvas', 'width'])})`,
+      height: `var(${cssVarName(['canvas', 'height'])})`,
+    })
   })
 
   it('色には rules.json の面ごとのコントラスト比を併記する', () => {

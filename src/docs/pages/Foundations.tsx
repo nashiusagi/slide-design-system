@@ -151,17 +151,23 @@ function TokenList({ node, path }: { node: TokenNode; path: string[] }): ReactNo
   )
 }
 
+/** キャンバスの幅・高さのトークン名。`design/schemas/tokens.schema.json` が required で要求している。 */
+const CANVAS_WIDTH = 'width'
+const CANVAS_HEIGHT = 'height'
+
 /**
  * キャンバスの枠（DR-0004）。実寸の箱を CSS で縮めて見せる。
  *
- * 幅と高さは tokens.json の宣言順の先頭2つを取る。`width` / `height` と名前で引くと、
- * トークン名をカタログ側へ書き写すことになる。
+ * 幅と高さは名前で引く。スキーマがこの2つの名前の存在を約束しているので、名前を頼るのは
+ * 契約への依存であって値の書き写しではない。宣言順の先頭2つを取る書き方にすると、スキーマ
+ * が何も約束していない性質（キーの並び）へ「どちらが幅か」を負わせることになり、順序が
+ * 入れ替わっても検査は落ちないまま縦横だけが入れ替わる。
  */
 function CanvasFigure({ node, path }: { node: TokenNode; path: string[] }): ReactNode {
-  const leaves = tokenEntries(node).filter(([, value]) => !isTokenGroup(value))
-  const [width, height] = leaves
+  const width = node[CANVAS_WIDTH]
+  const height = node[CANVAS_HEIGHT]
 
-  if (width === undefined || height === undefined) {
+  if (width === undefined || height === undefined || isTokenGroup(width) || isTokenGroup(height)) {
     return null
   }
 
@@ -169,7 +175,7 @@ function CanvasFigure({ node, path }: { node: TokenNode; path: string[] }): Reac
     <div className="doc-canvas">
       <div
         className="doc-canvas__frame"
-        style={{ width: cssVar([...path, width[0]]), height: cssVar([...path, height[0]]) }}
+        style={{ width: cssVar([...path, CANVAS_WIDTH]), height: cssVar([...path, CANVAS_HEIGHT]) }}
       />
     </div>
   )
