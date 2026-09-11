@@ -44,6 +44,43 @@ export default tseslint.config(
     },
   },
   {
+    // デザインカタログ（src/docs/）とスライド本体（src/App.tsx / src/runtime/）は
+    // 別のビルドエントリで、互いを参照しないと決めている（DR-0042）。参照が生えると
+    // カタログのコードがスライドのバンドルへ入り、measure が実測する対象が本番と
+    // 同一の物でなくなる（DR-0011 / DR-0022）。ビルドは通ってしまうのでここで弾く。
+    files: ['src/docs/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/App', '**/runtime', '**/runtime/*'],
+              message: 'カタログはスライド本体（src/App.tsx / src/runtime/）を参照しない（DR-0042）。',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // 逆向き。スライド本体からカタログを参照しない（DR-0042）。
+    files: ['src/App.tsx', 'src/main.tsx', 'src/runtime/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/docs', '**/docs/*'],
+              message: 'スライド本体はカタログ（src/docs/）を参照しない（DR-0042）。',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // 開発用パッケージ（契約検査プラグインなど）。ここは Node で動く。
     // src と違い noInlineConfig は掛けない。src は無人の生成ループで書かれる検査対象だが、
     // packages は PR レビューを経て変更されるコードなので、局所的な抑止を認める。

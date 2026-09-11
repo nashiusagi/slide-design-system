@@ -4,12 +4,11 @@ import { formatDocsHash, parseDocsHash } from './hash'
 import { DOCS_PAGES, type DocsPage } from './pages'
 
 /**
- * hash が指すページを返す。書式に合わない・未知の id のときは先頭のページ。
+ * hash が指すページを返す。書式に合わない・未知の id のときは先頭のページ（DR-0042）。
  *
- * ページが1枚も無い状態は呼び出し側で起き得ないが、型の上では空配列を取れるので
- * `undefined` を返し得る。DocsApp 側で「ページが無い」表示に落とす。
+ * `DOCS_PAGES` は非空タプルなので先頭は必ず在る。ここが `undefined` を返す余地は無い。
  */
-function resolvePage(hash: string): DocsPage | undefined {
+function resolvePage(hash: string): DocsPage {
   const id = parseDocsHash(hash)
 
   return DOCS_PAGES.find((page) => page.id === id) ?? DOCS_PAGES[0]
@@ -20,7 +19,8 @@ function resolvePage(hash: string): DocsPage | undefined {
  *
  * ページ間の移動はハッシュルーティングで行う。静的ホスティングでサーバ側の
  * rewrite を前提にしないため、パスルーティングは使わない。移動は素の `<a href>`
- * に任せ、`hashchange` で表示を切り替える。ブラウザの戻る・進むがそのまま効く。
+ * に任せ、`hashchange` で表示を切り替える。履歴を積むので、ブラウザの戻る・進むが
+ * そのまま効く（DR-0042。スライドのページ送りが履歴を積まない DR-0031 とは対象が違う）。
  */
 export function DocsApp() {
   const [hash, setHash] = useState(() => window.location.hash)
@@ -48,7 +48,7 @@ export function DocsApp() {
             key={item.id}
             className="docs-nav__link"
             href={formatDocsHash(item.id)}
-            aria-current={item.id === page?.id ? 'page' : undefined}
+            aria-current={item.id === page.id ? 'page' : undefined}
           >
             {item.title}
           </a>
@@ -56,14 +56,10 @@ export function DocsApp() {
       </nav>
 
       <main className="docs-main">
-        {page === undefined ? (
-          <p>表示できるページが無い。</p>
-        ) : (
-          <article className="doc-page">
-            <h1 className="doc-page__title">{page.title}</h1>
-            <page.Body />
-          </article>
-        )}
+        <article className="doc-page">
+          <h1 className="doc-page__title">{page.title}</h1>
+          <page.Body />
+        </article>
       </main>
     </div>
   )

@@ -2,8 +2,10 @@
  * デザインカタログの共通スタイル（DR-0042）。
  *
  * 値は design/theme.css の --dh-* からのみ取る（DR-0018）。生の色値・長さリテラルは
- * 書かない。例外として使える literal は design/rules.json の noRawScale.allowedLiterals
- * に列挙されたもの（0 / 100% / 1px）に限る。
+ * 書かない。長さリテラルの例外は design/rules.json の noRawScale.allowedLiterals に従う。
+ *
+ * ただし no-raw-color / no-raw-scale が見るのは JSX の style だけで、CSS ファイルは
+ * 対象外（DR-0037）。このファイルは lint されないので、上の規約は人が守る。
  *
  * ここはカタログの外枠（ナビゲーション・ページ枠・カード）だけを持つ。スライドの
  * 見た目は design/layout.css が持ち、こちらへは持ち込まない。

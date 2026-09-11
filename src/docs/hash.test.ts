@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { formatDocsHash, parseDocsHash } from './hash'
+import { DOCS_PAGES } from './pages'
 
 describe('parseDocsHash', () => {
   it('#/<ページID> をページ ID として読む', () => {
@@ -22,8 +23,13 @@ describe('parseDocsHash', () => {
     expect(parseDocsHash('#/Foundations')).toBeNull()
   })
 
-  it('スライド側の位置 hash は、書式が違うので通らない', () => {
+  it('スライド側の `#/<番号>/<段階>` はセグメントが2つなので通らない', () => {
     expect(parseDocsHash('#/3/1')).toBeNull()
+  })
+
+  it('スライド側の段階省略形（#/3）は書式が重なるため通ってしまう', () => {
+    // だから数字だけのページ ID は使わない（hash.ts の冒頭コメント）。
+    expect(parseDocsHash('#/3')).toBe('3')
   })
 })
 
@@ -34,5 +40,17 @@ describe('formatDocsHash', () => {
 
   it('formatDocsHash の結果は parseDocsHash で元へ戻る', () => {
     expect(parseDocsHash(formatDocsHash('foundations'))).toBe('foundations')
+  })
+})
+
+describe('DOCS_PAGES', () => {
+  it('すべてのページ ID が hash の許容書式に収まり、往復しても元へ戻る', () => {
+    for (const page of DOCS_PAGES) {
+      expect(parseDocsHash(formatDocsHash(page.id))).toBe(page.id)
+    }
+  })
+
+  it('数字だけのページ ID を持たない（スライド側の位置 hash と同一文字列になる）', () => {
+    expect(DOCS_PAGES.filter((page) => /^\d+$/.test(page.id))).toEqual([])
   })
 })
