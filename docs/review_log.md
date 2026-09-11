@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-11（PR #40 1周目）
+最終更新: 2026-09-11（PR #40 2周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -27,7 +27,7 @@
 | `decisions/undocumented-decision` | DR に無い判断が、PR説明やIssueにだけ書かれている | 10 | PR #40 | 未着手 |
 | `decisions/dr-restates-canonical-value` | DR が正本の値を本文に書き写した | 4 | PR #21 | 未着手 |
 | `contract/source-of-truth-ambiguous` | 「正本」がどのファイルを指すか一意でない | 3 | PR #19 | 未着手 |
-| `inspection/rule-has-bypass` | 検査ルールに抜け道があり、書き方を変えると素通りする | 12 | PR #39 | 未着手 |
+| `inspection/rule-has-bypass` | 検査ルールに抜け道があり、書き方を変えると素通りする | 13 | PR #40 | 未着手 |
 | `inspection/rule-scope-inconsistent` | 同じルールIDの守備範囲が文書間で食い違う | 4 | PR #40 | 未着手 |
 | `decisions/consequence-not-followed` | 既存 DR の帰結が、それを通る手順に反映されていない | 6 | PR #40 | 未着手 |
 | `contract/contract-structure-duplicated` | 正本の中身の一覧が、別の文書へ構造ごと複製された | 6 | PR #27 | 未着手 |
@@ -85,7 +85,7 @@
 | `code/redundant-type-only-devdependency` | コード品質 | 型を同梱するパッケージに、別系統の型パッケージを重ねて入れた | 1 | PR #23 | PR #23 |
 | `writing/test-title-ambiguous` | 日本語 | テストタイトルが、そのテストの固定する不変条件を示していない | 3 | PR #23 | PR #40 |
 | `code/sibling-field-test-gap` | コード品質 | 同じ制約を個別に持つ複数フィールドのうち、一部にしか回帰テストが無い | 2 | PR #23 | PR #26 |
-| `inspection/rule-has-bypass` | 検査 | 検査ルールに抜け道があり、書き方を変えると素通りする | 12 | PR #13 | PR #39 |
+| `inspection/rule-has-bypass` | 検査 | 検査ルールに抜け道があり、書き方を変えると素通りする | 13 | PR #13 | PR #40 |
 | `decisions/wrong-dr-citation` | 決定記録 | 誤った DR 番号を根拠として引用している | 1 | PR #24 | PR #24 |
 | `decisions/implementation-labeled-as-canonical` | 決定記録 | DR が実装コードを「正本」として指定している | 1 | PR #24 | PR #24 |
 | `code/test-duplicates-prior-assertion` | コード品質 | 追加したテストが直前のテストと完全に重複し、検出力を持たない | 2 | PR #20 | PR #24 |
@@ -116,12 +116,14 @@
 | `code/unvalidated-id-format` | コード品質 | 識別子が許容書式に収まることを型でもテストでも保証していない | 1 | PR #40 | PR #40 |
 | `writing/ungrammatical-sentence` | 日本語 | 述語が欠けた文があり、意味が確定しない | 1 | PR #40 | PR #40 |
 | `writing/incomplete-pr-description` | 日本語 | PR 本文が着手時のままで、完成度と残りが読み取れない | 1 | PR #40 | PR #40 |
+| `code/test-cannot-detect-regression` | コード品質 | テストが、その名前が示す回帰をフィクスチャの都合で検出できない | 1 | PR #40 | PR #40 |
+| `code/duplicate-test-case` | コード品質 | 追加したテストが既存ケースと同一のアサーションになっている | 1 | PR #40 | PR #40 |
 
 ## レビュー履歴
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #40 | 2026-09-11 | 0 | 7 | 5 | [pr-40.md](./reviews/pr-40.md) |
+| #40 | 2026-09-11 | 0 | 9 | 6 | [pr-40.md](./reviews/pr-40.md) |
 | #39 | 2026-09-10 | 0 | 3 | 7 | [pr-39.md](./reviews/pr-39.md) |
 | #31 | 2026-09-10 | 0 | 3 | 1 | [pr-31.md](./reviews/pr-31.md) |
 | #30 | 2026-09-10 | 0 | 2 | 4 | [pr-30.md](./reviews/pr-30.md) |

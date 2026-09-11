@@ -21,7 +21,7 @@
 
 移動は素の `<a href>` に任せ、履歴を積む。ブラウザの戻る・進むがそのままページ間の移動になる。[DR-0031](./0031-navigation-keys-and-no-history.md) が履歴を積まないと決めたのはスライドのページ送りであり、対象が違う。未知・不正な hash はエラーにせず先頭のページへ落とす（カタログは 404 のページを持たない）。
 
-この分離は規約だけでは守れないので、`eslint.config.js` の `no-restricted-imports` で `src/docs/` ↔ `src/App.tsx` / `src/runtime/` の相互参照を禁止する。lint 段に載るだけなので `pnpm check` のコマンド列は変わらない。
+この分離は規約だけでは守れないので、`eslint.config.js` で `src/docs/` ↔ `src/App.tsx` / `src/runtime/` の相互参照を禁止する。静的 import は `no-restricted-imports` が、動的 import（`import()`）は `no-restricted-syntax` が受け持つ。前者は `ImportExpression` を見ないので、片方だけでは動的 import が素通りする。lint 段に載るだけなので `pnpm check` のコマンド列は変わらない。
 
 ### 2. カタログは `design/` の契約ファイルを読み込んで描画する
 

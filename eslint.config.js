@@ -48,6 +48,9 @@ export default tseslint.config(
     // 別のビルドエントリで、互いを参照しないと決めている（DR-0042）。参照が生えると
     // カタログのコードがスライドのバンドルへ入り、measure が実測する対象が本番と
     // 同一の物でなくなる（DR-0011 / DR-0022）。ビルドは通ってしまうのでここで弾く。
+    // no-restricted-imports は静的 import しか見ないので、動的 import（ImportExpression）は
+    // no-restricted-syntax で別に塞ぐ。拡張子付きの指定（'../App.js'）も glob が拾わないため
+    // パターンへ明示する。どちらも実際に素通りすることを確かめて足した。
     files: ['src/docs/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [
@@ -55,10 +58,17 @@ export default tseslint.config(
         {
           patterns: [
             {
-              group: ['**/App', '**/runtime', '**/runtime/*'],
+              group: ['**/App', '**/App.*', '**/runtime', '**/runtime.*', '**/runtime/*'],
               message: 'カタログはスライド本体（src/App.tsx / src/runtime/）を参照しない（DR-0042）。',
             },
           ],
+        },
+      ],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'ImportExpression[source.value=/(^|\\/)(App|runtime)(\\.|\\/|$)/]',
+          message: 'カタログはスライド本体（src/App.tsx / src/runtime/）を動的 import でも参照しない（DR-0042）。',
         },
       ],
     },
@@ -72,10 +82,17 @@ export default tseslint.config(
         {
           patterns: [
             {
-              group: ['**/docs', '**/docs/*'],
+              group: ['**/docs', '**/docs.*', '**/docs/*'],
               message: 'スライド本体はカタログ（src/docs/）を参照しない（DR-0042）。',
             },
           ],
+        },
+      ],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'ImportExpression[source.value=/(^|\\/)docs(\\.|\\/|$)/]',
+          message: 'スライド本体はカタログ（src/docs/）を動的 import でも参照しない（DR-0042）。',
         },
       ],
     },

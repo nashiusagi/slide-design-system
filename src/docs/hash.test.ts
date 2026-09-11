@@ -37,10 +37,6 @@ describe('formatDocsHash', () => {
   it('ページ ID を #/<ページID> にする', () => {
     expect(formatDocsHash('foundations')).toBe('#/foundations')
   })
-
-  it('formatDocsHash の結果は parseDocsHash で元へ戻る', () => {
-    expect(parseDocsHash(formatDocsHash('foundations'))).toBe('foundations')
-  })
 })
 
 describe('DOCS_PAGES', () => {
