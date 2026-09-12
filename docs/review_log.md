@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-12（PR #47 レビュー）
+最終更新: 2026-09-12（PR #47 レビュー 2周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -24,9 +24,9 @@
 | `writing/term-inconsistency` | 同じものが複数の呼び名を持ち、外延も揺れる | 10 | PR #39 | 未着手 |
 | `writing/notation-inconsistency` | 表記の不統一（DR 参照がリンクになっていない等） | 6 | PR #26 | 未着手 |
 | `phase/out-of-scope-addition` | フェーズのスコープ外、または DR に接続しないものが混入した | 6 | PR #30 | 未着手 |
-| `decisions/undocumented-decision` | DR に無い判断が、PR説明やIssueにだけ書かれている | 10 | PR #40 | 未着手 |
+| `decisions/undocumented-decision` | DR に無い判断が、PR説明やIssueにだけ書かれている | 11 | PR #47 | 未着手 |
 | `decisions/dr-restates-canonical-value` | DR が正本の値を本文に書き写した | 6 | PR #47 | 未着手 |
-| `contract/source-of-truth-ambiguous` | 「正本」がどのファイルを指すか一意でない | 3 | PR #19 | 未着手 |
+| `contract/source-of-truth-ambiguous` | 「正本」がどのファイルを指すか一意でない | 4 | PR #47 | 未着手 |
 | `inspection/rule-has-bypass` | 検査ルールに抜け道があり、書き方を変えると素通りする | 14 | PR #47 | 仕組み化済み（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43） |
 | `inspection/rule-scope-inconsistent` | 同じルールIDの守備範囲が文書間で食い違う | 5 | PR #47 | 仕組み化済み（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43）。守備範囲の宣言を `design/rules.json` に一本化した |
 | `decisions/consequence-not-followed` | 既存 DR の帰結が、それを通る手順に反映されていない | 7 | PR #47 | 未着手 |
@@ -48,7 +48,7 @@
 |---|---|---|---|---|---|
 | `contract/design-data-duplicated` | 設計契約 | デザインの値が正本以外へ複製された | 9 | PR #13 | PR #47 |
 | `contract/value-outside-source-of-truth` | 設計契約 | 正本に置くと決めた値が、正本を参照できない場所にも必要になる | 4 | PR #13 | PR #30 |
-| `contract/source-of-truth-ambiguous` | 設計契約 | 「正本」がどのファイルを指すか一意でない | 3 | PR #13 | PR #19 |
+| `contract/source-of-truth-ambiguous` | 設計契約 | 「正本」がどのファイルを指すか一意でない | 4 | PR #13 | PR #47 |
 | `contract/contract-structure-duplicated` | 設計契約 | 正本の中身の一覧が、別の文書へ構造ごと複製された | 6 | PR #13 | PR #27 |
 | `inspection/rule-scope-inconsistent` | 検査 | 同じルールIDの守備範囲が文書間で食い違う | 5 | PR #13 | PR #47 |
 | `inspection/rule-id-mapping-incomplete` | 検査 | ルールIDと実装の対応検査が一部の系統しか覆っていない | 2 | PR #13 | PR #25 |
@@ -59,7 +59,7 @@
 | `writing/term-inconsistency` | 日本語 | 同じものが複数の呼び名を持ち、外延も揺れる | 10 | PR #13 | PR #39 |
 | `writing/notation-inconsistency` | 日本語 | 表記の不統一 | 6 | PR #13 | PR #26 |
 | `phase/out-of-scope-addition` | フェーズ | フェーズのスコープ外、または DR に接続しないものが混入した | 6 | PR #13 | PR #30 |
-| `decisions/undocumented-decision` | 決定記録 | DR に無い判断が、PR説明やIssueにだけ書かれている | 10 | PR #13 | PR #40 |
+| `decisions/undocumented-decision` | 決定記録 | DR に無い判断が、PR説明やIssueにだけ書かれている | 11 | PR #13 | PR #47 |
 | `contract/workflow-constant-duplicated` | 設計契約 | 他スキルが持つ取り決め（パス・上限値）が書き写された | 3 | PR #17 | PR #47 |
 | `code/review-loop-double-counts-log` | コード品質 | 同一 PR の再レビューが指摘ログを二重に計上する | 1 | PR #17 | PR #17 |
 | `code/review-artifact-handling-undefined` | コード品質 | レビュー成果物をコミットするかどうかが未定義 | 1 | PR #17 | PR #17 |
@@ -126,6 +126,7 @@
 | `inspection/raw-css-include-gap` | 検査 | テストで空文字へ差し替えられる読み込みを検知せず、無検査のまま緑になる | 1 | PR #41 | PR #41 |
 
 | `inspection/bypass-case-trivially-satisfiable` | 検査 | 通ることを固定する事例に下限が無く、中身が空でも宣言を「埋めた」ことになる | 1 | PR #47 | PR #47 |
+| `inspection/bypass-fixture-wrong-mechanism` | 検査 | 除外の事例が、宣言した理由とは別の理由で通っている | 1 | PR #47 | PR #47 |
 | `inspection/fixture-skips-collection-stage` | 検査 | フィクスチャが評価段しか通らず、収集段の抜け道を原理的に扱えない | 1 | PR #47 | PR #47 |
 | `contract/requirement-contradicts-review-method` | 設計契約 | 契約が全ルールに機械実行の事例を要求し、人が判断する method と衝突する | 1 | PR #47 | PR #47 |
 | `code/unused-exported-helper` | コード品質 | export したヘルパーに使用箇所が無く、説明も実装と食い違う | 1 | PR #47 | PR #47 |
@@ -135,7 +136,7 @@
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #47 | 2026-09-12 | 2 | 9 | 7 | [pr-47.md](./reviews/pr-47.md) |
+| #47 | 2026-09-12 | 2 | 12 | 8 | [pr-47.md](./reviews/pr-47.md) |
 | #41 | 2026-09-11 | 1 | 7 | 1 | [pr-41.md](./reviews/pr-41.md) |
 | #40 | 2026-09-11 | 0 | 10 | 8 | [pr-40.md](./reviews/pr-40.md) |
 | #39 | 2026-09-10 | 0 | 3 | 7 | [pr-39.md](./reviews/pr-39.md) |

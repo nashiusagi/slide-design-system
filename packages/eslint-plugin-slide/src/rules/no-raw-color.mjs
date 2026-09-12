@@ -46,7 +46,7 @@ const rule = {
       rawColor:
         "'{{property}}' に生の色値 '{{value}}' が書かれている。design/theme.css の --dh-* トークン変数（var(--dh-color-*)）を経由すること。",
       nonTokenVariable:
-        "'{{property}}' が参照している '{{variable}}' は --dh-* トークン変数ではない。design/theme.css が定義する --dh-color-* を経由すること。",
+        "'{{property}}' が参照している '{{variable}}' は --dh-* トークン変数ではない。design/theme.css が定義する --dh-* トークン変数を経由すること。",
     },
   },
   create(context) {

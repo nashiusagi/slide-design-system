@@ -15,7 +15,7 @@
 
 ## 決定
 
-検査ルールは、次の2つを伴わなければ `pnpm check` を通らない。
+自動判定を持つ検査ルール（`design/rules.json` の `method` が `lint` / `measure` のもの）は、次の2つを伴わなければ `pnpm check` を通らない。`method: "review"` は人が判断し自動判定を持たない（[DR-0011](./0011-lint-and-measure.md)）ため対象外で、理由は帰結に書く。
 
 **1. 軸の宣言と、軸ごとの bypass フィクスチャ。** `design/rules.json` の各ルールは `bypassAxes` を持つ。軸は「同じ違反を別の書き方で表す種類」であり、語彙は4つ——`alternate-notation`（記法を変えた同値）、`value-composition`（複数の値が1つの値に同居する形）、`boundary`（閾値の両側）、`enumeration-tail`（列挙で定義した対象の、先頭以外の要素）。宣言した軸ごとに、違反として捕まる事例をフィクスチャへ置く。`boundary` だけは通る側の事例も要求する。
 

@@ -2,8 +2,9 @@
  * `no-raw-scale` の bypass フィクスチャ（DR-0044）。
  *
  * 境界（boundary）の事例は design/rules.json の noRawScale.allowedLiterals の
- * 内側・外側を1つずつ持つ。値そのものはここへ書き写さず、許容リストにある値と、
- * そこに無い最小の同種の値を対にする。
+ * 内側・外側を1つずつ持つ。許容リストの内外を示すには具体的な値が要るので、
+ * ここには値を書く（measure 側のフィクスチャが閾値を context から受け取るのとは
+ * 違う）。allowedLiterals を変えたときは、この対も見直すこと。
  */
 
 /** @type {import('../../../../scripts/lib/bypass-fixtures.mjs').BypassFixture} */
@@ -109,8 +110,8 @@ export default {
       expect: 'ok',
     },
     {
-      exclusion: 'css-file',
-      name: 'CSS の文字列を JS 側に持っても見ない。CSS ファイルの中身は ESLint の対象外',
+      exclusion: 'non-jsx-source',
+      name: 'style オブジェクトの外にある CSS 文字列。lint が見るのは style オブジェクトの中だけ',
       code: 'const sheet = ".slide-body { padding: 24px; }"',
       expect: 'ok',
     },

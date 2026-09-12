@@ -98,13 +98,3 @@ export async function loadBypassFixtures(rules) {
   return loaded
 }
 
-/**
- * フィクスチャの事例のうち、指定した軸のものだけを返す。
- *
- * @param {BypassFixture} fixture
- * @param {'violation' | 'ok'} expectation
- * @returns {BypassCase[]}
- */
-export function casesExpecting(fixture, expectation) {
-  return fixture.cases.filter((one) => one.expect === expectation)
-}

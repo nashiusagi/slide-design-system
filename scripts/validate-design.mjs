@@ -352,11 +352,15 @@ export function checkLintRuleDescriptionsMatch(rules, implementations) {
 }
 
 /**
- * 違反を期待する事例が、何をもって違反とするかを書いているか。
+ * 違反を期待する事例が、判定に必要なものを書いているか。
  *
- * lint は報告の messageId、measure は評価にかける要素データ（records）がそれに
- * あたる。ここを問わないと「落ちさえすればよい」事例が書け、別の理由で落ちている
- * ことに気付けない。
+ * lint は**期待する報告**（messageId / messageIds）。ここを問わないと
+ * 「落ちさえすればよい」事例が書け、別の理由で落ちていることに気付けない。
+ *
+ * measure は**評価にかける要素データ**（records）で、役割が違う。measure 側の
+ * runner はルールIDで違反を絞るだけなので、同じルールの別の違反で落ちていても
+ * 通る。ここで問えるのは「評価にかけるものがあるか」までで、lint と同じ強さは
+ * 無い。事例を種別まで固定するかは #50 で扱う。
  *
  * @param {any} one
  * @param {string} method
@@ -479,7 +483,7 @@ export function checkBypassFixtureCoverage(rules, loaded, skippedRuleIds) {
 
       if (one.expect === 'violation' && !hasExpectedReport(one, rule.method)) {
         problems.push(
-          `${label}: 違反を期待する事例には、どの報告になるか（lint は messageId / messageIds、measure は records）が要る`,
+          `${label}: 違反を期待する事例には、判定に必要なもの（lint は期待する報告 messageId / messageIds、measure は評価にかける records）が要る`,
         )
         continue
       }

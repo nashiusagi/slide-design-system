@@ -97,8 +97,8 @@ export default {
       expect: 'ok',
     },
     {
-      exclusion: 'css-file',
-      name: 'CSS の文字列を JS 側に持っても見ない。CSS ファイルの中身は ESLint の対象外',
+      exclusion: 'non-jsx-source',
+      name: 'style オブジェクトの外にある CSS 文字列。lint が見るのは style オブジェクトの中だけ',
       code: 'const sheet = ".slide-title { color: #ff0000; }"',
       expect: 'ok',
     },
