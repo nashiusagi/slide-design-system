@@ -2,7 +2,7 @@
 
 - **状態**: 承認済み
 - **日付**: 2026-09-06
-- **関連**: [DR-0002](./0002-source-format-jsx-react.md), [DR-0011](./0011-lint-and-measure.md)
+- **関連**: [DR-0002](./0002-source-format-jsx-react.md), [DR-0011](./0011-lint-and-measure.md), [DR-0045](./0045-stay-on-eslint-not-biome.md)
 - **正本**: `package.json`（`devDependencies.typescript`）
 
 ## 文脈
@@ -36,3 +36,4 @@ TypeScript のバージョンは `package.json` で 5 系に固定する。`type
 
 - `typescript-eslint` が 7 系に対応した時点で、この DR を見直す Issue を起こす
 - **上げてよいかの判定は「lint が違反を検出できるか」で行う。** 自作プラグインができた後は、意図的に契約違反を含む fixture を使った検出テストが、すべて期待どおり違反を報告することを条件にする。プラグインが無い現時点では「`pnpm lint` が正常終了し、かつ `typescript-eslint` の `peerDependencies` を満たすこと」までを条件とする。`eslint .` の終了コードだけを見ると、パーサ変更でルールが1件も発火しなくなった状態を「合格」と読んでしまう
+- この制約は [DR-0045](./0045-stay-on-eslint-not-biome.md)（lint 実行系は ESLint に留める）と連動している。ESLint に留まる限りこの DR の前提は生き、ESLint を離れれば `typescript-eslint` の対応状況は判断材料でなくなる。どちらかを見直すときは、もう一方もあわせて見る

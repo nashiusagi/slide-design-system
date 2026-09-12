@@ -2,7 +2,7 @@
 
 - **状態**: 承認済み
 - **日付**: 2026-09-12
-- **関連**: [DR-0011](./0011-lint-and-measure.md), [DR-0026](./0026-typescript-5-for-eslint-ast.md), [DR-0027](./0027-build-scaffold-workspace-and-test-stack.md), [DR-0028](./0028-single-check-entry-point.md), [DR-0036](./0036-js-yaml-for-deck-frontmatter.md), [DR-0037](./0037-eslint-plugin-slide-rule-scope.md), [DR-0042](./0042-design-catalog-as-separate-build-entry.md), [DR-0044](./0044-bypass-fixtures-required.md)
+- **関連**: [DR-0001](./0001-phase-1-is-ai-harness.md), [DR-0011](./0011-lint-and-measure.md), [DR-0024](./0024-decision-records-not-adr.md), [DR-0026](./0026-typescript-5-for-eslint-ast.md), [DR-0027](./0027-build-scaffold-workspace-and-test-stack.md), [DR-0028](./0028-single-check-entry-point.md), [DR-0036](./0036-js-yaml-for-deck-frontmatter.md), [DR-0037](./0037-eslint-plugin-slide-rule-scope.md), [DR-0042](./0042-design-catalog-as-separate-build-entry.md), [DR-0044](./0044-bypass-fixtures-required.md)
 - **正本**: `package.json`（`devDependencies` の lint ランナー — `eslint` / `typescript-eslint` が入っているかどうか）
 - **実装**: `eslint.config.js`, `packages/eslint-plugin-slide`
 
@@ -12,17 +12,17 @@ lint 実行系を ESLint から Biome へ移す案が出た（#48）。動機は
 
 移行の可否は「同じ違反を検出し続けられるか」で決まる。このリポジトリの lint は汎用の整形・バグ検出ではなく、契約検査そのものだからである（[DR-0011](./0011-lint-and-measure.md)）。`eslint.config.js` が今持っているものは 3 種類ある。
 
-1. **recommended 由来の汎用ルール** — `js.configs.recommended` / `tseslint.configs.recommended` が持つルール。ESLint 組み込みルールでも `no-restricted-imports` / `no-restricted-syntax` はここに含めない（[DR-0044](./0044-bypass-fixtures-required.md) の帰結は「汎用ルール」をこの2つを含む意味で使っている。この DR では含めない）
+1. **recommended 由来の汎用ルール** — `js.configs.recommended` / `tseslint.configs.recommended` が持つルール。ESLint 組み込みルールでも `no-restricted-imports` / `no-restricted-syntax` はここに含めない。**以下、単に「汎用ルール」と書くときもこの意味に限る。** [DR-0044](./0044-bypass-fixtures-required.md) の帰結は「汎用ルール」を `no-restricted-imports` を含む意味で使っており（`no-restricted-syntax` については明示が無い）、この DR とは外延が違う
 2. **契約検査** — `design/rules.json` が `method: lint` とするルール群。`packages/eslint-plugin-slide` が実装する
 3. **ビルドエントリ境界と抑止コメント統制** — (a) ビルドエントリ境界（[DR-0042](./0042-design-catalog-as-separate-build-entry.md)）の静的 import / 動的 import 禁止、(b) `src/**` での抑止コメント統制（`noInlineConfig`）
 
 Biome 側の現状はこうである（2026-09-12 時点、v2 系。確認先は Linter Plugins のドキュメント <https://biomejs.dev/linter/plugins/>、Suppressions のドキュメント <https://biomejs.dev/analyzer/suppressions/>、v2.5 のリリース記事 <https://biomejs.dev/blog/biome-v2-5/>、2026 のロードマップ <https://biomejs.dev/blog/roadmap-2026/>）。プラグインは GritQL のみで、ルールを JavaScript / TypeScript で書くことはできない。GritQL プラグインは CST への問い合わせ・独自診断の報告・コード修正・適用パスの glob 指定（v2.5）までを持つが、**任意の外部ファイルを lint 実行時に読む手段は、上記のプラグインドキュメントに記述が無い**。2026 のロードマップにも JS / TS でのルール記述は挙がっていない。
 
-この一点が 2（契約検査）を直撃する。ただし直撃の仕方はルールごとに違う。判定の基準値を自分の中に持たず `design/` 配下の契約をその場で読むのは `layout-approved`（`design/layouts/*.json`）・`component-approved`（`design/components/*.json`）・`deck-conformance`（Markdown + frontmatter の deck 契約を [DR-0036](./0036-js-yaml-for-deck-frontmatter.md) のパーサで読む）の3ルールである。`no-raw-scale` は許容リテラルだけを `design/rules.json` から読み、長さの判定パターンは実装に持つ。`no-raw-color` は判定に使う値（色を運ぶプロパティの一覧、生の色値のパターン、トークン接頭辞）をすべて実装に持つ——これは [DR-0037](./0037-eslint-plugin-slide-rule-scope.md) が意図して決めた形である。読み書きの正本は `packages/eslint-plugin-slide/src/lib/design-contracts.mjs` にまとめてある。
+この一点が 2（契約検査）を直撃する。ただし依存の度合いはルールごとに違う。`layout-approved`（`design/layouts/*.json`）・`component-approved`（`design/components/*.json`）・`deck-conformance`（Markdown + frontmatter の deck 契約を [DR-0036](./0036-js-yaml-for-deck-frontmatter.md) のパーサで読む）は、判定の基準値を自分の中に持たず、すべて契約をその場で読む。`no-raw-scale` は許容リテラルを `design/rules.json` から読むが、長さの判定パターンは実装に持つ。`no-raw-color` は判定に使う値（色を運ぶプロパティの一覧、生の色値のパターン、トークン接頭辞）をすべて実装に持つ——これは [DR-0037](./0037-eslint-plugin-slide-rule-scope.md) が意図して決めた形である。契約を読む共通処理は `packages/eslint-plugin-slide/src/lib/design-contracts.mjs` に集約してあるが（読み取りのみ。値の正本は `design/` 配下のファイルである）、deck 契約の読み取りだけは `scripts/lib/deck.mjs` の側にある。
 
-したがって外部ファイル読み取りの不在が移せなくするのは3ルールで、残る2つは別の理由——判定ロジックそのものの再実装と、[DR-0044](./0044-bypass-fixtures-required.md) が固定した bypass フィクスチャの作り直し——で移せない。なお `method: lint` のルールはどれも説明文を `design/rules.json` から引くため（[DR-0044](./0044-bypass-fixtures-required.md)）、lint 実行時のファイル読み取り自体はどのルールにも要る。許容値を GritQL のパターンへ書き写せば、それは正本の複製になる（値を複製しないことはこのプロジェクトの原則である。[DR-0024](./0024-decision-records-not-adr.md)）。
+したがって、外部ファイル読み取りの不在が丸ごと効くのは基準値を全部契約から読むルールで、判定パターンを実装に持つ `no-raw-scale` / `no-raw-color` にはそこまで効かない。ただしこの2つも、判定ロジックそのものの再実装と、[DR-0044](./0044-bypass-fixtures-required.md) が固定した bypass フィクスチャの作り直しは避けられない。なお `method: lint` のルールはどれも説明文を `design/rules.json` から引くため（[DR-0044](./0044-bypass-fixtures-required.md)）、lint 実行時のファイル読み取り自体はどのルールにも要る。許容値を GritQL のパターンへ書き写せば、それは正本の複製になる（値を複製しないことはこのプロジェクトの原則である。[DR-0024](./0024-decision-records-not-adr.md)）。
 
-3 も埋まらない。(b) について、`noInlineConfig` に相当する「抑止コメントを一切効かせない」設定は、上記の Suppressions のドキュメントに記述が無い。`src/**` は無人の生成ループが書く検査対象であり（Phase 1 の前提。[DR-0001](./0001-phase-1-is-ai-harness.md)）、生成物に混ざった `biome-ignore` で契約検査を無効化できる状態は、検査が在ることの前提を崩す。(a) については未確認である。`eslint.config.js` の禁止は `no-restricted-imports` のパス glob に加え、`ImportExpression[source.value=/…/]` と `ImportExpression:not([source.type='Literal'])` の2つの AST セレクタで成り立っており、この否定条件を GritQL で表現できるかを確かめていない。
+3 も埋まらない。(b) について、`noInlineConfig` に相当する「抑止コメントを一切効かせない」設定は、上記の Suppressions のドキュメントに記述が無い。`src/**` は無人の生成ループが書く検査対象であり（`noInlineConfig` を `src/**` にだけ掛ける理由は [DR-0011](./0011-lint-and-measure.md) の帰結にある。その前提である段階分けは [DR-0001](./0001-phase-1-is-ai-harness.md)）、生成物に混ざった `biome-ignore` で契約検査を無効化できる状態は、検査が在ることの前提を崩す。(a) については未確認である。`eslint.config.js` の禁止は `no-restricted-imports` のパス glob に加え、`ImportExpression[source.value=/…/]` と `ImportExpression:not([source.type='Literal'])` の2つの AST セレクタで成り立っており、この否定条件を GritQL で表現できるかを確かめていない。
 
 ## 決定
 
@@ -63,8 +63,11 @@ Biome 一本のまま、契約検査も残せる。
 - **再検討の条件**は、Biome 側で次の 3 つが**すべて**そろったときとする。1 つでも欠ければ、契約検査（上の 2）かビルドエントリ境界・抑止コメント統制（上の 3）のどこかが埋まらない
   - ルールを JavaScript / TypeScript で書けるようになる。または GritQL プラグインが lint 実行時に任意の外部ファイル（`design/` 配下の契約）を読めるようになる
   - 抑止コメントを一切効かせない設定（`noInlineConfig` 相当）を持つ
-  - ビルドエントリ境界の禁止（[DR-0042](./0042-design-catalog-as-separate-build-entry.md)）を同じ守備範囲で表現できる。静的 import のパス glob、引数がリテラルの動的 import、および**引数がリテラルでない `import()` そのもの**の3つすべてを指す。3つ目は否定条件であり、表現できるかは未確認である（「文脈」のとおり）
-- **この3つが揃ったことに気付いた時点で、この DR を見直す Issue を起こす**（[DR-0026](./0026-typescript-5-for-eslint-ast.md) の帰結が `typescript-eslint` について同じ引き金を持つ。ESLint に留まる判断が両者で連動しているので、どちらかを見直すときはもう一方も見る）。また、却下理由の一部はこちら側の前提（`src/**` を無人の生成ループだけが書く。[DR-0001](./0001-phase-1-is-ai-harness.md) の Phase 1）に乗っているので、その前提が変わったときも見直しの対象とする
+  - ビルドエントリ境界の禁止（[DR-0042](./0042-design-catalog-as-separate-build-entry.md)）を同じ守備範囲で表現できる。守備範囲は次のすべてを指す
+    - 静的 import のパス glob
+    - 引数がリテラルの動的 import
+    - **引数がリテラルでない `import()` そのもの**（否定条件であり、GritQL で表現できるかは未確認。「文脈」のとおり）
+- **この3つが揃ったことに気付いた時点で、この DR を見直す Issue を起こす**（[DR-0026](./0026-typescript-5-for-eslint-ast.md) の帰結が `typescript-eslint` について同じ引き金を持つ。ESLint に留まる判断が両者で連動しているので、どちらかを見直すときはもう一方も見る。この連動は DR-0026 の帰結にも書いた）。また、却下理由の一部はこちら側の前提（`src/**` を無人の生成ループだけが書く。[DR-0011](./0011-lint-and-measure.md) の帰結。その前提である段階分けは [DR-0001](./0001-phase-1-is-ai-harness.md)）に乗っているので、その前提が変わったときも見直しの対象とする
 - **再検討するときの合否判定は、バージョンや速度ではなく「lint が違反を検出できるか」で行う**（[DR-0026](./0026-typescript-5-for-eslint-ast.md) の帰結と同じ基準）。具体的にはこうする
   - `design/rules.json` の `bypassAxes` / `scopeExclusions` の宣言と、各 `*.bypass.mjs` の事例・期待結果を**1件も追加・削除・書き換えせずに**移行後の実装へ与え、すべてが期待どおり違反 / 通過になること
   - `eslint.config.js` が持つビルドエントリ境界の禁止それぞれについて、違反コードが移行後も報告されること。この禁止は `design/rules.json` にルールIDを持たないため bypass フィクスチャの対象外で、現在テストも無い。移行の可否を判定する前に、まず違反コードを用意する必要がある
