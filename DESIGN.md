@@ -39,11 +39,11 @@ AI がスライドを生成する前に最初に読む設計方針。ここは�
 
 ## Global Constraints
 
-- **固定キャンバス**: 1280 x 720（`design/tokens.json` の `canvas`）。要素はキャンバスからはみ出さない。判定は実測（`no-overflow`、[DR-0011](./docs/decisions/0011-lint-and-measure.md)）で行う
+- **固定キャンバス**: 寸法は `design/tokens.json` の `canvas` にある。要素はキャンバスからはみ出さない。判定は実測（`no-overflow`、[DR-0011](./docs/decisions/0011-lint-and-measure.md)）で行う
 - **単一テーマ**: ダークモードなど条件分岐のテーマは持たない（[DR-0005](./docs/decisions/0005-single-theme-personal.md)）
 - **最小フォントサイズ**: 本文には下限がある。値の正本は `design/rules.json`（[DR-0012](./docs/decisions/0012-min-font-size.md)）
 - **コントラスト**: 色の組み合わせは水準を満たす。閾値は `design/rules.json` を正本とし、`design/tokens.json` の `$measured` が算出値を記録する（[DR-0008](./docs/decisions/0008-accent-hue-purple.md) / [DR-0033](./docs/decisions/0033-derived-values-are-generated-and-checked.md)）
-- **レイアウトは Phase 1 では 3 種のみ**: `title` / `bullets` / `statement`。追加は Phase 1.5 の Issue として起こす（[DR-0010](./docs/decisions/0010-three-layouts.md)）
+- **レイアウトは契約にあるものだけ**: 使ってよいレイアウトは `design/layouts/` にあるものに限る。追加は Phase 1.5 の Issue として起こす（[DR-0010](./docs/decisions/0010-three-layouts.md)）
 - **スタイルは素の CSS + トークンのみ**: Tailwind や CSS Modules は使わない。クラス名は契約が定め、実装（`design/layout.css`）がそれに従う（[DR-0018](./docs/decisions/0018-plain-css-with-tokens.md)）
 
 ## 契約の構成

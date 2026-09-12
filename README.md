@@ -28,7 +28,7 @@ pnpm dev              # 開発サーバ
 pnpm build            # dist/index.html（スライド）+ dist/docs.html（デザインカタログ）+ dist/assets/ を出力
 pnpm theme:generate   # design/tokens.json から design/theme.css を生成
 pnpm measure          # dist/ を実測し measurements.json を出力（要 pnpm build。DR-0011）
-pnpm check            # design:check → theme:check → typecheck → lint → test → build
+pnpm check            # 契約の検証 → 正本の複製検出 → 生成物の突き合わせ → typecheck → lint → test → build
 ```
 
 `design/theme.css` は生成物なので直接編集しない。トークンを変えたら `pnpm theme:generate` を実行する。
@@ -46,7 +46,9 @@ pnpm check            # design:check → theme:check → typecheck → lint → 
 
 `pnpm check` が通ることは、どの Issue でも共通の必要条件であり、個々の Issue を終えてよいかは Issue の完了条件で判定する。
 
-根拠は [DR-0028](./docs/decisions/0028-single-check-entry-point.md)。
+根拠は [DR-0028](./docs/decisions/0028-single-check-entry-point.md)。段の実際の並びは `package.json` の `scripts.check` が正本である。
+
+**正本に置いた値・一覧を、他の文書へ書き写さない。** 書き写されたことは `pnpm canonical:check` が機械で検出する。書かざるを得ない箇所は `scripts/canonical-duplication-allowlist.json` へ理由つきで登録する。理由の無い例外と、使われなくなった例外は検査が落とす。根拠は [DR-0046](./docs/decisions/0046-prose-checked-for-canonical-duplication.md)。
 
 ## 正本の在り処
 

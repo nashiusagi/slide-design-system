@@ -67,6 +67,7 @@
 | [0037](./0037-eslint-plugin-slide-rule-scope.md) | eslint-plugin-slide の5ルールは、まだ無い実装を前提にしない範囲に絞る |
 | [0038](./0038-defer-measure-in-check.md) | `pnpm measure` は、App が設計契約を消費するまで `pnpm check` へ組み込まない |
 | [0044](./0044-bypass-fixtures-required.md) | 検査ルールには bypass フィクスチャを伴わせ、守備範囲を契約で宣言する |
+| [0046](./0046-prose-checked-for-canonical-duplication.md) | 正本の複製は散文まで機械検査の対象にする |
 
 ### 実験と運用
 
