@@ -41,6 +41,7 @@
 | [0041](./0041-postcss-for-layout-class-check.md) | `checkLayoutClasses` は postcss + postcss-selector-parser の構文木で判定する |
 | [0042](./0042-design-catalog-as-separate-build-entry.md) | デザインカタログはスライド本体と別のビルドエントリに置く |
 | [0043](./0043-catalog-reads-generated-theme-css.md) | カタログは値を `design/theme.css` から読み、見本は `var(--dh-*)` を当てて描く |
+| [0045](./0045-stay-on-eslint-not-biome.md) | lint 実行系は ESLint に留め、Biome へ移さない |
 
 ### 契約の構造
 
