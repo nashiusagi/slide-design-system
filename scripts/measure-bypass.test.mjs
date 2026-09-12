@@ -56,7 +56,13 @@ describe('bypass フィクスチャ（measure）', () => {
       const expectation = one.expect === 'violation' ? '違反として捕まる' : '通る'
 
       it(`${rule.id}: ${one.name} → ${expectation}`, () => {
-        const violations = evaluateSlideMeasurements(one.records(context), context).filter(
+        const records = one.records(context)
+
+        // 通る側の事例は「違反が出ないこと」しか見ないので、records が空でも緑になる。
+        // 空の事例は、除外や境界を事例で埋めたことにならない（DR-0044）。
+        expect(records.length).toBeGreaterThan(0)
+
+        const violations = evaluateSlideMeasurements(records, context).filter(
           (/** @type {any} */ violation) => violation.rule === rule.id,
         )
 

@@ -40,10 +40,17 @@ export const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..
 /**
  * ルールの bypass フィクスチャの、リポジトリルートからの相対パス。
  *
+ * `review` は人が判断し自動判定を持たない（DR-0011）ため、フィクスチャを持たない。
+ * 置き場所も無いので null を返す。
+ *
  * @param {{ id: string, method: string }} rule
- * @returns {string}
+ * @returns {string | null}
  */
 export function fixturePathFor(rule) {
+  if (rule.method === 'review') {
+    return null
+  }
+
   return rule.method === 'lint'
     ? `packages/eslint-plugin-slide/src/rules/${rule.id}.bypass.mjs`
     : `scripts/lib/measure-bypass/${rule.id}.bypass.mjs`
@@ -65,6 +72,11 @@ export async function loadBypassFixtures(rules) {
 
   for (const rule of rules) {
     const relativePath = fixturePathFor(rule)
+
+    if (relativePath === null) {
+      continue
+    }
+
     const absolutePath = join(REPO_ROOT, relativePath)
 
     if (!existsSync(absolutePath)) {

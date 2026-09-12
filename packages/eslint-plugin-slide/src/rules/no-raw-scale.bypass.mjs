@@ -45,6 +45,19 @@ export default {
       messageIds: ['rawScale', 'rawScale'],
     },
     {
+      axis: 'alternate-notation',
+      name: '大文字の単位。CSS の単位は大小を区別しないので、これも長さとして描画される',
+      code: 'const el = <div style={{ padding: "16PX" }} />',
+      expect: 'violation',
+      messageId: 'rawScale',
+    },
+    {
+      axis: 'alternate-notation',
+      name: '許容リストにある値を大文字の単位で書いた形。同じ値なので通る側も揃える',
+      code: 'const el = <div style={{ borderWidth: "1PX" }} />',
+      expect: 'ok',
+    },
+    {
       axis: 'boundary',
       name: '許容リストにある 1px は通る（ヘアライン境界線）',
       code: 'const el = <div style={{ borderWidth: "1px" }} />',
@@ -81,6 +94,24 @@ export default {
       exclusion: 'calc-composition',
       name: 'calc() の中はまだ見ない。許すか禁じるかを決めていない領域',
       code: 'const el = <div style={{ width: "calc(100% - 8px)" }} />',
+      expect: 'ok',
+    },
+    {
+      exclusion: 'keyword-value',
+      name: "長さに見えないキーワード値。'center' を生の長さとして報告しない",
+      code: 'const el = <div style={{ alignItems: "center" }} />',
+      expect: 'ok',
+    },
+    {
+      exclusion: 'attribute-value',
+      name: 'style 以外の属性に書いた長さ。どの属性が長さを運ぶかは component 契約の範囲',
+      code: 'const el = <SlideBody width="320px" />',
+      expect: 'ok',
+    },
+    {
+      exclusion: 'css-file',
+      name: 'CSS の文字列を JS 側に持っても見ない。CSS ファイルの中身は ESLint の対象外',
+      code: 'const sheet = ".slide-body { padding: 24px; }"',
       expect: 'ok',
     },
     {

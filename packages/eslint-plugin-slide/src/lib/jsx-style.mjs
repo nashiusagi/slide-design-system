@@ -197,7 +197,7 @@ export function expandVarFallbacks(text) {
   let current = text
 
   for (let guard = 0; guard < 10; guard += 1) {
-    const start = current.search(/\bvar\(/)
+    const start = current.search(/\bvar\(/i)
 
     if (start === -1) {
       return current
@@ -228,5 +228,5 @@ export function expandVarFallbacks(text) {
  * @returns {string[]}
  */
 export function varReferenceNames(text) {
-  return [...text.matchAll(/\bvar\(\s*(--[\w-]+)/g)].map((match) => match[1])
+  return [...text.matchAll(/\bvar\(\s*(--[\w-]+)/gi)].map((match) => match[1])
 }

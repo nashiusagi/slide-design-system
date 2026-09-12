@@ -30,6 +30,20 @@ export default {
       messageId: 'rawColor',
     },
     {
+      axis: 'alternate-notation',
+      name: '大文字の VAR(。CSS の関数名は大小を区別しないので、これも変数参照として描画される',
+      code: 'const el = <div style={{ color: "VAR(--my-red)" }} />',
+      expect: 'violation',
+      messageId: 'nonTokenVariable',
+    },
+    {
+      axis: 'alternate-notation',
+      name: '大文字の VAR( のフォールバック。関数名の大小で中身の検査を飛ばせない',
+      code: 'const el = <div style={{ color: "Var(--dh-color-text, #ff0000)" }} />',
+      expect: 'violation',
+      messageId: 'rawColor',
+    },
+    {
       axis: 'value-composition',
       name: 'var() のフォールバック。変数が未定義のとき実際に描かれるのはこの値',
       code: 'const el = <div style={{ color: "var(--dh-color-text, #ff0000)" }} />',
@@ -74,6 +88,18 @@ export default {
       exclusion: 'shorthand-property',
       name: 'ショートハンドは見ない。色でない部分を色として誤検出しないため',
       code: 'const el = <div style={{ background: "#ff0000" }} />',
+      expect: 'ok',
+    },
+    {
+      exclusion: 'attribute-value',
+      name: 'style 以外の属性に書いた色。どの属性が色を運ぶかは component 契約の範囲',
+      code: 'const el = <SlideTitle color="#ff0000" />',
+      expect: 'ok',
+    },
+    {
+      exclusion: 'css-file',
+      name: 'CSS の文字列を JS 側に持っても見ない。CSS ファイルの中身は ESLint の対象外',
+      code: 'const sheet = ".slide-title { color: #ff0000; }"',
       expect: 'ok',
     },
     {

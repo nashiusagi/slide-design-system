@@ -59,19 +59,20 @@ export function readRules() {
  * （`inspection/rule-scope-inconsistent`、DR-0044）。引いてくれば食い違いようが無い。
  * 引かずに書き下ろしていないことは scripts/validate-design.mjs が検査する。
  *
+ * 正本に無いIDでも例外を投げない。投げると、ルール定義の評価時（= プラグインの
+ * import 時）に落ちるため、その状態を報告するために置かれた
+ * checkLintRuleCoverage の「実装しているが design/rules.json に無い」へ到達する前に
+ * 検査全体が止まる。説明を持たないまま返し、報告はその検査に任せる。
+ *
  * @param {string} ruleId
- * @returns {string}
+ * @returns {string | undefined}
  */
 export function descriptionOf(ruleId) {
   const rule = /** @type {{ id: string, description: string }[]} */ (readRules().rules).find(
     (one) => one.id === ruleId,
   )
 
-  if (rule === undefined) {
-    throw new Error(`design/rules.json に '${ruleId}' が無い`)
-  }
-
-  return rule.description
+  return rule?.description
 }
 
 /**

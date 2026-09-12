@@ -19,12 +19,36 @@ import Ajv2020 from 'ajv/dist/2020.js'
 import postcss from 'postcss'
 import selectorParser from 'postcss-selector-parser'
 
-import slidePlugin from '../packages/eslint-plugin-slide/src/index.mjs'
 import { fixturePathFor, loadBypassFixtures } from './lib/bypass-fixtures.mjs'
 import { contrastRatio, isInSrgbGamut } from './lib/color.mjs'
 import { parseDeck } from './lib/deck.mjs'
 import { IMPLEMENTED_MEASURE_RULE_IDS } from './lib/measure-rules.mjs'
 import { resolveManifestFile } from './resolve-design-contract.mjs'
+
+/**
+ * eslint-plugin-slide を読み込む。読めないときに例外を投げっぱなしにしない。
+ *
+ * 各ルールは meta.docs.description を design/rules.json から引く（DR-0044）ため、
+ * 契約とルール実装がずれていると、プラグインの読み込みそのものが例外で失敗する。
+ * 静的 import で受けると、その例外は main() より前に出て、検査結果が1行も出ないまま
+ * 終わる——ずれを報告するために置いた checkLintRuleCoverage の「実装しているが
+ * design/rules.json に無い」が、まさにその状況で実行されない。理由を検査結果の
+ * 1件として並べるため、loadBypassFixtures と同じく null と理由で返す。
+ *
+ * @returns {Promise<{ plugin: any, error: string | null }>}
+ */
+async function loadSlidePlugin() {
+  try {
+    const module = await import('../packages/eslint-plugin-slide/src/index.mjs')
+
+    return { plugin: module.default, error: null }
+  } catch (error) {
+    return {
+      plugin: null,
+      error: `packages/eslint-plugin-slide: 読み込めない: ${/** @type {Error} */ (error).message}`,
+    }
+  }
+}
 
 /** @param {string} relativePath */
 const resolve = (relativePath) => fileURLToPath(new URL(`../${relativePath}`, import.meta.url))
@@ -346,6 +370,27 @@ function hasExpectedReport(one, method) {
 }
 
 /**
+ * 事例が、検査へ実際にかける中身を持っているか。lint は検査するコード、
+ * measure は評価にかける要素データ（records）がそれにあたる。
+ *
+ * 違反を期待する事例は、runner 側が「違反が出ること」を要求するので中身が
+ * 空では通らない。通ることを期待する事例にはその歯止めが無く、空のコードや
+ * 空の records でも「除外を事例で埋めた」ことになってしまう。除外は
+ * 「意図的に見ない領域」の正本であり、その一つひとつが本当に見ないままで
+ * あることを固定するのが事例の役目なので、中身の有無をここで要求する。
+ *
+ * @param {any} one
+ * @param {string} method
+ */
+function hasSubject(one, method) {
+  if (method === 'lint') {
+    return typeof one.code === 'string' && one.code.trim() !== ''
+  }
+
+  return typeof one.records === 'function'
+}
+
+/**
  * design/rules.json の各ルールに bypass フィクスチャがあり、宣言した軸と
  * 除外をすべて事例で埋めているか（DR-0044）。
  *
@@ -369,7 +414,9 @@ function hasExpectedReport(one, method) {
 export function checkBypassFixtureCoverage(rules, loaded, skippedRuleIds) {
   const skipped = new Set(skippedRuleIds)
 
-  return rules.flatMap((rule) => {
+  // review は人が判断し、自動判定を持たない（DR-0011）。機械で実行する事例を
+  // 要求しても走らせる入口が無く、宣言だけの飾りになる。
+  return rules.filter((rule) => rule.method !== 'review').flatMap((rule) => {
     const entry = loaded.get(rule.id)
     const path = fixturePathFor(rule)
 
@@ -433,6 +480,13 @@ export function checkBypassFixtureCoverage(rules, loaded, skippedRuleIds) {
       if (one.expect === 'violation' && !hasExpectedReport(one, rule.method)) {
         problems.push(
           `${label}: 違反を期待する事例には、どの報告になるか（lint は messageId / messageIds、measure は records）が要る`,
+        )
+        continue
+      }
+
+      if (!hasSubject(one, rule.method)) {
+        problems.push(
+          `${label}: 検査にかける中身（lint は code、measure は records）が空。空の事例は宣言を埋めたことにならない`,
         )
         continue
       }
@@ -849,6 +903,7 @@ async function main() {
     }))
 
   const bypassFixtures = await loadBypassFixtures(rules.rules)
+  const slidePlugin = await loadSlidePlugin()
 
   const checks = [
     { name: '契約が JSON Schema を満たす', run: () => checkSchemas() },
@@ -872,7 +927,10 @@ async function main() {
     },
     {
       name: 'design/rules.json の lint ルールと eslint-plugin-slide の実装が対応する',
-      run: () => checkLintRuleCoverage(rules.rules, Object.keys(slidePlugin.rules)),
+      run: () =>
+        slidePlugin.error === null
+          ? checkLintRuleCoverage(rules.rules, Object.keys(slidePlugin.plugin.rules))
+          : [slidePlugin.error],
     },
     {
       name: 'design/rules.json の measure ルールと measure-slides.mjs の実装が対応する',
@@ -880,7 +938,10 @@ async function main() {
     },
     {
       name: 'lint ルールの説明が design/rules.json と一致する',
-      run: () => checkLintRuleDescriptionsMatch(rules.rules, slidePlugin.rules),
+      run: () =>
+        slidePlugin.error === null
+          ? checkLintRuleDescriptionsMatch(rules.rules, slidePlugin.plugin.rules)
+          : [slidePlugin.error],
     },
     {
       name: '検査ルールに bypass フィクスチャがあり、宣言した軸と除外を埋めている',

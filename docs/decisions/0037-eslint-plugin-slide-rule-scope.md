@@ -25,6 +25,8 @@
 - **`component-approved`**: DOM 構造ではなく、契約名（kebab-case を PascalCase へ変換したもの、例: `slide-title` → `SlideTitle`）の**ローカルでの再定義（シャドーイング）**と、契約名を使う箇所の **layout との対応（`allowedIn`）** だけを見る。正規の実装を import して使うことは妨げない。実際の DOM 構造を検査する版は、component の React 実装が入る Issue で改めて検討する
 - **`deck-conformance`**: 対応する deck 契約をファイル名の規則では決めず、ESLint のルールオプション `deck` で明示する。`eslint.config.js` の `files` で対象ファイルを絞り込み、そのブロックで `deck` を指定する（例: `src/App.tsx` ↔ `design/decks/harness-intro.md`）
 
+**この節が述べる「見ない領域」の正本は、[DR-0044](./0044-bypass-fixtures-required.md) 以降 `design/rules.json` の `scopeExclusions` である。** 上の決定はそこへ移してある（`css-file` / `attribute-value` / `keyword-value` / `shorthand-property` / `keyword-color`）。ここに残る記述は、その除外を選んだ理由の説明であって、範囲の定義ではない。範囲を変えるときは `design/rules.json` を変え、除外ごとに「通る」ことを固定する bypass フィクスチャの事例を置く。
+
 ## 理由
 
 - **まだ無い実装を前提にすると、ルールが導入直後から既存コードを壊すか、既存コードに合わせて未決定の設計（component の DOM 構造）を先に固定することになる。** どちらも [DR-0035](./0035-layout-component-contract-shape.md) が「別 Issue が決める」とした境界を、lint 実装の都合で越える

@@ -6,24 +6,29 @@
       "id": "no-raw-color",
       "method": "lint",
       "severity": "error",
-      "description": "JSX の style・色系 props に生の色値（hex / rgb / oklch などのリテラル）を書かない。--dh-* トークン変数の参照だけを許す（DR-0018）。",
+      "description": "JSX の style オブジェクトに生の色値（hex / rgb / oklch などのリテラル）を書かない。--dh-* トークン変数の参照だけを許す（DR-0018）。",
       "bypassAxes": ["alternate-notation", "value-composition", "enumeration-tail"],
       "scopeExclusions": [
         { "id": "keyword-color", "description": "CSS の名前付きキーワード色（red 等）。語彙が広く、変数名や文言との誤検出が増えるため見ない（DR-0037）。" },
         { "id": "shorthand-property", "description": "background / border のようなショートハンド。色以外の値が同じ文字列に混ざり、色でない部分を色として誤検出する。" },
-        { "id": "non-static-value", "description": "変数・式を経由した値。静的に追えないため見ない。追えない書き方を対象にすると、変数を経由するだけで素通りする抜け道を lint 自身が示すことになる。" }
+        { "id": "non-static-value", "description": "変数・式を経由した値。静的に追えないため見ない。追えない書き方を対象にすると、変数を経由するだけで素通りする抜け道を lint 自身が示すことになる。" },
+        { "id": "attribute-value", "description": "style オブジェクト以外の JSX 属性（<Foo color=\"#ff0000\" /> 等）。どの属性がその値を運ぶかは component 契約が決める範囲であり、lint 側に一覧を持つと正本が2つになる（DR-0037）。" },
+        { "id": "css-file", "description": "CSS ファイル（design/layout.css 等）。ESLint に CSS AST パーサが配線されていないため見ない（DR-0037）。" }
       ]
     },
     {
       "id": "no-raw-scale",
       "method": "lint",
       "severity": "error",
-      "description": "JSX の style・長さ系 props に生の長さリテラルを書かない。単位ではなくリテラルか変数参照かで判定する。noRawScale.allowedLiterals に列挙した値は例外として許す（DR-0011）。",
+      "description": "JSX の style オブジェクトに生の長さリテラルを書かない。単位ではなくリテラルか変数参照かで判定する。noRawScale.allowedLiterals に列挙した値は例外として許す（DR-0011）。",
       "bypassAxes": ["alternate-notation", "value-composition", "boundary", "enumeration-tail"],
       "scopeExclusions": [
         { "id": "unitless-property", "description": "opacity / zIndex / flexGrow のように値が長さでないプロパティ。長さでない数値を生の長さリテラルとして誤検出する。" },
-        { "id": "calc-composition", "description": "calc() によるトークンの合成。現状のコードベースに使用例が無く、許すか禁じるかを決めていない。" },
-        { "id": "non-static-value", "description": "変数・式を経由した値。no-raw-color と同じ理由で見ない。" }
+        { "id": "keyword-value", "description": "'center' / 'flex' のようなキーワード値。長さに見えない値まで対象にすると、長さでない値を生の長さリテラルとして誤って報告する。" },
+        { "id": "calc-composition", "description": "calc() の内側。トークンの合成か生の長さかを問わず見ない。許すか禁じるかを決めていない。" },
+        { "id": "non-static-value", "description": "変数・式を経由した値。no-raw-color と同じ理由で見ない。" },
+        { "id": "attribute-value", "description": "style オブジェクト以外の JSX 属性（<Foo width=\"320px\" /> 等）。どの属性がその値を運ぶかは component 契約が決める範囲であり、lint 側に一覧を持つと正本が2つになる（DR-0037）。" },
+        { "id": "css-file", "description": "CSS ファイル（design/layout.css 等）。ESLint に CSS AST パーサが配線されていないため見ない（DR-0037）。" }
       ]
     },
     {

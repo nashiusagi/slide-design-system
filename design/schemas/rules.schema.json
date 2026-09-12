@@ -15,7 +15,20 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "method", "severity", "description", "bypassAxes", "scopeExclusions"],
+        "required": ["id", "method", "severity", "description"],
+        "allOf": [
+          {
+            "$comment": "review は人が判断し、自動判定を持たない（DR-0011）。機械で実行する bypass フィクスチャを要求しても走らせる入口が無いため、宣言そのものを求めない（DR-0044）。制約の本体は下の properties にある。",
+            "if": {
+              "required": ["method"],
+              "properties": { "method": { "not": { "const": "review" } } }
+            },
+            "then": {
+              "required": ["bypassAxes", "scopeExclusions"],
+              "properties": { "bypassAxes": {}, "scopeExclusions": {} }
+            }
+          }
+        ],
         "properties": {
           "id": { "type": "string", "pattern": "^[a-z]+(-[a-z]+)*$" },
           "method": {

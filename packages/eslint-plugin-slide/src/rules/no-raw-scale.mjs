@@ -4,10 +4,7 @@
  * 単位ではなく「リテラルか、トークン変数（`var(--dh-*)`）への参照か」で判定する
  * （DR-0011: 単位で判定すると rem / em / % 等の単位を変えるだけで素通りする）。
  *
- * 対象は「数値そのもの、または単位付きの数値」に見える値だけに絞る
- * （NUMERIC_LENGTH）。'center' / 'flex' のようなキーワード値まで対象にすると、
- * 長さではない値を「生の長さリテラル」と誤って報告することになる。色のような
- * 他の生値は no-raw-color が持つ。
+ * 対象は「数値そのもの、または単位付きの数値」に見える値だけに絞る（NUMERIC_LENGTH）。
  *
  * **このルールが意図的に見ない領域は design/rules.json の scopeExclusions が
  * 正本**（DR-0044）。ここに書き写さない。
@@ -38,6 +35,8 @@ const UNITLESS_PROPERTIES = new Set([
   'zoom',
 ])
 
+// CSS の単位は ASCII の大小を区別しない（`16PX` も `16px` として描画される）。
+// 判定の前に小文字へ寄せるので、パターン側は小文字だけを列挙する。
 const NUMERIC_LENGTH = /^-?\d+(\.\d+)?(px|rem|em|vh|vw|vmin|vmax|pt|ch|%)?$/
 
 /**
@@ -90,7 +89,11 @@ const rule = {
     },
   },
   create(context) {
-    const allowedLiterals = new Set(readRules().noRawScale.allowedLiterals)
+    // 許容リストも小文字へ寄せて持つ。判定する値だけを正規化すると、
+    // 許容された値を大文字の単位で書いたとき（`1PX`）に違反として報告される。
+    const allowedLiterals = new Set(
+      readRules().noRawScale.allowedLiterals.map((/** @type {string} */ one) => one.toLowerCase()),
+    )
 
     return {
       /** @param {any} node */
@@ -112,7 +115,9 @@ const rule = {
           const trimmed = expandVarFallbacks(text).trim()
 
           for (const token of splitTopLevelTokens(trimmed)) {
-            if (!NUMERIC_LENGTH.test(token) || allowedLiterals.has(token)) {
+            const normalized = token.toLowerCase()
+
+            if (!NUMERIC_LENGTH.test(normalized) || allowedLiterals.has(normalized)) {
               continue
             }
 

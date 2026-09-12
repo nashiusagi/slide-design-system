@@ -738,6 +738,53 @@ describe('checkBypassFixtureCoverage', () => {
     expect(found[0]).toContain('expect: \'ok\'')
   })
 
+  it('通ることを期待する事例のコードが空文字であることを捕まえる（lint）', () => {
+    const found = checkBypassFixtureCoverage(
+      [rule],
+      loadedWith([
+        completeCases[0],
+        { exclusion: 'keyword-color', name: '中身の無い除外の事例', code: '', expect: 'ok' },
+      ]),
+      [],
+    )
+
+    expect(found).toHaveLength(2)
+    expect(found[0]).toContain('検査にかける中身')
+    expect(found[1]).toContain('keyword-color')
+  })
+
+  it('通ることを期待する事例が records を持たないことを捕まえる（measure）', () => {
+    const measureRule = {
+      id: 'contrast',
+      method: 'measure',
+      bypassAxes: ['boundary'],
+      scopeExclusions: [{ id: 'no-direct-text' }],
+    }
+    const found = checkBypassFixtureCoverage(
+      [measureRule],
+      new Map([
+        [
+          'contrast',
+          {
+            fixture: {
+              cases: [
+                { axis: 'boundary', name: '割ると落ちる', expect: 'violation', records: () => [{}] },
+                { axis: 'boundary', name: 'ちょうどは通る', expect: 'ok', records: () => [{}] },
+                { exclusion: 'no-direct-text', name: '中身の無い除外の事例', expect: 'ok' },
+              ],
+            },
+            error: null,
+          },
+        ],
+      ]),
+      [],
+    )
+
+    expect(found).toHaveLength(2)
+    expect(found[0]).toContain('検査にかける中身')
+    expect(found[1]).toContain('no-direct-text')
+  })
+
   it('契約に宣言の無い軸を事例が使っていることを捕まえる', () => {
     const found = checkBypassFixtureCoverage(
       [rule],
