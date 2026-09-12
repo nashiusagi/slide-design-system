@@ -1,5 +1,6 @@
 /**
- * 正本の値・一覧が、正本を参照できない散文へ写されていないかを検査する（DR-0046）。
+ * 正本の値・一覧・対応表が、正本を参照できない文書へ写されていないかを検査する
+ * （DR-0046）。
  *
  *   node scripts/check-canonical-duplication.mjs
  *
@@ -9,31 +10,29 @@
  *
  * skills/slide-harness/SKILL.md に対する「文章」の複製（layout の役割説明、rule の
  * description、DESIGN.md の行）は、引き続き validate-design.mjs の
- * checkSkillNoDesignDataDuplication が持つ。こちらが持つのは値と一覧で、判定の形が
- * 違う（DR-0046 の却下案）。両者の守備範囲を混ぜない。
+ * checkSkillNoDesignDataDuplication が持つ。あちらは色の値も見るため、SKILL.md の色は
+ * 両方の検査が報告する（DR-0046 の却下案）。こちらが持つのは値・一覧・対応表で、
+ * 対象ファイルも判定の形も違う。
  *
  * 検出する値・一覧はこのファイルに列挙しない。実行時に正本を読んで組み立てる。
  * 列挙すれば、この検査自身が禁じている複製になる。
  */
 import { readdirSync, readFileSync } from 'node:fs'
-import { extname, join } from 'node:path'
-import { pathToFileURL } from 'node:url'
+import { dirname, extname, join, resolve as resolvePath } from 'node:path'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import { collectFiles, escapeForRegExp } from './lib/fs-walk.mjs'
 
 /**
- * リポジトリの根。`pnpm` 経由で実行するとき、作業ディレクトリは package.json の
- * 置き場所（= リポジトリの根）になる。
- *
- * 他のスクリプトは `import.meta.url` から根を求めているが、この検査だけは cwd を使う。
- * 走査対象が空でないことをテストで固定する必要があり（対象の取りこぼしは「壊れていても
- * 緑」を作る）、テストは vitest の変換を通る。変換後の `import.meta.url` は file URL では
- * なくなるため、そこから根を求めると実行時とテストで別の場所を指す。
+ * このファイルから見たリポジトリルート。`scripts/` から1階層上。
+ * `scripts/lib/bypass-fixtures.mjs` の `REPO_ROOT` と同じ求め方で、vitest から
+ * 読み込んだときも同じ場所を指す（`new URL(<相対パス>, import.meta.url)` の方は
+ * Vite のアセット変換に食われるため使わない）。
  */
-const ROOT = process.cwd()
+const REPO_ROOT = resolvePath(dirname(fileURLToPath(import.meta.url)), '..')
 
 /** @param {string} relativePath */
-const resolve = (relativePath) => join(ROOT, relativePath)
+const resolve = (relativePath) => join(REPO_ROOT, relativePath)
 
 /** @param {string} relativePath */
 const readJson = (relativePath) => JSON.parse(readFileSync(resolve(relativePath), 'utf8'))
@@ -42,15 +41,21 @@ const readJson = (relativePath) => JSON.parse(readFileSync(resolve(relativePath)
  * 走査する場所。正本を参照できない文書、すなわち「値を書き写したくなる場所」を挙げる。
  * ここがこの一覧の唯一の在り処で、README や DR へ写さない。
  *
- * docs/reviews/ は走査しない。レビュー記録は過去の指摘を引用するために値を含むのが
- * 正常で、かつ書き換えない履歴だからだ（DR-0046 帰結）。
+ * `design/` 自身は走査しない。正本が正本の値を持つのは複製ではない。
+ * `docs/reviews/` も走査しない。レビュー記録は過去の指摘を引用するために値を含むのが
+ * 正常で、かつ書き換えない履歴だからだ（DR-0046 帰結）。実験の記録（`experiments/` の
+ * Run 採点結果）も履歴だが、同じ場所に AI へ渡すお題も置かれているため、ディレクトリ
+ * ごと走査対象に入れ、記録の側を例外リストで扱う。
  */
 export const SCAN_ROOTS = [
   { path: 'README.md', extensions: ['.md'], exclude: [] },
   { path: 'DESIGN.md', extensions: ['.md'], exclude: [] },
+  { path: 'scripts/README.md', extensions: ['.md'], exclude: [] },
+  { path: 'packages/README.md', extensions: ['.md'], exclude: [] },
   { path: 'docs', extensions: ['.md'], exclude: ['docs/reviews/'] },
   { path: '.claude/skills', extensions: ['.md'], exclude: [] },
   { path: 'skills', extensions: ['.md'], exclude: [] },
+  { path: 'experiments', extensions: ['.md'], exclude: [] },
   { path: 'src/docs', extensions: ['.ts', '.tsx', '.css'], exclude: [] },
 ]
 
@@ -62,10 +67,16 @@ export const MIN_REASON_LENGTH = 20
  * 散文の普通の語と衝突するため、値としての一致を見ない。単位付きの値（`1px` /
  * `100%`）はこの下限を免除する（単位が付いている時点で値として書かれている）。
  */
-const MIN_LITERAL_LENGTH = 6
+export const MIN_LITERAL_LENGTH = 6
 
 /** 数値＋単位の形か。`1px` / `100%` を指す。 */
 const UNIT_LITERAL = /^\d+(\.\d+)?(px|%)$/
+
+/**
+ * 数値に続く単位として見る記法。ここに無い単位（`em` / `pt` / 日本語の「ピクセル」）は
+ * 検出しない。塞げていない形として DR-0046 の帰結に挙げてある。
+ */
+const UNITS = 'px|%'
 
 /**
  * `value` を、語の途中では一致しない正規表現にする。
@@ -84,30 +95,42 @@ function boundedPattern(value) {
 }
 
 /**
+ * 行に含まれるインラインコードの中身を返す。バックティックの対を跨いで一致させないため、
+ * 行全体への正規表現ではなくスパンを切り出してから中を見る。`` `a` 18 `b` `` の 18 は
+ * どのスパンにも入らない。
+ *
+ * @param {string} line
+ * @returns {string[]}
+ */
+export function codeSpans(line) {
+  return [...line.matchAll(/`([^`\n]+)`/g)].map((matched) => matched[1])
+}
+
+/**
  * 正本の値を集める。返すのは「散文に現れたら複製と見なす形」まで含んだ照合器で、
  * 値そのものの一覧ではない。
  *
- * 判定する形を3つに絞る理由は DR-0046 の決定2にある。単位もインラインコードも
- * 伴わない裸の数値は、既知の抜け道として検出しない。
+ * 判定する形を絞る理由は DR-0046 の決定2にある。単位もインラインコードも伴わない
+ * 裸の数値は、既知の抜け道として検出しない。
  *
  * @param {{ tokens: any, rules: any }} canonical
- * @returns {{ target: string, value: string, patterns: RegExp[] }[]}
+ * @returns {{ targets: string[], value: string, matches: (line: string) => boolean }[]}
  */
 export function collectCanonicalValues({ tokens, rules }) {
-  /** @type {Map<string, { value: string, patterns: RegExp[], targets: string[] }>} */
+  /** @type {Map<string, { value: string, matches: (line: string) => boolean, targets: string[] }>} */
   const collected = new Map()
 
   /**
    * @param {string} key 値の種類と値を合わせた重複排除キー
    * @param {string} value
-   * @param {string[]} patterns
+   * @param {(line: string) => boolean} matches
    * @param {string} target
    */
-  const add = (key, value, patterns, target) => {
+  const add = (key, value, matches, target) => {
     const existing = collected.get(key)
 
     if (existing === undefined) {
-      collected.set(key, { value, patterns: patterns.map((source) => new RegExp(source)), targets: [target] })
+      collected.set(key, { value, matches, targets: [target] })
 
       return
     }
@@ -119,6 +142,7 @@ export function collectCanonicalValues({ tokens, rules }) {
 
   /**
    * 文字列の値。色・書体・影のように、偶然一致しない形をそのまま見る。
+   * `MIN_LITERAL_LENGTH` に満たない短い値は、散文の普通の語と衝突するため見ない。
    *
    * @param {string} value
    * @param {string} target
@@ -128,7 +152,9 @@ export function collectCanonicalValues({ tokens, rules }) {
       return
     }
 
-    add(`text:${value}`, value, [boundedPattern(value)], target)
+    const pattern = new RegExp(boundedPattern(value))
+
+    add(`text:${value}`, value, (line) => pattern.test(line), target)
   }
 
   /**
@@ -139,72 +165,77 @@ export function collectCanonicalValues({ tokens, rules }) {
    * @param {string} target
    */
   const addNumber = (value, target) => {
-    const literal = escapeForRegExp(String(value))
+    const literal = String(value)
+    const withUnit = new RegExp(`(?<![\\w.-])${escapeForRegExp(literal)}\\s?(${UNITS})(?![\\w-])`)
 
     add(
-      `number:${value}`,
-      String(value),
-      [`(?<![\\w.-])${literal}\\s?(px|%)(?![\\w-])`, '`\\s*' + literal + '\\s*`'],
+      `number:${literal}`,
+      literal,
+      (line) => withUnit.test(line) || codeSpans(line).some((span) => span.trim() === literal),
       target,
     )
   }
 
   /**
-   * トークンの木を辿る。`$` で始まるキーは説明と算出値で、トークンではない
+   * 契約の木を辿って値を集める。`$` で始まるキーは説明と算出値で、トークンではない
    * （scripts/generate-theme.mjs の flatten と同じ判定）。算出値（`$measured`）は
    * 書き写されると「検証済み」の誤った合図になるため、こちらは対象に含める。
    *
+   * 文字列を拾うかどうかは呼び出し側が決める。`design/rules.json` の文字列は説明文
+   * （description）や役割名で、値ではなく文章の複製として扱う領分だからだ。
+   *
    * @param {any} node
    * @param {string[]} path
+   * @param {{ file: string, skipKeys?: string[], withText: boolean }} options
    */
-  const walkTokens = (node, path) => {
+  const walkContract = (node, path, options) => {
     for (const [key, value] of Object.entries(node)) {
-      if (key.startsWith('$') && key !== '$measured') {
+      if ((key.startsWith('$') && key !== '$measured') || options.skipKeys?.includes(key)) {
         continue
       }
 
       const nextPath = [...path, key]
-      const target = `design/tokens.json の ${nextPath.join('.')}`
+      const target = `${options.file} の ${nextPath.join('.')}`
 
       if (typeof value === 'object' && value !== null) {
-        walkTokens(value, nextPath)
+        walkContract(value, nextPath, options)
       } else if (typeof value === 'number') {
         addNumber(value, target)
-      } else if (typeof value === 'string') {
+      } else if (typeof value === 'string' && options.withText) {
         addText(value, target)
       }
     }
   }
 
-  walkTokens(tokens, [])
+  walkContract(tokens, [], { file: 'design/tokens.json', withText: true })
 
-  for (const requirement of rules.contrast.requirements) {
-    addNumber(requirement.minimum, 'design/rules.json の contrast.requirements[].minimum')
-  }
-
-  addNumber(rules.minFontSize.px, 'design/rules.json の minFontSize.px')
-  addNumber(rules.noOverflow.toleranceInPx, 'design/rules.json の noOverflow.toleranceInPx')
+  /*
+   * rules.json は数値だけを木ごと拾う。閾値を足せば検出対象も増える。`rules` 配列は
+   * ルール定義そのもの（id / description / 宣言）で、値ではないため辿らない。id の
+   * 一覧は collectCanonicalLists が持つ。
+   */
+  walkContract(rules, [], { file: 'design/rules.json', skipKeys: ['rules'], withText: false })
 
   for (const literal of rules.noRawScale.allowedLiterals) {
     addText(literal, 'design/rules.json の noRawScale.allowedLiterals')
   }
 
   /*
-   * キャンバス寸法は `1280x720` の対で書き写される。幅と高さを別々の数値として見るだけ
-   * では、この形（単位もインラインコードも伴わない）が素通りする。
+   * キャンバス寸法は対で書き写される。幅と高さを別々の数値として見るだけでは、
+   * この形（単位もインラインコードも伴わない）が素通りする。
    */
+  const canvasPair = new RegExp(
+    `(?<![\\w.-])${tokens.canvas.width}\\s*[x×*]\\s*${tokens.canvas.height}(?![\\w-])`,
+  )
+
   add(
     `pair:${tokens.canvas.width}x${tokens.canvas.height}`,
     `${tokens.canvas.width}x${tokens.canvas.height}`,
-    [`(?<![\\w.-])${tokens.canvas.width}\\s*[x×*]\\s*${tokens.canvas.height}(?![\\w-])`],
+    (line) => canvasPair.test(line),
     'design/tokens.json の canvas',
   )
 
-  return [...collected.values()].map(({ value, patterns, targets }) => ({
-    target: targets.join(' / '),
-    value,
-    patterns,
-  }))
+  return [...collected.values()]
 }
 
 /**
@@ -225,18 +256,26 @@ export function collectCanonicalLists({ layouts, components, rules }) {
 }
 
 /**
- * 正本の対応表を集める。`allowedIn` / `slots` は component 名と layout 名の対で、
- * 一覧としてではなく表として写される（`contract/contract-structure-duplicated`）。
+ * 正本の対応表を集める。`allowedIn`（= layout 側の `slots`、DR-0035）は component 名と
+ * layout 名の対で、一覧としてではなく表として写される
+ * （`contract/contract-structure-duplicated`）。
  *
- * @param {{ layouts: any[], components: any[] }} canonical
- * @returns {{ target: string, left: string[], right: string[] }[]}
+ * component と layout が同名の対（`statement`）は持たない。1つの語が両側を兼ねるため、
+ * その語に触れた行がすべて「対応を書いた行」になり、対応表でない箇条書きを報告して
+ * しまう。同名の対は、この判定では見ないものとして扱う。
+ *
+ * @param {{ components: any[] }} canonical
+ * @returns {{ target: string, pairs: { component: string, layout: string }[] }[]}
  */
-export function collectCanonicalPairings({ layouts, components }) {
+export function collectCanonicalPairings({ components }) {
   return [
     {
       target: 'design/components/ の allowedIn 対応表',
-      left: components.map((component) => component.name),
-      right: layouts.map((layout) => layout.name),
+      pairs: components.flatMap((component) =>
+        component.allowedIn
+          .filter((/** @type {string} */ layoutName) => layoutName !== component.name)
+          .map((/** @type {string} */ layoutName) => ({ component: component.name, layout: layoutName })),
+      ),
     },
   ]
 }
@@ -246,26 +285,31 @@ export function collectCanonicalPairings({ layouts, components }) {
  *
  * @param {string} path
  * @param {string} source
- * @param {{ target: string, value: string, patterns: RegExp[] }[]} values
- * @returns {{ path: string, line: number, target: string, message: string }[]}
+ * @param {{ targets: string[], value: string, matches: (line: string) => boolean }[]} values
+ * @returns {{ path: string, line: number, targets: string[], message: string }[]}
  */
 export function findValueDuplications(path, source, values) {
   return source.split('\n').flatMap((line, index) =>
     values
-      .filter(({ patterns }) => patterns.some((pattern) => pattern.test(line)))
-      .map(({ target, value }) => ({
+      .filter(({ matches }) => matches(line))
+      .map(({ targets, value }) => ({
         path,
         line: index + 1,
-        target,
-        message: `${path}:${index + 1}: ${target}（${value}）がそのまま書かれている`,
+        targets,
+        message: `${path}:${index + 1}: ${targets.join(' / ')}（${value}）がそのまま書かれている`,
       })),
   )
 }
 
+/** 箇条書き・表の行か。番号は `1.` と `1)` の両方、表は先頭のパイプを省いた形も見る。 */
+const ENUMERATION_LINE = /^\s*([-*+]\s|\d+[.)]\s|\|)|\s\|\s/
+
 /**
- * 連続する箇条書き・表の行をブロックとして切り出す。区切り行（`|---|`）は
- * ブロックを切らない。ブロックの外に散った言及は複製ではないため、行単位ではなく
- * ブロック単位で数える。
+ * 連続する箇条書き・表の行をブロックとして切り出す。
+ *
+ * 空行ではブロックを切らない。項目のあいだに空行を入れた箇条書き（loose list）は
+ * Markdown としては1つの箇条書きで、切ってしまうと空行を1つ入れるだけで検査を
+ * 抜けられる。切るのは、箇条書きでも表でもない中身のある行が来たときだけ。
  *
  * @param {string[]} lines
  * @returns {{ start: number, lines: { number: number, text: string }[] }[]}
@@ -284,9 +328,9 @@ function enumerationBlocks(lines) {
   }
 
   lines.forEach((text, index) => {
-    if (/^\s*([-*+]\s|\d+\.\s|\|)/.test(text)) {
+    if (ENUMERATION_LINE.test(text)) {
       current.push({ number: index + 1, text })
-    } else {
+    } else if (text.trim() !== '') {
       flush()
     }
   })
@@ -308,7 +352,7 @@ const itemPattern = (item) => new RegExp(`(?<![\\w-])${escapeForRegExp(item)}(?!
  * @param {string} path
  * @param {string} source
  * @param {{ target: string, items: string[] }[]} lists
- * @returns {{ path: string, line: number, target: string, message: string }[]}
+ * @returns {{ path: string, line: number, targets: string[], message: string }[]}
  */
 export function findStructureDuplications(path, source, lists) {
   const lines = source.split('\n')
@@ -331,7 +375,7 @@ export function findStructureDuplications(path, source, lists) {
         {
           path,
           line: start,
-          target,
+          targets: [target],
           message: `${path}:${start}: ${target}が表・箇条書きへ写されている（${[...found].join(' / ')}）`,
         },
       ]
@@ -345,7 +389,7 @@ export function findStructureDuplications(path, source, lists) {
             {
               path,
               line: index + 1,
-              target,
+              targets: [target],
               message: `${path}:${index + 1}: ${target}が1行へ写されている（${items.join(' / ')}）`,
             },
           ]
@@ -357,26 +401,29 @@ export function findStructureDuplications(path, source, lists) {
 }
 
 /**
- * 散文に現れた正本の対応表を報告する。左右の名前が同じ行に並ぶ行が、同じブロックに
- * 2行以上あれば対応表の複製と見なす。
+ * 散文に現れた正本の対応表を報告する。正本にある対（component 名とその `allowedIn` の
+ * layout 名）が同じ行に並ぶ行が、同じブロックに2行以上あり、対が2種類以上あれば
+ * 対応表の複製と見なす。同じ対が繰り返されているだけの箇条書きは報告しない。
  *
  * @param {string} path
  * @param {string} source
- * @param {{ target: string, left: string[], right: string[] }[]} pairings
- * @returns {{ path: string, line: number, target: string, message: string }[]}
+ * @param {{ target: string, pairs: { component: string, layout: string }[] }[]} pairings
+ * @returns {{ path: string, line: number, targets: string[], message: string }[]}
  */
 export function findPairingDuplications(path, source, pairings) {
   const blocks = enumerationBlocks(source.split('\n'))
 
-  return pairings.flatMap(({ target, left, right }) =>
+  return pairings.flatMap(({ target, pairs }) =>
     blocks.flatMap(({ start, lines: blockLines }) => {
-      const pairedLines = blockLines.filter(
-        ({ text }) =>
-          left.some((item) => itemPattern(item).test(text)) &&
-          right.some((item) => itemPattern(item).test(text)),
+      const pairsIn = (/** @type {string} */ text) =>
+        pairs.filter((pair) => itemPattern(pair.component).test(text) && itemPattern(pair.layout).test(text))
+
+      const pairedLines = blockLines.filter(({ text }) => pairsIn(text).length > 0)
+      const found = new Set(
+        pairedLines.flatMap(({ text }) => pairsIn(text).map((pair) => `${pair.component} → ${pair.layout}`)),
       )
 
-      if (pairedLines.length < 2) {
+      if (pairedLines.length < 2 || found.size < 2) {
         return []
       }
 
@@ -384,8 +431,8 @@ export function findPairingDuplications(path, source, pairings) {
         {
           path,
           line: start,
-          target,
-          message: `${path}:${start}: ${target}が表・箇条書きへ写されている（${pairedLines.length} 行）`,
+          targets: [target],
+          message: `${path}:${start}: ${target}が表・箇条書きへ写されている（${[...found].join(' / ')}）`,
         },
       ]
     }),
@@ -421,46 +468,79 @@ export function checkAllowlistShape(allowlist) {
       ]
     }
 
+    if (!Number.isInteger(entry?.count) || entry.count < 1) {
+      return [
+        `${where}（${entry.path} / ${entry.target}）: count が無いか1以上の整数でない（この例外が抑える報告の件数を書く）`,
+      ]
+    }
+
     return []
   })
 }
 
 /**
- * 例外リストを当てる。使われていないエントリは報告する。正本や文書を直した後に
- * 例外だけが残ると、次の複製をその例外が黙って通す。
+ * 例外リストを当てる。
  *
- * @param {{ path: string, line: number, target: string, message: string }[]} problems
- * @param {{ path: string, target: string, reason: string }[]} allowed
- * @returns {{ remaining: string[], unused: string[] }}
+ * エントリは抑える件数（`count`）を持ち、実際に抑えた件数がそれと違えば報告する。
+ * 件数を見ないと、1つのエントリが同じファイルの同じ正本についての新しい複製を
+ * いくつでも黙って飲み込む。使われていないエントリも同じ理由で報告する。正本や文書を
+ * 直した後に例外だけが残ると、次の複製をその例外が黙って通す。
+ *
+ * @param {{ path: string, line: number, targets: string[], message: string }[]} problems
+ * @param {{ path: string, target: string, reason: string, count: number }[]} allowed
+ * @returns {{ remaining: string[], mismatched: string[] }}
  */
 export function applyAllowlist(problems, allowed) {
-  const used = new Set()
+  /** @type {number[]} */
+  const suppressed = allowed.map(() => 0)
 
   const remaining = problems
     .filter((problem) => {
       const index = allowed.findIndex(
-        (entry) => entry.path === problem.path && entry.target === problem.target,
+        (entry) => entry.path === problem.path && problem.targets.includes(entry.target),
       )
 
       if (index === -1) {
         return true
       }
 
-      used.add(index)
+      suppressed[index] += 1
 
       return false
     })
     .map((problem) => problem.message)
 
-  const unused = allowed.flatMap((entry, index) =>
-    used.has(index)
-      ? []
-      : [
-          `scripts/canonical-duplication-allowlist.json: 使われていない例外がある（${entry.path} / ${entry.target}）。複製が解消したなら削除する`,
-        ],
-  )
+  const mismatched = allowed.flatMap((entry, index) => {
+    const actual = suppressed[index]
 
-  return { remaining, unused }
+    if (actual === entry.count) {
+      return []
+    }
+
+    const where = `scripts/canonical-duplication-allowlist.json（${entry.path} / ${entry.target}）`
+
+    return actual === 0
+      ? [`${where}: 使われていない例外がある。複製が解消したなら削除する`]
+      : [
+          `${where}: 例外が抑えた件数（${actual}）が count（${entry.count}）と違う。増えたなら複製を直し、減ったなら count を下げる`,
+        ]
+  })
+
+  return { remaining, mismatched }
+}
+
+/**
+ * ディレクトリにある契約ファイルを、ファイル名順に読む。一覧をどこにも列挙しないため、
+ * 本体もテストもこれを通して正本から数える。
+ *
+ * @param {string} directory
+ * @returns {any[]}
+ */
+export function readContractsIn(directory) {
+  return readdirSync(resolve(directory))
+    .filter((name) => name.endsWith('.json'))
+    .sort()
+    .map((name) => readJson(join(directory, name)))
 }
 
 /**
@@ -483,39 +563,37 @@ export function collectScanTargets() {
   })
 }
 
-/** @param {string} directory */
-const readContractsIn = (directory) =>
-  readdirSync(resolve(directory))
-    .filter((name) => name.endsWith('.json'))
-    .sort()
-    .map((name) => readJson(join(directory, name)))
-
-function main() {
-  const tokens = readJson('design/tokens.json')
-  const rules = readJson('design/rules.json')
-  const layouts = readContractsIn('design/layouts')
-  const components = readContractsIn('design/components')
-  const allowlist = readJson('scripts/canonical-duplication-allowlist.json')
-
-  const values = collectCanonicalValues({ tokens, rules })
-  const lists = collectCanonicalLists({ layouts, components, rules })
-  const pairings = collectCanonicalPairings({ layouts, components })
-  const targets = collectScanTargets()
-
+/**
+ * 検査の本体。正本・走査対象・例外リストを引数で受け取り、報告だけを返す。
+ *
+ * 読み込みと出力を持たないので、例外リストの形が壊れているときに例外を1件も
+ * 当てないことまでテストで固定できる。この結線が緩むと、理由を書かずに検査を
+ * 黙らせる経路ができる。
+ *
+ * @param {{
+ *   values: { targets: string[], value: string, matches: (line: string) => boolean }[],
+ *   lists: { target: string, items: string[] }[],
+ *   pairings: { target: string, pairs: { component: string, layout: string }[] }[],
+ *   targets: { path: string, source: string }[],
+ *   allowlist: any,
+ * }} input
+ * @returns {{ checks: { name: string, problems: string[] }[], problems: string[] }}
+ */
+export function collectProblems({ values, lists, pairings, targets, allowlist }) {
   const shapeProblems = checkAllowlistShape(allowlist)
 
-  const checks = [
+  const found = [
     {
-      name: '正本の値が散文へ複製されていない',
-      found: targets.flatMap(({ path, source }) => findValueDuplications(path, source, values)),
+      name: '正本の値が他の文書へ複製されていない',
+      problems: targets.flatMap(({ path, source }) => findValueDuplications(path, source, values)),
     },
     {
-      name: '正本の一覧が散文へ複製されていない',
-      found: targets.flatMap(({ path, source }) => findStructureDuplications(path, source, lists)),
+      name: '正本の一覧が他の文書へ複製されていない',
+      problems: targets.flatMap(({ path, source }) => findStructureDuplications(path, source, lists)),
     },
     {
-      name: '正本の対応表が散文へ複製されていない',
-      found: targets.flatMap(({ path, source }) => findPairingDuplications(path, source, pairings)),
+      name: '正本の対応表が他の文書へ複製されていない',
+      problems: targets.flatMap(({ path, source }) => findPairingDuplications(path, source, pairings)),
     },
   ]
 
@@ -523,21 +601,40 @@ function main() {
    * 例外リストの形が壊れているときは、例外を1件も当てない。壊れた例外を当てたまま
    * 緑を返すと、理由を書かずに検査を黙らせる経路になる。
    */
-  const { remaining, unused } = applyAllowlist(
-    checks.flatMap(({ found }) => found),
+  const { remaining, mismatched } = applyAllowlist(
+    found.flatMap(({ problems }) => problems),
     shapeProblems.length === 0 ? allowlist.allowed : [],
   )
 
   const remainingMessages = new Set(remaining)
-  const problems = [...shapeProblems, ...remaining, ...unused]
 
-  for (const { name, found } of checks) {
-    const left = found.filter(({ message }) => remainingMessages.has(message))
-
-    console.log(`${left.length === 0 ? 'ok  ' : 'NG  '}${name}`)
+  return {
+    checks: [
+      ...found.map(({ name, problems }) => ({
+        name,
+        problems: problems.map(({ message }) => message).filter((message) => remainingMessages.has(message)),
+      })),
+      { name: '例外リストが理由と件数を持ち、すべて使われている', problems: [...shapeProblems, ...mismatched] },
+    ],
+    problems: [...shapeProblems, ...remaining, ...mismatched],
   }
+}
 
-  console.log(`${shapeProblems.length === 0 && unused.length === 0 ? 'ok  ' : 'NG  '}例外リストが理由を持ち、すべて使われている`)
+function main() {
+  const rules = readJson('design/rules.json')
+  const components = readContractsIn('design/components')
+
+  const { checks, problems } = collectProblems({
+    values: collectCanonicalValues({ tokens: readJson('design/tokens.json'), rules }),
+    lists: collectCanonicalLists({ layouts: readContractsIn('design/layouts'), components, rules }),
+    pairings: collectCanonicalPairings({ components }),
+    targets: collectScanTargets(),
+    allowlist: readJson('scripts/canonical-duplication-allowlist.json'),
+  })
+
+  for (const { name, problems: perCheck } of checks) {
+    console.log(`${perCheck.length === 0 ? 'ok  ' : 'NG  '}${name}`)
+  }
 
   if (problems.length > 0) {
     console.error(`\n${problems.join('\n')}`)
