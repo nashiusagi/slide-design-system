@@ -52,6 +52,30 @@ export function readRules() {
 }
 
 /**
+ * ルールの説明を design/rules.json から引く。
+ *
+ * ルール実装の `meta.docs.description` に説明を書き下ろすと、同じルールの守備範囲を
+ * 述べる場所が正本と実装の2つになり、片方だけ書き換わったときに食い違う
+ * （`inspection/rule-scope-inconsistent`、DR-0044）。引いてくれば食い違いようが無い。
+ * 引かずに書き下ろしていないことは scripts/validate-design.mjs が検査する。
+ *
+ * 正本に無いIDでも例外を投げない。投げると、ルール定義の評価時（= プラグインの
+ * import 時）に落ちるため、その状態を報告するために置かれた
+ * checkLintRuleCoverage の「実装しているが design/rules.json に無い」へ到達する前に
+ * 検査全体が止まる。説明を持たないまま返し、報告はその検査に任せる。
+ *
+ * @param {string} ruleId
+ * @returns {string | undefined}
+ */
+export function descriptionOf(ruleId) {
+  const rule = /** @type {{ id: string, description: string }[]} */ (readRules().rules).find(
+    (one) => one.id === ruleId,
+  )
+
+  return rule?.description
+}
+
+/**
  * kebab-case の契約名を、JSX で使う PascalCase の component 名へ変える。
  * `slide-title` → `SlideTitle`。
  *

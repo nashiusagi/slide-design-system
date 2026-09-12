@@ -19,9 +19,8 @@ describe('no-raw-color', () => {
         'const el = <div style={{ backgroundColor: "var(--dh-color-surface)" }} />',
         // 色以外のプロパティは対象外。
         'const el = <div style={{ padding: "16px" }} />',
-        // 静的に読めない値（変数経由）は対象外。
+        // style 自体が変数（spread 相当）で、プロパティを静的に読めない。
         'const el = <div style={colorStyles} />',
-        'const el = <div style={{ color: dynamicColor }} />',
         // style 自体が無い。
         'const el = <div />',
       ],

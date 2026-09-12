@@ -78,7 +78,9 @@ pnpm check            # design:check → theme:check → typecheck → lint → 
 
 `review` とされた項目は自動合否にせず、画面を見て人が判断する。
 
-根拠は [DR-0011](./docs/decisions/0011-lint-and-measure.md)。
+検査ルールは、それ自身が検査される。`design/rules.json` の各ルールは「どの書き方の違いを塞いだと言えるか」（`bypassAxes`）と「意図的に見ない領域」（`scopeExclusions`）を宣言し、その一つひとつに対応する事例を **bypass フィクスチャ**として持つ。宣言だけで事例が無ければ `pnpm design:check` が落ちる。**契約に挙がっていない素通りは、除外ではなく抜け道である。**
+
+根拠は [DR-0011](./docs/decisions/0011-lint-and-measure.md) / [DR-0044](./docs/decisions/0044-bypass-fixtures-required.md)。
 
 ## 実験
 

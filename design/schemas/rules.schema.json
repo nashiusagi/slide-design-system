@@ -16,6 +16,19 @@
         "type": "object",
         "additionalProperties": false,
         "required": ["id", "method", "severity", "description"],
+        "allOf": [
+          {
+            "$comment": "review は人が判断し、自動判定を持たない（DR-0011）。機械で実行する bypass フィクスチャを要求しても走らせる入口が無いため、宣言そのものを求めない（DR-0044）。制約の本体は下の properties にある。",
+            "if": {
+              "required": ["method"],
+              "properties": { "method": { "not": { "const": "review" } } }
+            },
+            "then": {
+              "required": ["bypassAxes", "scopeExclusions"],
+              "properties": { "bypassAxes": {}, "scopeExclusions": {} }
+            }
+          }
+        ],
         "properties": {
           "id": { "type": "string", "pattern": "^[a-z]+(-[a-z]+)*$" },
           "method": {
@@ -28,7 +41,31 @@
             "enum": ["error", "warn"],
             "description": "method が review のときは自動合否を持たないため常に無視される（README の検査表）。"
           },
-          "description": { "type": "string", "minLength": 1 }
+          "description": { "type": "string", "minLength": 1 },
+          "bypassAxes": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "description": "このルールが塞いだことを示すべき『書き方の軸』（DR-0044）。軸ごとに bypass フィクスチャの事例を1つ以上持つことを scripts/validate-design.mjs が検査する。",
+            "items": {
+              "type": "string",
+              "enum": ["alternate-notation", "value-composition", "boundary", "enumeration-tail"]
+            }
+          },
+          "scopeExclusions": {
+            "type": "array",
+            "uniqueItems": true,
+            "description": "このルールが意図的に見ない領域（DR-0044）。ここに挙げた id ごとに、通ることを固定するフィクスチャの事例を1つ以上持つ。挙げていない見落としは抜け道であって除外ではない。",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "description"],
+              "properties": {
+                "id": { "type": "string", "pattern": "^[a-z]+(-[a-z]+)*$" },
+                "description": { "type": "string", "minLength": 1 }
+              }
+            }
+          }
         }
       }
     },

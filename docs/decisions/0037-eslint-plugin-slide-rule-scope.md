@@ -19,11 +19,13 @@
 
 **まだ無い実装を前提にしない範囲に、各ルールの検出方法を絞る。**
 
-- **`no-raw-color` / `no-raw-scale`**: 検査対象を JSX の `style={{ ... }}` オブジェクトに絞る。CSS ファイル（`design/layout.css` 等）は対象にしない。ESLint に CSS AST パーサが配線されていない（#22 が指摘する状態と同じ）ため、CSS 側は現状「検査していない」ことを明示する
+- **`no-raw-color` / `no-raw-scale`**: 検査対象を JSX の `style={{ ... }}` オブジェクトに絞った。CSS ファイル（`design/layout.css` 等）は対象にしていない。ESLint に CSS AST パーサが配線されていない（#22 が指摘する状態と同じ）ため、CSS 側は「検査していない」ことになる
 - **`no-raw-color`**: 色を運ぶプロパティを固定の一覧（`COLOR_PROPERTIES`）で持ち、`background` / `border` のようなショートハンドは対象に含めない。ショートハンドの値は色以外（長さ・スタイル種別）も同じ文字列に混ざるため、対象にすると「色ではない部分」を色として誤検出する。生の色値も hex と CSS の色関数（`rgb()` / `oklch()` 等）だけをパターンとして検出し、CSS の名前付きキーワード色（`red` 等）は語彙が広く誤検出が増えるため対象にしない
 - **`no-raw-scale`**: 値が「数値、または単位付きの数値」に見えるものだけを対象にする（`NUMERIC_LENGTH` パターン）。`'center'` のようなキーワード値まで対象にすると、長さではない値を誤って報告する。`margin: "8px 16px"` のようなショートハンドの複合値は、`no-raw-color` と異なり対象から除外せず、丸括弧の深さを見ながらトップレベルの空白で分解し、各トークンを個別に判定する。`no-raw-color` はショートハンドに色以外の値（長さ・スタイル種別）が混ざるため除外するが、長さの複合値は空白区切りのトークンに安全に分解できるため、除外ではなく分解して検査する方針を採る
 - **`component-approved`**: DOM 構造ではなく、契約名（kebab-case を PascalCase へ変換したもの、例: `slide-title` → `SlideTitle`）の**ローカルでの再定義（シャドーイング）**と、契約名を使う箇所の **layout との対応（`allowedIn`）** だけを見る。正規の実装を import して使うことは妨げない。実際の DOM 構造を検査する版は、component の React 実装が入る Issue で改めて検討する
 - **`deck-conformance`**: 対応する deck 契約をファイル名の規則では決めず、ESLint のルールオプション `deck` で明示する。`eslint.config.js` の `files` で対象ファイルを絞り込み、そのブロックで `deck` を指定する（例: `src/App.tsx` ↔ `design/decks/harness-intro.md`）
+
+**この節が述べる「見ない領域」の正本は、[DR-0044](./0044-bypass-fixtures-required.md) 以降 `design/rules.json` の `scopeExclusions` である。** 上の決定はそこへ移してある（`css-file` / `attribute-value` / `keyword-value` / `shorthand-property` / `keyword-color`）。ここに残る記述は、その除外を選んだ理由の説明であって、範囲の定義ではない。範囲を変えるときは `design/rules.json` を変え、除外ごとに「通る」ことを固定する bypass フィクスチャの事例を置く。
 
 ## 理由
 

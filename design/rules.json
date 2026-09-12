@@ -1,60 +1,105 @@
 {
   "$schema": "./schemas/rules.schema.json",
-  "$comment": "検査ルールの正本（DR-0009 / DR-0011）。ここに無いIDは検査として存在しない。lint の実装は packages/eslint-plugin-slide、measure の実装は scripts/measure-slides.mjs（#8。no-overflow / min-font-size / contrast まで。deck-body-fidelity は未実装）。lint 側・measure 側とも、ルールIDと実装の1対1対応は pnpm design:check が検査する（scripts/validate-design.mjs の checkLintRuleCoverage / checkMeasureRuleCoverage）。measure 側は deck-body-fidelity を『既知の未実装』としてその検査の許容リストに明示しており、実装され次第そこから外す。",
+  "$comment": "検査ルールの正本（DR-0009 / DR-0011）。ここに無いIDは検査として存在しない。lint の実装は packages/eslint-plugin-slide、measure の実装は scripts/measure-slides.mjs（#8。no-overflow / min-font-size / contrast まで。deck-body-fidelity は未実装）。lint 側・measure 側とも、ルールIDと実装の1対1対応は pnpm design:check が検査する（scripts/validate-design.mjs の checkLintRuleCoverage / checkMeasureRuleCoverage）。measure 側は deck-body-fidelity を『既知の未実装』としてその検査の許容リストに明示しており、実装され次第そこから外す。各ルールの bypassAxes / scopeExclusions は、そのルールが塞いだと言える書き方の種類と、意図的に見ない領域の正本（DR-0044）。宣言した項目ごとに bypass フィクスチャの事例が要り、揃っていなければ pnpm design:check が落ちる。",
   "rules": [
     {
       "id": "no-raw-color",
       "method": "lint",
       "severity": "error",
-      "description": "JSX の style・色系 props に生の色値（hex / rgb / oklch などのリテラル）を書かない。--dh-* トークン変数の参照だけを許す（DR-0018）。"
+      "description": "JSX の style オブジェクトに生の色値（hex / rgb / oklch などのリテラル）を書かない。--dh-* トークン変数の参照だけを許す（DR-0018）。",
+      "bypassAxes": ["alternate-notation", "value-composition", "enumeration-tail"],
+      "scopeExclusions": [
+        { "id": "keyword-color", "description": "CSS の名前付きキーワード色（red 等）。語彙が広く、変数名や文言との誤検出が増えるため見ない（DR-0037）。" },
+        { "id": "shorthand-property", "description": "background / border のようなショートハンド。色以外の値が同じ文字列に混ざり、色でない部分を色として誤検出する。" },
+        { "id": "non-static-value", "description": "変数・式を経由した値。静的に追えないため見ない。追えない書き方を対象にすると、変数を経由するだけで素通りする抜け道を lint 自身が示すことになる。" },
+        { "id": "attribute-value", "description": "style オブジェクト以外の JSX 属性（<Foo color=\"#ff0000\" /> 等）。検査対象を style オブジェクトに絞ったため見ない（DR-0037）。" },
+        { "id": "non-jsx-source", "description": "JSX の style オブジェクトの外にある値（ソース中の CSS 文字列など）。CSS ファイル自体も ESLint の対象に入っていないため、CSS 側は検査していない（DR-0037）。" }
+      ]
     },
     {
       "id": "no-raw-scale",
       "method": "lint",
       "severity": "error",
-      "description": "JSX の style・長さ系 props に生の長さリテラルを書かない。単位ではなくリテラルか変数参照かで判定する。noRawScale.allowedLiterals に列挙した値は例外として許す（DR-0011）。"
+      "description": "JSX の style オブジェクトに生の長さリテラルを書かない。単位ではなくリテラルか変数参照かで判定する。noRawScale.allowedLiterals に列挙した値は例外として許す（DR-0011）。",
+      "bypassAxes": ["alternate-notation", "value-composition", "boundary", "enumeration-tail"],
+      "scopeExclusions": [
+        { "id": "unitless-property", "description": "opacity / zIndex / flexGrow のように値が長さでないプロパティ。長さでない数値を生の長さリテラルとして誤検出する。" },
+        { "id": "keyword-value", "description": "'center' / 'flex' のようなキーワード値。長さに見えない値まで対象にすると、長さでない値を生の長さリテラルとして誤って報告する。" },
+        { "id": "calc-composition", "description": "calc() の内側。トークンの合成か生の長さかを問わず見ない。許すか禁じるかを決めていない。" },
+        { "id": "non-static-value", "description": "変数・式を経由した値。no-raw-color と同じ理由で見ない。" },
+        { "id": "attribute-value", "description": "style オブジェクト以外の JSX 属性（<Foo width=\"320px\" /> 等）。検査対象を style オブジェクトに絞ったため見ない（DR-0037）。" },
+        { "id": "non-jsx-source", "description": "JSX の style オブジェクトの外にある値（ソース中の CSS 文字列など）。CSS ファイル自体も ESLint の対象に入っていないため、CSS 側は検査していない（DR-0037）。" }
+      ]
     },
     {
       "id": "layout-approved",
       "method": "lint",
       "severity": "error",
-      "description": "`<Slide layout=\"...\">` の値が design/layouts/ の契約に無い名前を弾く。"
+      "description": "`<Slide layout=\"...\">` の値が design/layouts/ の契約に無い名前を弾く。",
+      "bypassAxes": ["alternate-notation"],
+      "scopeExclusions": [
+        { "id": "non-static-value", "description": "変数・式を経由した layout。ランタイムは値を検査しない設計（DR-0030）のため、動的な値そのものを禁じる根拠が無い。" },
+        { "id": "non-slide-element", "description": "Slide 以外の要素が持つ layout 属性。契約が及ぶのは Slide の layout だけ。" }
+      ]
     },
     {
       "id": "component-approved",
       "method": "lint",
       "severity": "error",
-      "description": "design/components/ の契約名（PascalCase）をローカルで再定義（シャドーイング）しない。契約名を使う箇所は、その component の allowedIn に無い layout の下で使わない。"
+      "description": "design/components/ の契約名（PascalCase）をローカルで再定義（シャドーイング）しない。契約名を使う箇所は、その component の allowedIn に無い layout の下で使わない。",
+      "bypassAxes": ["alternate-notation"],
+      "scopeExclusions": [
+        { "id": "import-reference", "description": "import で持ち込んだ契約名。正規の実装を使うことを妨げないため、再定義とは区別する。" },
+        { "id": "member-expression-name", "description": "名前空間付きの JSX 要素名（Foo.Statement）。契約名は単一の識別子として使う前提で、名前空間経由の参照は見ない。" },
+        { "id": "layout-not-static", "description": "囲む Slide の layout が静的に読めないとき。allowedIn と突き合わせる相手が決まらない。" }
+      ]
     },
     {
       "id": "deck-conformance",
       "method": "lint",
       "severity": "error",
-      "description": "deck 契約（design/decks/*.md）の枚数・順序・layout 割当と、対応する実装ファイルの `<Slide layout=\"...\">` の並びが一致する。対象ファイルと deck の対応はルールオプション（`deck`）で指定する。body の素材照合は静的には行わず、measure 系の deck-body-fidelity が持つ（DR-0011 / DR-0017）。"
+      "description": "deck 契約（design/decks/*.md）の枚数・順序・layout 割当と、対応する実装ファイルの `<Slide layout=\"...\">` の並びが一致する。対象ファイルと deck の対応はルールオプション（`deck`）で指定する。body の素材照合は静的には行わず、measure 系の deck-body-fidelity が持つ（DR-0011 / DR-0017）。",
+      "bypassAxes": ["alternate-notation", "boundary"],
+      "scopeExclusions": [
+        { "id": "body-fidelity", "description": "body の素材照合。静的解析では変数やテンプレートリテラルを経由した本文を復元できないため、measure 系の deck-body-fidelity が持つ（DR-0011 / DR-0017）。" },
+        { "id": "no-deck-option", "description": "ルールオプション deck を持たないファイル。対応する deck 契約が決まらないため対象外（eslint.config.js の files で絞り込む）。" }
+      ]
     },
     {
       "id": "no-overflow",
       "method": "measure",
       "severity": "error",
-      "description": "1280x720 のキャンバスから要素がはみ出していない。各 Fragment 段階すべてで判定する。判定はレイアウト矩形（getBoundingClientRect）で行い、許容誤差は noOverflow.toleranceInPx（DR-0011）。"
+      "description": "1280x720 のキャンバスから要素がはみ出していない。各 Fragment 段階すべてで判定する。判定はレイアウト矩形（getBoundingClientRect）で行い、許容誤差は noOverflow.toleranceInPx（DR-0011）。",
+      "bypassAxes": ["boundary"],
+      "scopeExclusions": []
     },
     {
       "id": "min-font-size",
       "method": "measure",
       "severity": "error",
-      "description": "computed fontSize が minFontSize.px を割っていない（DR-0012）。"
+      "description": "computed fontSize が minFontSize.px を割っていない（DR-0012）。",
+      "bypassAxes": ["boundary"],
+      "scopeExclusions": [
+        { "id": "no-direct-text", "description": "自身の直接の子にテキストを持たない要素。実際に描かれる文字が無く、computed fontSize を判定しても意味を持たない。" }
+      ]
     },
     {
       "id": "contrast",
       "method": "measure",
       "severity": "error",
-      "description": "実測の前景/背景コントラストが contrast.requirements の水準を満たす（DR-0008）。算出値としての事前チェックは scripts/validate-design.mjs が contrast.requirements を読んで行う。"
+      "description": "実測の前景/背景コントラストが contrast.requirements の水準を満たす（DR-0008）。算出値としての事前チェックは scripts/validate-design.mjs が contrast.requirements を読んで行う。",
+      "bypassAxes": ["boundary", "value-composition"],
+      "scopeExclusions": [
+        { "id": "no-direct-text", "description": "自身の直接の子にテキストを持たない要素。前景色が実際に描かれないため判定しない。" }
+      ]
     },
     {
       "id": "deck-body-fidelity",
       "method": "measure",
       "severity": "error",
-      "description": "deck 契約に body があるとき、レンダリング後の DOM テキストが素材を欠落・改変していない（DR-0011 / DR-0017）。未実装（#8 のスコープは no-overflow / min-font-size / contrast まで）。"
+      "description": "deck 契約に body があるとき、レンダリング後の DOM テキストが素材を欠落・改変していない（DR-0011 / DR-0017）。未実装（#8 のスコープは no-overflow / min-font-size / contrast まで）。",
+      "bypassAxes": ["value-composition"],
+      "scopeExclusions": []
     }
   ],
   "contrast": {

@@ -4,31 +4,24 @@
  * 単位ではなく「リテラルか、トークン変数（`var(--dh-*)`）への参照か」で判定する
  * （DR-0011: 単位で判定すると rem / em / % 等の単位を変えるだけで素通りする）。
  *
- * 対象は「数値そのもの、または単位付きの数値」に見える値だけに絞る
- * （NUMERIC_LENGTH）。'center' / 'flex' のようなキーワード値まで対象にすると、
- * 長さではない値を「生の長さリテラル」と誤って報告することになる。色のような
- * 他の生値は no-raw-color が持つ。
+ * 対象は「数値そのもの、または単位付きの数値」に見える値だけに絞る（NUMERIC_LENGTH）。
  *
- * `var(--dh-*)` への参照は文字・括弧を含み NUMERIC_LENGTH に一致しないため、
- * この絞り込みだけで自然に対象から外れる。数値に見えるが例外として許す値
+ * **このルールが意図的に見ない領域は design/rules.json の scopeExclusions が
+ * 正本**（DR-0044）。ここに書き写さない。
+ *
+ * `var(--dh-*)` への参照は判定前に取り除く（フォールバックがあればその値に
+ * 置き換える）ため、参照そのものは対象にならない。数値に見えるが例外として許す値
  * （`0` / `100%` / `1px` 等）は design/rules.json の `noRawScale.allowedLiterals`
  * に列挙する。
- *
- * `calc()` によるトークンの合成はまだ許していない。現状のコードベースに
- * 使用例が無いため、必要になった時点で `design/rules.json` と合わせて対応する。
- *
- * `opacity` / `zIndex` 等、値が長さではないプロパティは対象から外す
- * （UNITLESS_PROPERTIES）。
  *
  * `margin: "8px 16px"` のようなショートハンドの複合値は、空白区切りのトークンへ
  * 分解してからそれぞれを NUMERIC_LENGTH に通す。文字列全体を1つの値として
  * 判定すると、複合値であるという理由だけで生の長さが素通りする。
- * `var(--dh-*, 16px)` のようにトークン変数への参照が丸括弧の中に空白を含む
- * 場合に誤って分割しないよう、丸括弧の深さを見ながらトップレベルの空白だけで
- * 区切る。
+ * 丸括弧の中に空白を含む値（`calc(100% - 8px)` 等）を誤って分割しないよう、
+ * 丸括弧の深さを見ながらトップレベルの空白だけで区切る。
  */
-import { extractStyleProperties, literalText } from '../lib/jsx-style.mjs'
-import { readRules } from '../lib/design-contracts.mjs'
+import { expandVarFallbacks, extractStyleProperties, literalText } from '../lib/jsx-style.mjs'
+import { descriptionOf, readRules } from '../lib/design-contracts.mjs'
 
 const UNITLESS_PROPERTIES = new Set([
   'opacity',
@@ -42,6 +35,8 @@ const UNITLESS_PROPERTIES = new Set([
   'zoom',
 ])
 
+// CSS の単位は ASCII の大小を区別しない（`16PX` も `16px` として描画される）。
+// 判定の前に小文字へ寄せるので、パターン側は小文字だけを列挙する。
 const NUMERIC_LENGTH = /^-?\d+(\.\d+)?(px|rem|em|vh|vw|vmin|vmax|pt|ch|%)?$/
 
 /**
@@ -85,7 +80,7 @@ const rule = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'JSX の style に生の長さリテラルを書かず、--dh-* トークン変数を経由する',
+      description: descriptionOf('no-raw-scale'),
     },
     schema: [],
     messages: {
@@ -94,7 +89,11 @@ const rule = {
     },
   },
   create(context) {
-    const allowedLiterals = new Set(readRules().noRawScale.allowedLiterals)
+    // 許容リストも小文字へ寄せて持つ。判定する値だけを正規化すると、
+    // 許容された値を大文字の単位で書いたとき（`1PX`）に違反として報告される。
+    const allowedLiterals = new Set(
+      readRules().noRawScale.allowedLiterals.map((/** @type {string} */ one) => one.toLowerCase()),
+    )
 
     return {
       /** @param {any} node */
@@ -110,10 +109,15 @@ const rule = {
             continue
           }
 
-          const trimmed = text.trim()
+          // var() のフォールバックへ長さリテラルを書けば、それが実際に描画される
+          // 値になる。var() に包まれているという理由で中身を見ないと、包むだけで
+          // 素通りする。
+          const trimmed = expandVarFallbacks(text).trim()
 
           for (const token of splitTopLevelTokens(trimmed)) {
-            if (!NUMERIC_LENGTH.test(token) || allowedLiterals.has(token)) {
+            const normalized = token.toLowerCase()
+
+            if (!NUMERIC_LENGTH.test(normalized) || allowedLiterals.has(normalized)) {
               continue
             }
 
