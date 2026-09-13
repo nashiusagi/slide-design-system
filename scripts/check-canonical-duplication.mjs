@@ -41,7 +41,9 @@ const readJson = (relativePath) => JSON.parse(readFileSync(resolve(relativePath)
  * 走査する場所。正本を参照できない文書、すなわち「値を書き写したくなる場所」を挙げる。
  * ここがこの一覧の唯一の在り処で、README や DR へ写さない。
  *
- * `design/` 自身は走査しない。正本が正本の値を持つのは複製ではない。
+ * `design/` は走査しない。この検査が読む正本そのもの（`tokens.json` / `rules.json` /
+ * `layouts/` / `components/`）を対象にすると自己言及になり、`decks/` は layout 名を契約
+ * データとして持つ deck 契約で、書き写しではない。
  * `docs/reviews/` も走査しない。レビュー記録は過去の指摘を引用するために値を含むのが
  * 正常で、かつ書き換えない履歴だからだ（DR-0046 帰結）。実験の記録（`experiments/` の
  * Run 採点結果）も履歴だが、同じ場所に AI へ渡すお題も置かれているため、ディレクトリ
@@ -64,7 +66,7 @@ export const MIN_REASON_LENGTH = 20
 
 /**
  * 文字列の値を「特徴的」と見なす最小の長さ。これより短い値（`none` / `0` / `md`）は
- * 散文の普通の語と衝突するため、値としての一致を見ない。単位付きの値（`1px` /
+ * 文書の普通の語と衝突するため、値としての一致を見ない。単位付きの値（`1px` /
  * `100%`）はこの下限を免除する（単位が付いている時点で値として書かれている）。
  */
 export const MIN_LITERAL_LENGTH = 6
@@ -107,7 +109,7 @@ export function codeSpans(line) {
 }
 
 /**
- * 正本の値を集める。返すのは「散文に現れたら複製と見なす形」まで含んだ照合器で、
+ * 正本の値を集める。返すのは「文書に現れたら複製と見なす形」まで含んだ照合器で、
  * 値そのものの一覧ではない。
  *
  * 判定する形を絞る理由は DR-0046 の決定2にある。単位もインラインコードも伴わない
@@ -142,7 +144,7 @@ export function collectCanonicalValues({ tokens, rules }) {
 
   /**
    * 文字列の値。色・書体・影のように、偶然一致しない形をそのまま見る。
-   * `MIN_LITERAL_LENGTH` に満たない短い値は、散文の普通の語と衝突するため見ない。
+   * `MIN_LITERAL_LENGTH` に満たない短い値は、文書の普通の語と衝突するため見ない。
    *
    * @param {string} value
    * @param {string} target
@@ -281,7 +283,7 @@ export function collectCanonicalPairings({ components }) {
 }
 
 /**
- * 散文に現れた正本の値を報告する。
+ * 文書に現れた正本の値を報告する。
  *
  * @param {string} path
  * @param {string} source
@@ -304,22 +306,54 @@ export function findValueDuplications(path, source, values) {
 /** 箇条書き・先頭にパイプを置く表の行か。番号は `1.` と `1)` の両方を見る。 */
 const ENUMERATION_HEAD = /^\s*([-*+]\s|\d+[.)]\s|\|)/
 
-/** 先頭のパイプを省いた表の行か。列の区切りとしてのパイプだけを見る。 */
-const PIPE_SEPARATED = /\s\|\s/
-
 /**
- * 箇条書き・表の行か。
- *
- * 先頭のパイプを省いた表を見るためにパイプの区切りも数えるが、判定の前に
- * インラインコードを落とす。落とさないと、シェルのパイプやコード例を含むだけの
- * 地の文（「`foo | bar` のようにつなぐ」）が表の行として扱われ、その行を挟んで
- * 離れている単発の言及どうしが1つのブロックに繋がって誤検出になる。
+ * 列の区切りとしてのパイプを持つ行か。判定の前にインラインコードを落とす。落とさないと、
+ * シェルのパイプやコード例を含むだけの地の文（「`foo | bar` のようにつなぐ」）が表の行に
+ * 見える。
  *
  * @param {string} text
  * @returns {boolean}
  */
-function isEnumerationLine(text) {
-  return ENUMERATION_HEAD.test(text) || PIPE_SEPARATED.test(text.replace(/`[^`\n]*`/g, ''))
+const hasPipeCell = (text) => /\s\|\s/.test(text.replace(/`[^`\n]*`/g, ''))
+
+/** GFM の表の区切り行（`--- | ---`）か。先頭・末尾のパイプは省けるため任意にする。 */
+const TABLE_DELIMITER = /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/
+
+/**
+ * 各行が箇条書き・表の行かを返す。
+ *
+ * 先頭のパイプを省いた表も見るが、パイプを持つだけでは表と見なさない。GFM の表は
+ * 区切り行（`--- | ---`）を必ず伴うので、パイプを持つ行が続く範囲に区切り行があるときだけ
+ * 表として扱う。区切り行を要求しないと、「前段 | 後段 の順で進む」のような地の文が表の行に
+ * なり、離れた単発の言及どうしが1つのブロックへ繋がって誤検出になる。
+ *
+ * @param {string[]} lines
+ * @returns {boolean[]}
+ */
+function markEnumerationLines(lines) {
+  const marks = lines.map((text) => ENUMERATION_HEAD.test(text))
+
+  for (let start = 0; start < lines.length; start += 1) {
+    if (!hasPipeCell(lines[start]) || marks[start]) {
+      continue
+    }
+
+    let end = start
+
+    while (end + 1 < lines.length && hasPipeCell(lines[end + 1])) {
+      end += 1
+    }
+
+    if (lines.slice(start, end + 1).some((text) => TABLE_DELIMITER.test(text))) {
+      for (let index = start; index <= end; index += 1) {
+        marks[index] = true
+      }
+    }
+
+    start = end
+  }
+
+  return marks
 }
 
 /**
@@ -345,8 +379,10 @@ function enumerationBlocks(lines) {
     }
   }
 
+  const marks = markEnumerationLines(lines)
+
   lines.forEach((text, index) => {
-    if (isEnumerationLine(text)) {
+    if (marks[index]) {
       current.push({ number: index + 1, text })
     } else if (text.trim() !== '') {
       flush()
@@ -362,7 +398,7 @@ function enumerationBlocks(lines) {
 const itemPattern = (item) => new RegExp(`(?<![\\w-])${escapeForRegExp(item)}(?![\\w-])`)
 
 /**
- * 散文に現れた正本の一覧を報告する。
+ * 文書に現れた正本の一覧を報告する。
  *
  * 順序は問わない。同順だけを見ると、行を入れ替えるだけで素通りする（DR-0046 決定3）。
  * 1行1件で2件以上並ぶ形と、1行にその一覧の全項目が並ぶ形の両方を報告する。
@@ -419,7 +455,7 @@ export function findStructureDuplications(path, source, lists) {
 }
 
 /**
- * 散文に現れた正本の対応表を報告する。正本にある対（component 名とその `allowedIn` の
+ * 文書に現れた正本の対応表を報告する。正本にある対（component 名とその `allowedIn` の
  * layout 名）が同じ行に並ぶ行が、同じブロックに2行以上あり、対が2種類以上あれば
  * 対応表の複製と見なす。同じ対が繰り返されているだけの箇条書きは報告しない。
  *

@@ -187,7 +187,22 @@ describe('findStructureDuplications', () => {
   })
 
   it('先頭のパイプを省いた表でも捕まえる', () => {
-    expect(structureIn(layoutBlock((name) => `${name} | 説明`)).length).toBeGreaterThan(0)
+    const source = ['name | 役割', '--- | ---', layoutBlock((name) => `${name} | 説明`)].join('\n')
+
+    expect(structureIn(source).length).toBeGreaterThan(0)
+  })
+
+  /*
+   * パイプを持つだけで表と見なすと、区切り記号としてパイプを使った地の文が表の行になり、
+   * 離れた単発の言及どうしが1つのブロックへ繋がって誤検出になる。
+   */
+  it('区切り行を伴わない、パイプを含む地の文は表として扱わない', () => {
+    const source = [
+      `処理は 前段 | 後段 の順で進む。今日は \`${layouts[0].name}\` を試した。`,
+      `別の日に 検証 | 修正 の順で進めた。今日は \`${layouts[1].name}\` を試した。`,
+    ].join('\n')
+
+    expect(structureIn(source)).toEqual([])
   })
 
   it('一覧の全項目が1行に並ぶ形も捕まえる', () => {
