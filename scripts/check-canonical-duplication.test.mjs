@@ -218,6 +218,20 @@ describe('findStructureDuplications', () => {
     expect(structureIn(source)).toEqual([])
   })
 
+  /*
+   * 表の行の判定にパイプを使うため、コード例にパイプを含むだけの地の文が表の行として
+   * 扱われると、離れた単発の言及どうしがブロックとして繋がり、複製でないものを報告する。
+   */
+  it('コード例にパイプを含む地の文は、箇条書き・表の行として扱わない', () => {
+    const source = [
+      `- \`${layouts[0].name}\` を選ぶ基準は契約にある`,
+      'コマンドは `foo | bar` のようにパイプでつなぐ。',
+      `- \`${layouts[1].name}\` を選ぶ基準も契約にある`,
+    ].join('\n')
+
+    expect(structureIn(source)).toEqual([])
+  })
+
   it('箇条書き・表の外に散った言及は報告しない', () => {
     expect(structureIn(layouts.map((layout) => `\`${layout.name}\` は役割で選ぶ。`).join('\n\n'))).toEqual([])
   })

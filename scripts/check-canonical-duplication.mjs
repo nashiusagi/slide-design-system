@@ -301,8 +301,26 @@ export function findValueDuplications(path, source, values) {
   )
 }
 
-/** 箇条書き・表の行か。番号は `1.` と `1)` の両方、表は先頭のパイプを省いた形も見る。 */
-const ENUMERATION_LINE = /^\s*([-*+]\s|\d+[.)]\s|\|)|\s\|\s/
+/** 箇条書き・先頭にパイプを置く表の行か。番号は `1.` と `1)` の両方を見る。 */
+const ENUMERATION_HEAD = /^\s*([-*+]\s|\d+[.)]\s|\|)/
+
+/** 先頭のパイプを省いた表の行か。列の区切りとしてのパイプだけを見る。 */
+const PIPE_SEPARATED = /\s\|\s/
+
+/**
+ * 箇条書き・表の行か。
+ *
+ * 先頭のパイプを省いた表を見るためにパイプの区切りも数えるが、判定の前に
+ * インラインコードを落とす。落とさないと、シェルのパイプやコード例を含むだけの
+ * 地の文（「`foo | bar` のようにつなぐ」）が表の行として扱われ、その行を挟んで
+ * 離れている単発の言及どうしが1つのブロックに繋がって誤検出になる。
+ *
+ * @param {string} text
+ * @returns {boolean}
+ */
+function isEnumerationLine(text) {
+  return ENUMERATION_HEAD.test(text) || PIPE_SEPARATED.test(text.replace(/`[^`\n]*`/g, ''))
+}
 
 /**
  * 連続する箇条書き・表の行をブロックとして切り出す。
@@ -328,7 +346,7 @@ function enumerationBlocks(lines) {
   }
 
   lines.forEach((text, index) => {
-    if (ENUMERATION_LINE.test(text)) {
+    if (isEnumerationLine(text)) {
       current.push({ number: index + 1, text })
     } else if (text.trim() !== '') {
       flush()
