@@ -1,0 +1,71 @@
+{
+  "$comment": "scripts/check-canonical-duplication.mjs の例外（DR-0046）。正本を参照できない事情があって値・一覧を書かざるを得ない箇所だけを登録する。path は走査対象のファイル、target は検査が報告する正本の側の名前、reason はなぜ正本を参照できないのか、count はこのエントリが抑える報告の件数。reason が無いか短いエントリ、count が実際の件数と違うエントリ、使われていないエントリがあると検査は落ちる。参照できるのに書き写しているなら、例外ではなく修正である。",
+  "allowed": [
+    {
+      "path": "docs/decisions/0006-online-sharing-first.md",
+      "target": "design/tokens.json の type.size.bodyLarge",
+      "reason": "却下した選択肢（登壇・大会場向けの水準）の説明として、他媒体の一般的な寸法を挙げている。トークンの値を写したのではなく、値が偶然一致しただけで、トークンが変わっても追随してはならない記述である。",
+      "count": 1
+    },
+    {
+      "path": "docs/decisions/0018-plain-css-with-tokens.md",
+      "target": "design/rules.json の minFontSize.px",
+      "reason": "Tailwind のユーティリティクラスの書式例（任意値の角括弧記法）であり、この検査ルールの閾値を写したものではない。例示の数値を閾値に合わせて書き換える関係は無い。",
+      "count": 1
+    },
+    {
+      "path": "docs/decisions/0037-eslint-plugin-slide-rule-scope.md",
+      "target": "design/tokens.json の space.xs",
+      "reason": "no-raw-scale がショートハンドの複合値を分解して検査することを示す例示コードで、トークンの値を写したものではない。トークンが変わっても、分解の説明としての例示はそのままでよい。",
+      "count": 1
+    },
+    {
+      "path": "docs/decisions/0037-eslint-plugin-slide-rule-scope.md",
+      "target": "design/tokens.json の space.md",
+      "reason": "同じ例示コードの2つ目の値。no-raw-scale が複合値をどう分解するかを示すために2つ必要で、トークンの値を参照しているわけではない。",
+      "count": 1
+    },
+    {
+      "path": "src/docs/docs.css",
+      "target": "design/rules.json の noRawScale.allowedLiterals",
+      "reason": "カタログの CSS が実際に使っている値（親要素基準の寸法と、ヘアライン境界線）である。allowedLiterals はこの書き方を許すと宣言した側であって、CSS がそれを写したのではない。CSS から JSON を参照する手段も無い。",
+      "count": 7
+    },
+    {
+      "path": "docs/decisions/0010-three-layouts.md",
+      "target": "design/layouts/ の name 一覧",
+      "reason": "この DR はどのレイアウトを持つかを決めた記録そのもので、名前を挙げないと決定も却下案も書けない。design/layouts/ はこの決定の実装であり、DR が正本を後から写した関係ではない。",
+      "count": 2
+    },
+    {
+      "path": "docs/decisions/0011-lint-and-measure.md",
+      "target": "design/rules.json の rules[].id 一覧",
+      "reason": "この DR は検査ルールの集合を決めた記録そのもので、ID を挙げないと決定が書けない。design/rules.json はこの決定の実装であり、DR が正本を後から写した関係ではない。",
+      "count": 3
+    },
+    {
+      "path": "docs/decisions/0037-eslint-plugin-slide-rule-scope.md",
+      "target": "design/rules.json の rules[].id 一覧",
+      "reason": "この DR はルールごとの守備範囲を決めた記録で、どのルールについての決定かを名指しできないと成立しない。守備範囲の宣言自体は design/rules.json が正本として持つ（DR-0044）。",
+      "count": 3
+    },
+    {
+      "path": "experiments/harness-intro/RESULTS.md",
+      "target": "design/rules.json の rules[].id 一覧",
+      "reason": "保存した Run の採点結果で、どのルールがどう判定したかを行として持つ。行の見出しは採点対象の識別子であり、正本の一覧を読み手へ配るために写したものではない。実験の記録は後から書き換えない。",
+      "count": 1
+    },
+    {
+      "path": "experiments/harness-intro/RESULTS.md",
+      "target": "design/layouts/ の name 一覧",
+      "reason": "その Run で実際に生成された3枚のレイアウトを、生成結果の記述として並べている。契約の一覧を写したのではなく、起きたことの記録であり、契約が増減しても書き換えない。",
+      "count": 1
+    },
+    {
+      "path": "experiments/harness-intro/comparison.md",
+      "target": "design/rules.json の rules[].id 一覧",
+      "reason": "複数の Run の採点結果を並べた比較表で、行の見出しは採点対象の識別子である。正本の一覧を配る目的は無く、実験の記録として後から書き換えない。",
+      "count": 1
+    }
+  ]
+}

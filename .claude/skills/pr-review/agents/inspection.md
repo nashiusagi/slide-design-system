@@ -6,8 +6,10 @@
 
 検査は2系統ある。
 
-- **lint**（ESLint / 静的）— `no-raw-color` / `no-raw-scale` / `layout-approved` / `component-approved` / `deck-conformance`
-- **measure**（Playwright / ビルド出力に対して実測）— `no-overflow` / `min-font-size` / `contrast`
+- **lint**（ESLint / 静的）
+- **measure**（Playwright / ビルド出力に対して実測）
+
+どのルールがどちらの系統かは `design/rules.json` の各ルールの `method` が持つ。
 
 判断が分かれるものは `review` として人が見る。
 
