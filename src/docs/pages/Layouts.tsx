@@ -13,10 +13,6 @@ import type { ReactNode } from 'react'
 import { LAYOUTS, type LayoutContract, type LayoutSlot } from '../layouts'
 import { cssVar } from '../tokens'
 
-/** キャンバスの幅・高さのトークン名。`design/schemas/tokens.schema.json` が required で要求している。 */
-const CANVAS_WIDTH = 'width'
-const CANVAS_HEIGHT = 'height'
-
 /** 文字列の並びを箇条書きにする。使うとき・使わないときで同じ形を使う。 */
 function TextList({ title, items }: { title: string; items: string[] }): ReactNode {
   return (
@@ -64,10 +60,10 @@ function SlotTable({ slots }: { slots: LayoutSlot[] }): ReactNode {
  * プレビュー。契約の `classes` をそのまま当てた箱を、実寸で作ってから縮めて見せる。
  *
  * 余白と配置は `design/layout.css` が当たった結果であり、カタログ側では再現しない
- * （DR-0047）。カタログが用意するのは箱そのもの——キャンバス寸法（`design/tokens.json`
- * の `canvas`）と `box-sizing: border-box`——だけで、これは実行時に `src/runtime/` が
- * 与えているスライド機構の側の性質だ。カタログは `src/runtime/` を参照できない
- * （DR-0042）ため、ここだけは同じ箱を自前で作る。
+ * （DR-0047 決定1）。カタログが用意するのは箱だけで、寸法は `design/tokens.json` の
+ * `canvas` から当てる。実行時の `.slide` から写す機構の性質は `box-sizing` の1つに
+ * 留める（DR-0047 決定2）。カタログは `src/runtime/` を参照できない（DR-0042）ため、
+ * ここだけは同じ箱を自前で作る。
  *
  * 中身はスロットごとのプレースホルダ。部品の実装がまだ無いので、箱の並び方だけが分かる
  * 形にしてある。
@@ -77,7 +73,7 @@ function LayoutPreview({ layout }: { layout: LayoutContract }): ReactNode {
     <div className="doc-canvas">
       <div
         className={['doc-canvas__frame', ...layout.classes].join(' ')}
-        style={{ width: cssVar(['canvas', CANVAS_WIDTH]), height: cssVar(['canvas', CANVAS_HEIGHT]) }}
+        style={{ width: cssVar(['canvas', 'width']), height: cssVar(['canvas', 'height']) }}
       >
         {layout.slots.map((slot) => (
           <p key={slot.component} className="doc-slot-placeholder">

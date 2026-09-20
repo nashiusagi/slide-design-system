@@ -2,10 +2,19 @@ import { render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { LAYOUTS, type LayoutContract } from '../layouts'
+import { cssVarName, themeValue } from '../tokens'
 import { Layouts } from './Layouts'
 
-/** ページ自身のソース。契約の文言が書き写されていないことを、実体を読んで確かめる。 */
-import PAGE_SOURCE from './Layouts.tsx?raw'
+/**
+ * カタログのページのソース。契約の文言が書き写されていないことを、実体を読んで確かめる。
+ *
+ * 1ファイルではなくページ全体を glob で取る。ファイル単位で書くと、カードの描画を別ファイルへ
+ * 切り出してそちらに文言を直書きするだけで検査の外へ出られる。ページを足したら自動で対象に
+ * 入る形にしておけば、#36 / #38 でテストを書き忘れても複製は落ちる。
+ */
+const PAGE_SOURCES = Object.entries(
+  import.meta.glob<string>('./*.tsx', { eager: true, query: '?raw', import: 'default' }),
+).filter(([path]) => !path.includes('.test.'))
 
 describe('Layouts', () => {
   it('契約を1件ずつカードにする', () => {
@@ -14,18 +23,27 @@ describe('Layouts', () => {
     expect(container.querySelectorAll('.doc-layout')).toHaveLength(LAYOUTS.length)
   })
 
-  it('各カードに契約の文言（役割・使うとき・使わないとき）が出る', () => {
+  /*
+   * カードと契約の対応まで見る。ページ全体のテキストに含まれることだけを見ると、カードごとで
+   * はなくページ末尾へまとめて描く実装へ変えても通ってしまう。
+   */
+  it('契約の文言（役割・使うとき・使わないとき）が、対応するカードの中に出る', () => {
     const { container } = render(<Layouts />)
-    const text = container.textContent ?? ''
+    const cards = [...container.querySelectorAll('.doc-layout')]
 
-    for (const layout of LAYOUTS) {
+    expect(cards).toHaveLength(LAYOUTS.length)
+
+    cards.forEach((card, index) => {
+      const layout = LAYOUTS[index]
+      const text = card.textContent ?? ''
+
       expect(text).toContain(layout.name)
       expect(text).toContain(layout.role)
 
       for (const sentence of [...layout.whenToUse, ...layout.whenNotToUse]) {
         expect(text).toContain(sentence)
       }
-    }
+    })
   })
 
   it('スロットの部品名・必須かどうか・最大数が出る', () => {
@@ -66,14 +84,23 @@ describe('Layouts', () => {
    * 枠の寸法は canvas トークンから引く。数値を書き写すと、キャンバスの寸法を変えたときに
    * プレビューだけが古い比率で残る。
    */
-  it('プレビューの枠の寸法が var(--dh-canvas-*) 参照になっている', () => {
+  it('プレビューの枠の寸法が、design/theme.css に実在する var(--dh-canvas-*) 参照になっている', () => {
     const { container } = render(<Layouts />)
+
+    /*
+     * 変数名だけを見ると、トークンの位置（canvas.width / canvas.height）が改名されたときに
+     * 「どこも指さない var()」を当て続けても通る。枠は幅・高さが auto の潰れた形になるのに、
+     * 検査は緑のままになる。当てた変数が theme.css に在ることまで見る。
+     */
+    for (const path of [['canvas', 'width'], ['canvas', 'height']]) {
+      expect(themeValue(path), `${cssVarName(path)} が design/theme.css に無い`).not.toBeNull()
+    }
 
     for (const frame of container.querySelectorAll('.doc-canvas__frame')) {
       const style = frame.getAttribute('style') ?? ''
 
-      expect(style).toContain('var(--dh-canvas-width)')
-      expect(style).toContain('var(--dh-canvas-height)')
+      expect(style).toContain(`var(${cssVarName(['canvas', 'width'])})`)
+      expect(style).toContain(`var(${cssVarName(['canvas', 'height'])})`)
     }
   })
 
@@ -92,16 +119,20 @@ describe('Layouts', () => {
    * ソースに現れないことを見る。レイアウト名そのものは見ない。'title' のような語が
    * クラス名や props の名前として正当に現れるためだ。
    */
-  it('契約の文言がページのソースに書かれていない', () => {
+  it('契約の文言がカタログのどのページにも書かれていない', () => {
     /*
-     * 読み込みが空だと、以下の「含まれない」はすべて素通りする（DR-0043 決定3 と同じ形）。
-     * ソースに必ず在る語で、実体が読めていることを先に確かめる。
+     * 読み込みが空・0件だと、以下の「含まれない」はすべて素通りする（DR-0043 決定1 と同じ形）。
+     * 対象が在り、中身が読めていることを先に確かめる。
      */
-    expect(PAGE_SOURCE).toContain('doc-canvas__frame')
+    expect(PAGE_SOURCES.length).toBeGreaterThan(0)
 
-    for (const layout of LAYOUTS) {
-      for (const text of [layout.role, ...layout.whenToUse, ...layout.whenNotToUse, ...layout.classes]) {
-        expect(PAGE_SOURCE).not.toContain(text)
+    for (const [path, source] of PAGE_SOURCES) {
+      expect(source.length, `${path} の中身が空`).toBeGreaterThan(0)
+
+      for (const layout of LAYOUTS) {
+        for (const text of [layout.role, ...layout.whenToUse, ...layout.whenNotToUse, ...layout.classes]) {
+          expect(source, `${path} に ${layout.name} の契約の文言が書かれている`).not.toContain(text)
+        }
       }
     }
   })

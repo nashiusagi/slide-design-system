@@ -243,10 +243,10 @@ body {
 /*
  * 実寸の箱。寸法は JSX 側が canvas トークンから当てる。
  *
- * box-sizing は、実行時に src/runtime/runtime.css の .slide が与えているものと同じ。
- * カタログは src/runtime/ を参照できない（DR-0042）ので、ここだけ同じ箱を自前で作る
- * （DR-0047）。境界線・背景も含め、ここが持つのは箱までで、中の余白と配置は
- * design/layout.css の .slide--* が決める。
+ * 実行時の .slide（src/runtime/runtime.css）から写しているのは box-sizing だけ。カタログは
+ * src/runtime/ を参照できない（DR-0042）ので、ここだけ同じ箱を自前で作る（DR-0047 決定2）。
+ * 境界線と背景は、縮めた箱の範囲を見せるためのカタログ自身の装飾で、.slide には無い。
+ * 中の余白と配置はどちらでもなく、design/layout.css の .slide--* が決める。
  */
 .doc-canvas__frame {
   box-sizing: border-box;
