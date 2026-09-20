@@ -45,10 +45,14 @@ function importTarget(params: string): string {
  * 記法の違いで取りこぼさないよう、構文木から `@import` を列挙する。正規表現で行を拾う形は
  * コメントアウトされた宣言も拾ってしまう（[DR-0041](../../docs/decisions/0041-postcss-for-layout-class-check.md)
  * が `checkLayoutClasses` で PostCSS を選んだのと同じ理由）。
+ *
+ * at-rule の名前は大文字小文字を無視して拾う。CSS のキーワードは ASCII の大文字小文字を
+ * 区別しないので `@IMPORT` も同じ宣言だが、PostCSS の `walkAtRules` に文字列を渡すと完全
+ * 一致になる。パラメータ側の記法だけを網羅しても、名前側でまた素通りできる。
  */
 const IMPORTED: string[] = []
 
-postcss.parse(docsCss, { from: 'src/docs/docs.css' }).walkAtRules('import', (rule) => {
+postcss.parse(docsCss, { from: 'src/docs/docs.css' }).walkAtRules(/^import$/i, (rule) => {
   IMPORTED.push(importTarget(rule.params))
 })
 
@@ -68,6 +72,26 @@ describe('importTarget', () => {
 })
 
 describe('docs.css', () => {
+  /*
+   * 列挙の側を固定する。抽出（importTarget）が正しくても、at-rule を拾う条件が狭ければ
+   * 宣言そのものが `IMPORTED` に現れず、下の2つの検査は「宣言が無い」という理由で通る。
+   */
+  it('@import は大文字小文字を問わず列挙される', () => {
+    const collect = (css: string): string[] => {
+      const targets: string[] = []
+
+      postcss.parse(css, { from: 'test.css' }).walkAtRules(/^import$/i, (rule) => {
+        targets.push(importTarget(rule.params))
+      })
+
+      return targets
+    }
+
+    expect(collect("@IMPORT '../../src/runtime/runtime.css';")).toEqual(['../../src/runtime/runtime.css'])
+    expect(collect("@Import url(../../src/runtime/runtime.css);")).toEqual(['../../src/runtime/runtime.css'])
+    expect(collect("/* @import 'commented-out.css'; */")).toEqual([])
+  })
+
   it('プレビューの根拠になる契約 CSS を読み込んでいる', () => {
     expect(IMPORTED).toContain('../../design/theme.css')
     expect(IMPORTED).toContain('../../design/layout.css')
