@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-20（PR #53 レビュー 1周目）
+最終更新: 2026-09-20（PR #53 レビュー 2周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -27,7 +27,7 @@
 | `decisions/undocumented-decision` | DR に無い判断が、PR説明やIssueにだけ書かれている | 13 | PR #53 | 未着手 |
 | `decisions/dr-restates-canonical-value` | DR が正本の値を本文に書き写した | 7 | PR #52 | 未着手 |
 | `contract/source-of-truth-ambiguous` | 「正本」がどのファイルを指すか一意でない | 6 | PR #52 | 未着手 |
-| `inspection/rule-has-bypass` | 検査ルールに抜け道があり、書き方を変えると素通りする | 15 | PR #52 | 仕組み化済み（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43） |
+| `inspection/rule-has-bypass` | 検査ルールに抜け道があり、書き方を変えると素通りする | 16 | PR #53 | 仕組み化済み（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43） |
 | `inspection/rule-scope-inconsistent` | 同じルールIDの守備範囲が文書間で食い違う | 5 | PR #47 | 仕組み化済み（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43）。守備範囲の宣言を `design/rules.json` に一本化した |
 | `decisions/consequence-not-followed` | 既存 DR の帰結が、それを通る手順に反映されていない | 7 | PR #47 | 未着手 |
 | `contract/contract-structure-duplicated` | 正本の中身の一覧が、別の文書へ構造ごと複製された | 8 | PR #53 | 未着手 |
@@ -94,7 +94,7 @@
 | `code/redundant-type-only-devdependency` | コード品質 | 型を同梱するパッケージに、別系統の型パッケージを重ねて入れた | 1 | PR #23 | PR #23 |
 | `writing/test-title-ambiguous` | 日本語 | テストタイトルが、そのテストの固定する不変条件を示していない | 7 | PR #23 | PR #53 |
 | `code/sibling-field-test-gap` | コード品質 | 同じ制約を個別に持つ複数フィールドのうち、一部にしか回帰テストが無い | 2 | PR #23 | PR #26 |
-| `inspection/rule-has-bypass` | 検査 | 検査ルールに抜け道があり、書き方を変えると素通りする | 15 | PR #13 | PR #52 |
+| `inspection/rule-has-bypass` | 検査 | 検査ルールに抜け道があり、書き方を変えると素通りする | 16 | PR #13 | PR #53 |
 | `decisions/wrong-dr-citation` | 決定記録 | 誤った DR 番号を根拠として引用している | 3 | PR #24 | PR #53 |
 | `decisions/implementation-labeled-as-canonical` | 決定記録 | DR が実装コードを「正本」として指定している | 2 | PR #24 | PR #51 |
 | `code/test-duplicates-prior-assertion` | コード品質 | 追加したテストが直前のテストと完全に重複し、検出力を持たない | 2 | PR #20 | PR #24 |
@@ -156,7 +156,7 @@
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #53 | 2026-09-20 | 0 | 9 | 6 | [pr-53.md](./reviews/pr-53.md) |
+| #53 | 2026-09-20 | 0 | 11 | 7 | [pr-53.md](./reviews/pr-53.md) |
 | #52 | 2026-09-20 | 0 | 23 | 15 | [pr-52.md](./reviews/pr-52.md) |
 | #51 | 2026-09-12 | 1 | 15 | 7 | [pr-51.md](./reviews/pr-51.md) |
 | #47 | 2026-09-12 | 2 | 12 | 8 | [pr-47.md](./reviews/pr-47.md) |
