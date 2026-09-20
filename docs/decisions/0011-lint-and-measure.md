@@ -56,5 +56,5 @@
 - 採点結果には「実際に実行されたルール ID の集合」を残し、`design/rules.json` との差集合が空でないときは採点を fail にする。未実行を pass と区別するため
 - measure は各スライドの全 Fragment 段階について測る。最終段階が最も要素が詰まった状態になるため、初期状態だけを測ると `no-overflow` が本命の事故を見逃す
 - measure はビューポートを `design/tokens.json` の `canvas` と同じ寸法（スケール倍率 1.0）に固定して実行する。判定はキャンバス座標系で行い、許容誤差は `design/rules.json` に置く。条件を固定しないと、同じ Run を別環境で採点し直したときに結果が変わる
-- `no-raw-scale` が例外的に許す長さリテラル（`0`、`100%`、ヘアラインの `1px` など）は `design/rules.json` に列挙する
+- `no-raw-scale` が例外的に許す長さリテラルは `design/rules.json` の `noRawScale.allowedLiterals` に列挙する
 - ESLint の `noInlineConfig` は `src/**` にのみ掛ける。`src/**` は AI が無人の生成ループで書く検査対象であり、生成物に混ざった抑止コメントで契約検査を無効化されては実効性が失われる。`packages/**` は PR レビューを経て変更されるため、局所的な `eslint-disable` を許容する。この免除は `packages/**` という配置に掛かるのであって、そこに置かれる個々のパッケージの種類には掛からない（[DR-0027](./0027-build-scaffold-workspace-and-test-stack.md)）。ただし両者とも `reportUnusedDisableDirectives` を `error` にし、効かなくなった抑止コメントを残さない

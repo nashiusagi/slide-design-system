@@ -5,6 +5,7 @@
 | スクリプト | 役割 |
 | --- | --- |
 | `generate-theme.mjs` | `design/tokens.json` から `design/theme.css` の `--dh-*` を生成する。`--check` で乖離を検出する |
+| `check-canonical-duplication.mjs` | 正本の値・一覧・対応表が、正本を参照できない文書（README / DR / Skill / 実験の記録 / カタログのコード）へ書き写されていないかを検査する（DR-0046）。走査する場所は `SCAN_ROOTS`、例外は `canonical-duplication-allowlist.json` に `reason` と `count` つきで登録する |
 | `validate-design.mjs` | 契約自体を検証する（スキーマ、色域、コントラスト、キャンバス寸法とランタイムの一致、deck 契約の構文とスキーマ） |
 | `measure-slides.mjs` | `dist/` を Playwright で開き、no-overflow / min-font-size / contrast を実測する（DR-0011）。`pnpm build` の後に `pnpm measure` で実行し、`measurements.json` を出力する |
 | `resolve-design-contract.mjs` | manifest（deck/layout/component の一覧）から、正本の中で本当に必要な契約ファイルだけを解決する（DR-0013） |
