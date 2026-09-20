@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-20（PR #52 レビュー 4周目）
+最終更新: 2026-09-20（PR #52 レビュー 5周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -35,6 +35,7 @@
 | `contract/design-data-duplicated` | デザインの値が正本以外へ複製された | 10 | PR #51 | 未着手 |
 | `writing/inaccurate-rationale` | 説明文が書いている理由付けが、実装の挙動と食い違う | 11 | PR #52 | 未着手 |
 | `inspection/invalid-case-untested` | 検査そのものに invalid ケースのテストが無い | 3 | PR #52 | 未着手 |
+| `code/test-cannot-detect-regression` | テストが、その名前が示す回帰をフィクスチャの都合で検出できない | 3 | PR #52 | 未着手 |
 | `inspection/rule-coverage-partial` | 判定対象の列挙に穴があり、基準を割った組み合わせを見逃す | 7 | PR #52 | 一部（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43）。`enumeration-tail` の軸で事例を要求するが、網羅性の証明ではない |
 | `phase/completion-criterion-not-verified-e2e` | Issue の完了条件が、単体テストのみで統合パスを通さず検証されている | 5 | PR #47 | 未着手 |
 | `writing/contradictory-instruction` | 同じ状況に対する指示が文書間で食い違う | 6 | PR #52 | 未着手 |
@@ -122,7 +123,7 @@
 | `code/unvalidated-id-format` | コード品質 | 識別子が許容書式に収まることを型でもテストでも保証していない | 1 | PR #40 | PR #40 |
 | `writing/ungrammatical-sentence` | 日本語 | 述語が欠けた文があり、意味が確定しない | 1 | PR #40 | PR #40 |
 | `writing/incomplete-pr-description` | 日本語 | PR 本文が着手時のままで、完成度と残りが読み取れない | 3 | PR #40 | PR #51 |
-| `code/test-cannot-detect-regression` | コード品質 | テストが、その名前が示す回帰をフィクスチャの都合で検出できない | 2 | PR #40 | PR #41 |
+| `code/test-cannot-detect-regression` | コード品質 | テストが、その名前が示す回帰をフィクスチャの都合で検出できない | 3 | PR #40 | PR #52 |
 | `code/duplicate-test-case` | コード品質 | 追加したテストが既存ケースと同一のアサーションになっている | 1 | PR #40 | PR #40 |
 | `decisions/citation-incomplete-after-rewrite` | 決定記録 | 本文を書き換えたが、冒頭の要約欄（実装・関連）が古いまま取り残された | 2 | PR #40 | PR #51 |
 | `code/restricted-module-list-duplicated-across-mechanisms` | コード品質 | 同じ禁止対象を別々の記法で二重管理し、片方だけ更新されうる | 1 | PR #40 | PR #40 |
@@ -153,7 +154,7 @@
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #52 | 2026-09-20 | 0 | 22 | 15 | [pr-52.md](./reviews/pr-52.md) |
+| #52 | 2026-09-20 | 0 | 23 | 15 | [pr-52.md](./reviews/pr-52.md) |
 | #51 | 2026-09-12 | 1 | 15 | 7 | [pr-51.md](./reviews/pr-51.md) |
 | #47 | 2026-09-12 | 2 | 12 | 8 | [pr-47.md](./reviews/pr-47.md) |
 | #41 | 2026-09-11 | 1 | 7 | 1 | [pr-41.md](./reviews/pr-41.md) |
