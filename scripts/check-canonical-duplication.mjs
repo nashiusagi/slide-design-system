@@ -349,12 +349,14 @@ function markEnumerationLines(lines) {
     }
 
     /*
-     * GFM の表は、見出し行の次の行が区切り行でなければ表にならない。位置を問わずに
-     * 区切り行の有無だけを見ると、パイプを含む地の文の列のどこかに罫線めいた行が
-     * 紛れているだけで、範囲全体が表として扱われる。
+     * GFM の表は、見出し行の次の行が区切り行でなければ表にならない。範囲の先頭を見出し行と
+     * 決め打つと、見出しの直前にパイプを含む地の文が続いているだけで1行ずれ、その表を
+     * 丸ごと見逃す。区切り行を探し、その直前の行を見出し行として範囲を取り直す。
      */
-    if (start + 1 <= end && TABLE_DELIMITER.test(lines[start + 1])) {
-      for (let index = start; index <= end; index += 1) {
+    const delimiter = lines.slice(start + 1, end + 1).findIndex((text) => TABLE_DELIMITER.test(text))
+
+    if (delimiter !== -1) {
+      for (let index = start + delimiter; index <= end; index += 1) {
         marks[index] = true
       }
     }

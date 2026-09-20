@@ -230,6 +230,21 @@ describe('findStructureDuplications', () => {
     expect(structureIn(source)).toEqual([])
   })
 
+  /*
+   * 範囲の先頭を見出し行と決め打つと、見出しの直前にパイプを含む地の文が続いているだけで
+   * 判定が1行ずれ、その表を丸ごと見逃す。見逃しは無言で、検査は緑のまま通る。
+   */
+  it('見出し行の直前にパイプを含む地の文があっても、表として捕まえる', () => {
+    const source = [
+      '今日は 準備 | 実行 の順で進めた。',
+      'name | 役割',
+      '--- | ---',
+      layoutBlock((name) => `${name} | 説明`),
+    ].join('\n')
+
+    expect(structureIn(source).length).toBeGreaterThan(0)
+  })
+
   it('一覧の全項目が1行に並ぶ形も捕まえる', () => {
     const found = structureIn(`レイアウトは ${layouts.map((layout) => `\`${layout.name}\``).join(' / ')}。`)
 
