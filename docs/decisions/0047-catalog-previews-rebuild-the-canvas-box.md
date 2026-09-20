@@ -80,5 +80,7 @@
 - `.slide` が持つ性質が増えたときは、`src/docs/docs.css` の `.doc-canvas__frame` が追随する必要がある。追随漏れはプレビューの見た目のずれとしてしか現れず、機械では捕まらない
 - **この結線は片側にしか書かない。** 写した側（`src/docs/docs.css`）のコメントが `src/runtime/runtime.css` を指し、逆向きは置かない。`src/runtime/` は starter として Baseline 条件へもそのまま渡る（[DR-0021](./0021-starter-contains-runtime-only.md)）ので、カタログや設計契約を指すコメントを置くと、契約の有無という実験の条件差がコメント経由で薄まる。`.slide` を触る人がカタログ側を直す必要に気づく経路は、この DR と `docs.css` のコメントだけになる
 - **カタログの CSS から `src/runtime/` を `@import` しない。** ESLint の境界検査は `.ts` / `.tsx` にしか掛かっておらず（`eslint.config.js` の `forbidCrossEntryImports`）、CSS の `@import` は素通りする。この穴は `src/docs/docs.css.test.ts` が塞ぐ
+- **禁止する相手の名前は `scripts/cross-entry-boundary.json` を唯一の在り処とし、`eslint.config.js` と `src/docs/docs.css.test.ts` の両方がそこから読む。** 2系統へ別々に書くと、対象が増えたときに片方だけ更新され、同じ抜け道が再発する
+- **CSS の読み込み宣言は記法で取りこぼさない。** `'x.css'` / `url('x.css')` / `url(x.css)` は等価なので、検査は構文木から `@import` を列挙する（[DR-0041](./0041-postcss-for-layout-class-check.md) が `checkLayoutClasses` で PostCSS を選んだのと同じ理由）
 - カタログのページの並び（`src/docs/pages.ts` の `DOCS_PAGES`）は、契約の層の並び（tokens → layouts → components → rules）に置く。後続の Issue はその位置へ足す
 - プレビューの中身は、部品の実装ができるまでスロットごとのプレースホルダに留める。部品の見た目をカタログ側で先取りしない

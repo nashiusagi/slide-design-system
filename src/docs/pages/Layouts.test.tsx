@@ -11,9 +11,12 @@ import { Layouts } from './Layouts'
  * 1ファイルではなくページ全体を glob で取る。ファイル単位で書くと、カードの描画を別ファイルへ
  * 切り出してそちらに文言を直書きするだけで検査の外へ出られる。ページを足したら自動で対象に
  * 入る形にしておけば、#36 / #38 でテストを書き忘れても複製は落ちる。
+ *
+ * `*` はディレクトリを跨がないので `**` で書く。直下だけを見ると、切り出し先を1段深い
+ * ディレクトリへ置くだけで同じ抜け道が開く。
  */
 const PAGE_SOURCES = Object.entries(
-  import.meta.glob<string>('./*.tsx', { eager: true, query: '?raw', import: 'default' }),
+  import.meta.glob<string>('./**/*.tsx', { eager: true, query: '?raw', import: 'default' }),
 ).filter(([path]) => !path.includes('.test.'))
 
 describe('Layouts', () => {

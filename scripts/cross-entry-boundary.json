@@ -1,5 +1,5 @@
 {
-  "$comment": "デザインカタログ（src/docs/）とスライド本体（src/App.tsx / src/runtime/）は互いを参照しないと決めている（DR-0042）。禁止する相手の名前（パスの最終セグメント）の唯一の在り処。eslint.config.js が .ts / .tsx の import を、src/docs/docs.css.test.ts が CSS の @import を、それぞれこの一覧から組み立てる。2系統へ別々に書くと、対象が増えたときに片方だけ更新され、同じ抜け道が再発する（DR-0047 の帰結）。",
+  "$comment": "デザインカタログ（src/docs/）とスライド本体（src/App.tsx / src/runtime/）は互いを参照しないと決めている（DR-0042）。禁止する相手の名前（パスの最終セグメント）の唯一の在り処。eslint.config.js が .ts / .tsx の import を、src/docs/docs.css.test.ts が CSS の @import を、それぞれこの一覧から組み立てる。2系統へ別々に書くと、対象が増えたときに片方だけ更新され、同じ抜け道が再発する。この一本化は DR-0047 の帰結が定めている。",
   "forbiddenFromCatalog": ["App", "runtime"],
   "forbiddenFromSlides": ["docs"]
 }
