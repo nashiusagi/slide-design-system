@@ -205,6 +205,31 @@ describe('findStructureDuplications', () => {
     expect(structureIn(source)).toEqual([])
   })
 
+  /*
+   * GFM の区切り行はハイフン1個から有効で、GitHub はこれを表として描く。下限を上げると、
+   * 描かれ方が同じ表を書き方の違いだけで見逃す。
+   */
+  it('区切り行のハイフンが1個の表でも捕まえる', () => {
+    const source = ['name | 役割', '- | -', layoutBlock((name) => `${name} | 説明`)].join('\n')
+
+    expect(structureIn(source).length).toBeGreaterThan(0)
+  })
+
+  /*
+   * GFM は見出し行の次の行にしか区切り行を許さない。位置を見ずに区切り行の有無だけで
+   * 表と見なすと、パイプを含む地の文の列に罫線めいた行が紛れただけで表になる。
+   */
+  it('区切り行が見出し行の次に無い場合は表として扱わない', () => {
+    const source = [
+      `今日は \`${layouts[0].name}\` を試した。手順は 準備 | 実行 の順で進める。`,
+      `次の日も 検証 | 修正 の順で進めた。`,
+      '--- | ---',
+      `別の日には \`${layouts[1].name}\` を試した。流れは 記録 | 比較 の順だった。`,
+    ].join('\n')
+
+    expect(structureIn(source)).toEqual([])
+  })
+
   it('一覧の全項目が1行に並ぶ形も捕まえる', () => {
     const found = structureIn(`レイアウトは ${layouts.map((layout) => `\`${layout.name}\``).join(' / ')}。`)
 

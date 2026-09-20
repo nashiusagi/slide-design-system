@@ -316,8 +316,12 @@ const ENUMERATION_HEAD = /^\s*([-*+]\s|\d+[.)]\s|\|)/
  */
 const hasPipeCell = (text) => /\s\|\s/.test(text.replace(/`[^`\n]*`/g, ''))
 
-/** GFM の表の区切り行（`--- | ---`）か。先頭・末尾のパイプは省けるため任意にする。 */
-const TABLE_DELIMITER = /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/
+/**
+ * GFM の表の区切り行か。先頭・末尾のパイプは省けるため任意にする。ハイフンは1個から
+ * 有効で、GitHub は `- | -` も表として描く。ここで3個以上を要求すると、描かれ方が同じ
+ * 表を書き方の違いだけで見逃す。
+ */
+const TABLE_DELIMITER = /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)+\|?\s*$/
 
 /**
  * 各行が箇条書き・表の行かを返す。
@@ -344,7 +348,12 @@ function markEnumerationLines(lines) {
       end += 1
     }
 
-    if (lines.slice(start, end + 1).some((text) => TABLE_DELIMITER.test(text))) {
+    /*
+     * GFM の表は、見出し行の次の行が区切り行でなければ表にならない。位置を問わずに
+     * 区切り行の有無だけを見ると、パイプを含む地の文の列のどこかに罫線めいた行が
+     * 紛れているだけで、範囲全体が表として扱われる。
+     */
+    if (start + 1 <= end && TABLE_DELIMITER.test(lines[start + 1])) {
       for (let index = start; index <= end; index += 1) {
         marks[index] = true
       }
