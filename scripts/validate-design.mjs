@@ -645,6 +645,52 @@ export function checkLayoutClasses(layouts, cssSource) {
 }
 
 /**
+ * src/components/components.css が、部品契約の名前をちょうど実装しているか
+ * （DR-0018 / DR-0050）。過不足どちらも検査する。
+ *
+ * 部品契約は `classes` を持たない（DR-0035）。クラス名を決めるのは実装側で、その規則
+ * ——契約名をそのままクラス名にする——を決めたのが DR-0050 である。ここはその規則に
+ * 従っているかを見る。契約に対応するクラスが無ければ、その部品は見た目を持たないまま
+ * カタログの登録表（DR-0049）に並び、実装済みとして表示される。逆に契約に無いクラスが
+ * 残っていると、消えた契約の実装が残り続けても気付けない。
+ *
+ * レイアウトの `slide--*` と違い、部品のクラス名には共通の接頭辞が無い。そのため実装側の
+ * 余りを絞り込む条件が置けず、契約名以外のクラスはすべて余りとして報告する。部品の
+ * 見た目だけを持つファイルなので、それ以外のクラスが要る場面は無い。
+ *
+ * 判定は checkLayoutClasses と同じ見方（postcss の構文木、DR-0041）で行う。別の見方を
+ * 持ち込むと、片方だけが記法の抜け道を塞いだ状態になる。
+ *
+ * @param {{ name: string }[]} components
+ * @param {string} cssSource src/components/components.css の中身
+ * @returns {string[]}
+ */
+export function checkComponentClasses(components, cssSource) {
+  const declared = new Set(components.map((component) => component.name))
+  const implemented = new Set()
+
+  try {
+    postcss.parse(cssSource, { from: resolve('src/components/components.css') }).walkRules((rule) => {
+      for (const className of classesTargetedBySelector(rule.selector)) {
+        implemented.add(className)
+      }
+    })
+  } catch (error) {
+    return [`src/components/components.css: CSS として解析できない: ${/** @type {Error} */ (error).message}`]
+  }
+
+  const missing = [...declared]
+    .filter((name) => !implemented.has(name))
+    .map((name) => `src/components/components.css: 部品契約 '${name}' に対応する .${name} を実装していない`)
+
+  const extra = [...implemented]
+    .filter((name) => !declared.has(name))
+    .map((name) => `src/components/components.css: .${name} を実装しているが、design/components/ のどの契約にも無い`)
+
+  return [...missing, ...extra]
+}
+
+/**
  * 連続する空白（改行を含む）を1つに畳み、書式文字（Unicode の Cf カテゴリ。
  * ゼロ幅スペース等）を取り除く。Markdown の折り返しで複製の途中に改行が挟まる、
  * あるいはコピー時に不可視文字が混入するだけで完全一致判定をすり抜けるのを
@@ -899,6 +945,7 @@ async function main() {
   const layouts = LAYOUT_NAMES.map((name) => readJson(`design/layouts/${name}.json`))
   const components = COMPONENT_NAMES.map((name) => readJson(`design/components/${name}.json`))
   const layoutCss = readFileSync(resolve('design/layout.css'), 'utf8')
+  const componentCss = readFileSync(resolve('src/components/components.css'), 'utf8')
   const decks = readdirSync(resolve('design/decks'))
     .filter((name) => name.endsWith('.md'))
     .map((name) => ({
@@ -924,6 +971,10 @@ async function main() {
     {
       name: 'layout.css がレイアウト契約の classes をちょうど実装する',
       run: () => checkLayoutClasses(layouts, layoutCss),
+    },
+    {
+      name: 'components.css が部品契約の名前をちょうど実装する',
+      run: () => checkComponentClasses(components, componentCss),
     },
     {
       name: 'layout と component の対応が矛盾していない',

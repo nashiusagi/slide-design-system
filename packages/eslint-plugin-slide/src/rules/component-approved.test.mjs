@@ -27,6 +27,12 @@ describe('component-approved', () => {
         'const el = <Statement text="x" />',
         // 波括弧で包んだ文字列リテラルでも、allowedIn どおりの layout なら通る。
         'import { Statement } from "../components"\nconst el = <Slide layout={"statement"}><Statement text="x" /></Slide>',
+        // 正規の実装（DR-0050）は契約名を定義する側。ここを再定義として弾くと、
+        // import して使うべき相手をどこにも作れない。
+        {
+          code: 'export function Statement({ text }) { return <p className="statement">{text}</p> }',
+          options: [{ implementsContracts: true }],
+        },
       ],
       invalid: [
         {
@@ -37,6 +43,18 @@ describe('component-approved', () => {
         {
           code: 'class Emphasis { render() { return null } }',
           errors: [{ messageId: 'shadowed' }],
+        },
+        {
+          // オプションを与えなければ、正規の実装と同じ書き方でも再定義として弾く。
+          // 既定で緩むと、どのファイルでも契約名を埋められる。
+          code: 'export function Statement({ text }) { return <p>{text}</p> }',
+          errors: [{ messageId: 'shadowed' }],
+        },
+        {
+          // 実装のファイルでも、allowedIn の判定までは外さない。外す範囲は再定義だけ。
+          code: 'import { Statement } from "./Statement"\nconst el = <Slide layout="title"><Statement text="x" /></Slide>',
+          options: [{ implementsContracts: true }],
+          errors: [{ messageId: 'disallowedLayout' }],
         },
         {
           // bullet-list の allowedIn は ["bullets"] のみ。title では使えない。

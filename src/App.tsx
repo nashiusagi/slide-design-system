@@ -1,38 +1,44 @@
 import './runtime/runtime.css'
 
+import { BulletList, Emphasis, SlideTitle, Statement } from './components'
 import { Deck, Fragment, Slide } from './runtime'
 
 /**
- * 仮のスライド。ランタイムが動くことを確かめるためだけに置く。
+ * 仮のスライド。ランタイムと部品が動くことを確かめるためだけに置く。
  *
- * 見た目は付けない。レイアウトの実装は design/layout.css（#5）が持ち、
- * 文言は deck 契約（#6）から来る。ここに先取りして書かない。
+ * 中身は `design/components/` の実装（DR-0050）で組む。素の `<h1>` / `<li>` /
+ * `<p>` は使わない——契約に実装が付いた以上、ここが素の要素のままだと、契約を
+ * 通さない書き方の見本がリポジトリに残る。
+ *
+ * 見た目はまだ付かない。`design/theme.css` / `design/layout.css` をここから
+ * 読み込んでいないので、部品のクラスは当たるが値が無い。読み込みを足す Issue が
+ * `pnpm measure` の `pnpm check` への組み込みまで持つ（DR-0038 の帰結）。
+ * 文言は deck 契約（`design/decks/harness-intro.md`）から来る。
  */
 export function App() {
   return (
     <Deck>
       <Slide layout="title" notes="ランタイムの動作確認用。">
-        <h1>slide-design-system</h1>
-        <p>設計契約 → AI 生成 → 機械検査 → 修正</p>
+        <SlideTitle text="slide-design-system" />
       </Slide>
 
-      <Slide layout="bullets" notes="Fragment で 1 項目ずつ出す。">
-        <h2>Phase 1 のランタイム</h2>
-        <ul>
-          <Fragment index={1}>
-            <li>固定キャンバスのスケーリング</li>
-          </Fragment>
-          <Fragment index={2}>
-            <li>URL による現在位置の同期</li>
-          </Fragment>
-          <Fragment index={3}>
-            <li>段階表示</li>
-          </Fragment>
-        </ul>
+      <Slide layout="bullets" notes="Fragment で本文をまとめて出す。">
+        <SlideTitle text="Phase 1 のランタイム" />
+        <Fragment index={1}>
+          <BulletList
+            items={['固定キャンバスのスケーリング', 'URL による現在位置の同期', '段階表示']}
+          />
+        </Fragment>
       </Slide>
 
       <Slide layout="statement">
-        <p>はみ出しは実測で判定できる</p>
+        <Statement
+          text={
+            <>
+              はみ出しは<Emphasis text="実測" />で判定できる
+            </>
+          }
+        />
       </Slide>
     </Deck>
   )

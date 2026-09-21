@@ -12,6 +12,7 @@ import { describe, expect, it } from 'vitest'
 import {
   checkBypassFixtureCoverage,
   checkCanvasMatchesRuntime,
+  checkComponentClasses,
   checkContrast,
   checkDecks,
   checkGamut,
@@ -181,6 +182,51 @@ describe('checkMeasureRuleCoverage', () => {
     const found = checkMeasureRuleCoverage(rules, ['no-overflow'], ['no-overflow', 'deck-body-fidelity'])
 
     expect(found).toEqual([expect.stringContaining("'no-overflow' は knownUnimplementedRuleIds にあるが")])
+  })
+})
+
+describe('checkComponentClasses', () => {
+  const components = [{ name: 'slide-title' }, { name: 'bullet-list' }]
+  const validCss = '.slide-title { margin: 0; }\n.bullet-list { margin: 0; }\n'
+
+  it('契約と実装が過不足なく一致していれば何も返さない', () => {
+    expect(checkComponentClasses(components, validCss)).toEqual([])
+  })
+
+  it('子孫セレクタで書いた部分も実装と見なす', () => {
+    // 部品の中の要素（.bullet-list > li + li）にだけ当てる規則を、別のクラスの実装と
+    // 数えないこと。数えると、書き方を変えただけで「契約に無いクラス」の報告が出る。
+    expect(checkComponentClasses(components, `${validCss}.bullet-list > li + li { margin: 0; }\n`)).toEqual([])
+  })
+
+  it('契約にあるのに実装が無いと捕まえる', () => {
+    const found = checkComponentClasses(components, '.slide-title { margin: 0; }\n')
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('.bullet-list')
+  })
+
+  it('契約に無いクラスを実装していると捕まえる', () => {
+    // レイアウトの slide--* と違い、部品のクラス名には共通の接頭辞が無い。余りを絞り込む
+    // 条件が置けないので、契約名以外はすべて余りとして報告する。
+    const found = checkComponentClasses(components, `${validCss}.caption { margin: 0; }\n`)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('.caption')
+  })
+
+  it('コメントの中に書かれただけのクラス名は実装と見なさない', () => {
+    const found = checkComponentClasses(components, '/* .bullet-list は後で書く */\n.slide-title {}\n')
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('.bullet-list')
+  })
+
+  it('CSS として解析できなければ、例外ではなく問題として返す', () => {
+    const found = checkComponentClasses(components, '.slide-title { margin: 0;\n')
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('CSS として解析できない')
   })
 })
 

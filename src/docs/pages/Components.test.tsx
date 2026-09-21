@@ -110,21 +110,51 @@ describe('Components', () => {
   })
 
   /*
-   * このページの目的そのもの。契約にあるのに実装が無い部品を、画面上の穴として出す（DR-0049）。
-   * 4部品すべてが未実装なのが、いまの正しい状態である。
+   * 契約と実装の差を画面に出す場所（DR-0049）。いまは差が無く、4部品すべてが実描画になる
+   * ——それが Issue #37 の受け入れ基準そのものである。
    */
-  it('実装が無い部品は「未実装」と明示され、いまは全部品がその状態になる', () => {
+  it('全部品が実描画になり、「未実装」の枠が1つも残らない', () => {
     const { container } = render(<Components />)
 
     const marks = [...container.querySelectorAll('[data-implemented]')]
 
     expect(marks).toHaveLength(COMPONENTS.length)
     expect(marks.map((mark) => mark.getAttribute('data-implemented'))).toEqual(
-      COMPONENTS.map(() => 'false'),
+      COMPONENTS.map(() => 'true'),
     )
 
-    for (const mark of marks) {
-      expect(mark.textContent).toBe('未実装')
+    expect(container.querySelectorAll('.doc-component__unimplemented')).toHaveLength(0)
+  })
+
+  /*
+   * 登録が無い部品は、空欄ではなく「未実装」と書いた枠になる（DR-0049 決定2）。実データでは
+   * もう踏まない枝なので、表を差し替えて踏む。ここが消えると、契約を足して実装が追いつかない
+   * ときの見え方を誰も確かめていない状態になる。
+   */
+  it('登録が無い部品は「未実装」と明示される', async () => {
+    vi.resetModules()
+    vi.doMock('../components', async () => ({
+      ...(await vi.importActual<typeof import('../components')>('../components')),
+      COMPONENT_PREVIEWS: {},
+    }))
+
+    try {
+      const { Components: WithoutPreviews } = await import('./Components')
+      const { container } = render(<WithoutPreviews />)
+
+      const marks = [...container.querySelectorAll('[data-implemented]')]
+
+      expect(marks).toHaveLength(COMPONENTS.length)
+      expect(marks.map((mark) => mark.getAttribute('data-implemented'))).toEqual(
+        COMPONENTS.map(() => 'false'),
+      )
+
+      for (const mark of marks) {
+        expect(mark.textContent).toBe('未実装')
+      }
+    } finally {
+      vi.doUnmock('../components')
+      vi.resetModules()
     }
   })
 
@@ -191,8 +221,8 @@ describe('Components', () => {
   })
 
   /*
-   * 実装がある側の見え方。登録表が空のままだと、この枝は一度も描かれない。#37 が登録したときに
-   * 初めて動く経路を、いま踏んでおく。
+   * 登録された相手がそのまま描かれること。実データの登録は4件とも本物の部品なので、
+   * 「登録を引いて描いている」のか「たまたま別の経路で描けている」のかがここでしか分かれない。
    */
   it('登録のある部品は、未実装ではなくそのプレビューを描く', async () => {
     const Marker: ComponentType = () => <span data-testid="preview-marker" />

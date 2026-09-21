@@ -8,11 +8,16 @@
  * 対象外（DR-0037）。このファイルは lint されないので、上の規約は人が守る。
  *
  * ここはカタログの外枠（ナビゲーション・ページ枠・カード）だけを持つ。スライドの
- * 見た目は design/layout.css が持ち、その中身をこちらへ書き直さない。レイアウトの
- * プレビューは design/layout.css を読み込んで当てる（DR-0047）。
+ * 見た目は design/layout.css と src/components/components.css が持ち、その中身を
+ * こちらへ書き直さない。レイアウトのプレビューは design/layout.css を、部品の
+ * プレビューは src/components/components.css を読み込んで当てる（DR-0047 / DR-0050）。
+ *
+ * 部品の CSS は実装（src/components/）側に在るが、スライド本体（src/App.tsx /
+ * src/runtime/）ではないので、読み込んでもビルドエントリの境界（DR-0042）は越えない。
  */
 @import '../../design/theme.css';
 @import '../../design/layout.css';
+@import '../components/components.css';
 
 html,
 body,
@@ -301,8 +306,10 @@ body {
 }
 
 /*
- * プレビューの中身。部品の実装がまだ無いので、置き場所だけを示す枠を出す
- * （実装は Issue #37、一覧はカタログの #/components）。部品の見た目をここで先取りしない。
+ * レイアウトのプレビューの中身。部品の実装（src/components/、DR-0050）は在るが、ここでは
+ * 置き場所だけを示す枠を出す。レイアウトのページが見せるのは箱の並び方で、どの部品が
+ * どこへ入るかは slots が決める——中身を実物にすると、見せたい箱の構造が文字量で隠れる。
+ * 部品そのものの見え方はカタログの #/components に在る。
  */
 .doc-slot-placeholder {
   margin: 0;
@@ -316,8 +323,9 @@ body {
 /*
  * 部品（契約一覧）のページ。
  *
- * 実装が無い部品は、空欄ではなく「未実装」と書いた枠を出す（DR-0049）。空欄にすると、
- * まだ描いていないのか実装が無いのかが読み手に伝わらない。
+ * プレビューの中身は部品の実装そのもの（src/components/components.css を読み込んで当てる、
+ * DR-0050）。実装が無い部品は、空欄ではなく「未実装」と書いた枠を出す（DR-0049）。空欄に
+ * すると、まだ描いていないのか実装が無いのかが読み手に伝わらない。
  */
 .doc-component {
   gap: var(--dh-space-lg);

@@ -5,8 +5,10 @@
  * 契約の文言をここへ書き写さない（DR-0042 決定2）。並べる対象も、各項目の中身も、
  * すべて `LAYOUTS` から引く。ここが持つのは見出しの日本語と、どの図形で描くかだけだ。
  *
- * プレビューの中身はプレースホルダ。部品（`design/components/`）の実装はまだ無い。契約の一覧は
- * カタログの `#/components` にあり、実装は Issue #37 が持つ。ここで先取りして描かない。
+ * プレビューの中身はプレースホルダ。部品（`design/components/`）の実装は在る（DR-0050）が、
+ * ここが見せるのは箱の並び方で、どの部品がどこへ入るかは `slots` が決める。中身を実物に
+ * 差し替えると、見せたい箱の構造が文字量に隠れる。部品そのものの見え方は `#/components`
+ * にあり、あちらが実装を描く場所になっている。
  */
 import type { ReactNode } from 'react'
 
@@ -30,8 +32,9 @@ function TextList({ title, items }: { title: string; items: string[] }): ReactNo
 /**
  * スロットの表。部品名・必須かどうか・最大数を出す。
  *
- * 部品名は `design/components/` の契約名で、対応する部品ページ（#36）はまだ無い。
- * リンクは部品ページができてから張る。
+ * 部品名は `design/components/` の契約名。部品のページ（`#/components`）は在るが、ここからの
+ * リンクはまだ張っていない。張るのはこの表の仕事の範囲を超える（節つき hash の張り方は
+ * DR-0048、逆向きは Components のページが持っている）。
  */
 function SlotTable({ slots }: { slots: LayoutSlot[] }): ReactNode {
   return (
@@ -65,8 +68,7 @@ function SlotTable({ slots }: { slots: LayoutSlot[] }): ReactNode {
  * 留める（DR-0047 決定2）。カタログは `src/runtime/` を参照できない（DR-0042）ため、
  * ここだけは同じ箱を自前で作る。
  *
- * 中身はスロットごとのプレースホルダ。部品の実装がまだ無いので、箱の並び方だけが分かる
- * 形にしてある。
+ * 中身はスロットごとのプレースホルダ。ここでは箱の並び方だけが分かる形にしてある。
  */
 function LayoutPreview({ layout }: { layout: LayoutContract }): ReactNode {
   return (

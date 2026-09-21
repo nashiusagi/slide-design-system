@@ -38,6 +38,8 @@ pnpm check            # 検査からビルドまでを一括で通す（段の�
 
 `design/` の契約を目で確かめるデザインカタログは、スライド本体とは別のビルドエントリ（`docs.html` / `src/docs/`）に置く。カタログのコードはスライドのバンドルへ入らない。根拠は [DR-0042](./docs/decisions/0042-design-catalog-as-separate-build-entry.md)。
 
+`design/components/` の契約の実装（React コンポーネントとそのスタイル）は `src/components/` に置く。`src/runtime/` からは公開しない。あちらは starter へ複製される範囲（[DR-0021](./docs/decisions/0021-starter-contains-runtime-only.md)）で、部品が混ざると実験の条件差が壊れる。根拠は [DR-0050](./docs/decisions/0050-components-implemented-outside-runtime.md)。
+
 検査の実行口は `pnpm check` に一本化する。契約に基づく検査は、この並びの中へ足していく。契約自体の検証は先頭の `design:check` / `theme:check` 段へ、lint は `lint` 段へ、measure はビルド出力に対して実測するため `build` より後段へ置く。
 
 **現時点では `pnpm measure` を `pnpm check` へ組み込んでいない。** `src/App.tsx` はまだ `design/theme.css` / `design/layout.css` を読み込んでおらず、実測すると既存のプレースホルダ表示（ブラウザ既定のフォントサイズ・余白）が no-overflow / min-font-size に落ちる。App が設計契約を実際に消費するようになった時点で `check` の build 後段へ足す。根拠は [DR-0038](./docs/decisions/0038-defer-measure-in-check.md)。

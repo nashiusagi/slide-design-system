@@ -9,6 +9,12 @@
  */
 import type { ComponentType } from 'react'
 
+import {
+  BulletListPreview,
+  EmphasisPreview,
+  SlideTitlePreview,
+  StatementPreview,
+} from './component-previews'
 import { contractsFrom } from './contracts'
 
 /** `design/schemas/component.schema.json` の `props` の値。 */
@@ -54,15 +60,20 @@ export function componentSectionId(componentName: string): string {
 /**
  * 部品のプレビューを描くもの。契約名から引く（DR-0049）。
  *
- * **いまは空である。これが正しい状態。** `design/components/` には4つの契約があるが、実装は
- * まだ無い（#37 が持つ）。カタログは「契約にあるのに実装が無い」を画面上の穴として見せる場所
- * なので、ここが空であることがそのまま「4部品すべて未実装」の表示になる。
+ * 実装の在り処ではなく登録の有無で判定する。判定する側（カタログ）が実装を探しに行く形に
+ * すると、探す先を決めることが実装の置き場所を決めることになる。置き場所は DR-0050 が
+ * 決めており、カタログはそれを知らないまま登録だけを見る。
  *
- * 実装の在り処ではなく登録の有無で判定するのは、実装をどこへ置くかが #37 の決定事項で、
- * まだ決まっていないからだ。置き場所を先に決め打つと、#37 の判断をカタログが縛る。
- * #37 は部品を実装したら、ここへ契約名で登録する。
+ * **ここへの登録を忘れると、実装済みの部品が「未実装」と表示され続ける。** 型検査も lint も
+ * 通るので、機械では捕まらない（DR-0049 の帰結）。キーが契約名であることだけは
+ * `components.test.ts` が見る。
  */
-export const COMPONENT_PREVIEWS: Record<string, ComponentType> = {}
+export const COMPONENT_PREVIEWS: Record<string, ComponentType> = {
+  'bullet-list': BulletListPreview,
+  emphasis: EmphasisPreview,
+  'slide-title': SlideTitlePreview,
+  statement: StatementPreview,
+}
 
 /**
  * 契約名に対応するプレビューを返す。登録が無ければ `null`——すなわち未実装。

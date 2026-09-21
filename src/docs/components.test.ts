@@ -67,17 +67,17 @@ describe('COMPONENTS', () => {
 
 describe('previewFor', () => {
   /*
-   * いまはこれが正しい状態（DR-0049）。`COMPONENT_PREVIEWS` へ登録が入ったらこのテストは
-   * 落ちる——落ちたときに、「#37 が登録した」のか「登録表が壊れた」のかを人が判断する。
+   * 4契約すべてに実装（DR-0050）と登録が在る状態を固定する。契約を1つ増やしたときも、
+   * 登録を足すまでここが落ちる——カタログが「未実装」を出し続ける状態を、テストが先に知らせる。
    *
-   * 落ちる契機は**登録**であって実装ではない。部品を実装しただけで登録を忘れた状態は、ここも
-   * 含めてどの検査も落ちない（DR-0049 の帰結）。
+   * 実装と登録は別物で、登録を忘れた状態は型検査も lint も通る（DR-0049 の帰結）。この検査が
+   * 塞ぐのはそこまでで、「登録された先が本当にその部品を描くか」は見ていない。
    */
-  it('いまは登録が空で、どの契約も未実装として返る', () => {
-    expect(COMPONENT_PREVIEWS).toEqual({})
+  it('どの契約にも登録が在り、未実装として返るものが無い', () => {
+    expect(COMPONENTS.length).toBeGreaterThan(0)
 
     for (const component of COMPONENTS) {
-      expect(previewFor(component.name, COMPONENT_PREVIEWS)).toBeNull()
+      expect(previewFor(component.name, COMPONENT_PREVIEWS), `${component.name} の登録が無い`).not.toBeNull()
     }
   })
 

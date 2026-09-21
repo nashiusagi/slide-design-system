@@ -97,6 +97,16 @@ export default tseslint.config(
     },
   },
   {
+    // 部品の正規の実装（DR-0050）。ここは契約名を定義する側なので、再定義（シャドーイング）
+    // の検査だけを外す。外さないと、import して使うべき相手をどこにも作れない。allowedIn の
+    // 判定は外さない。対象をこの1箇所に絞るため、ルールオプションで外から指定する。
+    files: ['src/components/**/*.{ts,tsx}'],
+    plugins: { slide: slidePlugin },
+    rules: {
+      'slide/component-approved': ['error', { implementsContracts: true }],
+    },
+  },
+  {
     // 参照が生えるとカタログのコードがスライドのバンドルへ入り、measure が実測する対象が
     // 本番と同一の物でなくなる（DR-0011 / DR-0022）。ビルドは通ってしまうのでここで弾く。
     // 禁止の組み立ては forbidCrossEntryImports が持つ（DR-0042）。

@@ -92,9 +92,10 @@ describe('docs.css', () => {
     expect(collect("/* @import 'commented-out.css'; */")).toEqual([])
   })
 
-  it('プレビューの根拠になる契約 CSS を読み込んでいる', () => {
+  it('プレビューの根拠になる契約 CSS と部品の実装を読み込んでいる', () => {
     expect(IMPORTED).toContain('../../design/theme.css')
     expect(IMPORTED).toContain('../../design/layout.css')
+    expect(IMPORTED).toContain('../components/components.css')
   })
 
   /*

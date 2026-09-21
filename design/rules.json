@@ -51,7 +51,8 @@
       "scopeExclusions": [
         { "id": "import-reference", "description": "import で持ち込んだ契約名。正規の実装を使うことを妨げないため、再定義とは区別する。" },
         { "id": "member-expression-name", "description": "名前空間付きの JSX 要素名（Foo.Statement）。契約名は単一の識別子として使う前提で、名前空間経由の参照は見ない。" },
-        { "id": "layout-not-static", "description": "囲む Slide の layout が静的に読めないとき。allowedIn と突き合わせる相手が決まらない。" }
+        { "id": "layout-not-static", "description": "囲む Slide の layout が静的に読めないとき。allowedIn と突き合わせる相手が決まらない。" },
+        { "id": "canonical-implementation", "description": "契約名の正規の実装そのもの（ルールオプション implementsContracts で指定したファイル）。ここまで再定義として弾くと、import して使うべき相手をどこにも作れない（DR-0050）。" }
       ]
     },
     {

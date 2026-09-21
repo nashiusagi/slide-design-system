@@ -3,12 +3,16 @@
  * （シャドーイング）しない。契約名の component は、その `allowedIn` に無い
  * layout の下で使わない（design/rules.json）。
  *
- * component の実際の React 実装（`SlideTitle` 等）はまだ無い（DR-0035:
- * 「component の実際の React 実装は別 Issue が決める」）。このルールは
- * 実装の中身を検査するのではなく、契約名と同じ名前を**この JSX 契約と無関係な
- * 実装で埋めていないか**（別モジュールが提供する正規の実装をインポートせず、
+ * このルールは実装の中身を検査するのではなく、契約名と同じ名前を**この JSX 契約と
+ * 無関係な実装で埋めていないか**（別モジュールが提供する正規の実装をインポートせず、
  * 同名のローカル関数・変数・クラスをこのファイルで定義していないか）と、
  * 使う場所が `allowedIn` と一致しているかだけを見る。
+ *
+ * 正規の実装（`src/components/`、DR-0050）だけは、契約名を定義する側である。そこまで
+ * 再定義として弾くと、import して使うべき相手がどこにも作れない。対象かどうかは
+ * ルールオプション `implementsContracts` で外から指定する（`eslint.config.js`）。
+ * 置き場所をルールへ書き込まないのは、実装の在り処を決めるのが DR-0050 であって、
+ * この検査ではないからだ。
  *
  * 再定義は関数宣言・アロー関数・関数式・class 宣言・class 式と記法が分かれる。
  * どれか1つを見落とすと、記法を変えるだけで素通りする（component-approved.bypass.mjs）。
@@ -58,7 +62,19 @@ const rule = {
     docs: {
       description: descriptionOf('component-approved'),
     },
-    schema: [],
+    schema: [
+      {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          /**
+           * このファイルが契約名の正規の実装かどうか。真なら再定義の検査を外す
+           * （design/rules.json の scopeExclusions の `canonical-implementation`）。
+           */
+          implementsContracts: { type: 'boolean' },
+        },
+      },
+    ],
     messages: {
       shadowed:
         "'{{name}}' は design/components/ の契約名。ローカルで再定義せず、正規の実装を import して使うこと。",
@@ -68,12 +84,17 @@ const rule = {
   },
   create(context) {
     const components = listComponents()
+    const implementsContracts = context.options[0]?.implementsContracts === true
     const byPascalName = new Map(
       components.map((component) => [toPascalCase(component.name), component]),
     )
 
     /** @param {any} idNode */
     function checkShadow(idNode) {
+      if (implementsContracts) {
+        return
+      }
+
       const name = /** @type {any} */ (idNode).name
 
       if (typeof name === 'string' && byPascalName.has(name)) {
