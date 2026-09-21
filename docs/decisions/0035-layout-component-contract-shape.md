@@ -57,5 +57,6 @@ layout.css が region 単位でスタイルを持てる。
 
 - Phase 1.5 で layout / component を追加するときも、この5フィールド（layout）・5フィールド（component）の形に従う。形を変えるときはこの DR を置き換える
 - component の実際の React 実装（`props` が実際の TypeScript の型とどう対応するか）は別 Issue で決める。ここで決めたのは契約が AI に見せる形であって、実装の型ではない
+  - 決まった先は [DR-0050](./0050-components-implemented-outside-runtime.md)。置き場所は `src/components/`、形は React コンポーネントで、`props` の型は原則そのまま対応させる。例外は `statement` の `text` だけで、`emphasis` を埋め込めるよう `ReactNode` で受ける
 - `slots` と `allowedIn` の対応が矛盾していないことは `pnpm design:check` が両方向から検査する。検査対象が増えたら（layout や component が増えたら）、`scripts/validate-design.mjs` の `LAYOUT_NAMES` / `COMPONENT_NAMES` に 1 行ずつ足す。`CONTRACTS` はこの一覧から導出しているため個別の追記は要らない
 - `design/schemas/layout.schema.json` / `component.schema.json` の `name` / `allowedIn` / `slots.component` の enum は JSON Schema の静的な列挙であり、`LAYOUT_NAMES` / `COMPONENT_NAMES` からは自動生成していない。layout / component を増減させるときは、両方のスキーマの enum も合わせて更新すること

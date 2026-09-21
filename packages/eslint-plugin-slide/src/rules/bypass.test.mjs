@@ -39,6 +39,12 @@ function optionsOf(one, setupValue) {
   return one.options ?? []
 }
 
+/*
+ * 事例は filename を持てる。ルールがファイルのパスを見る場合（component-approved の
+ * implementsContractsIn は、そのファイルが定義してよい契約名をパスから導く）、
+ * RuleTester の既定のファイル名では除外の事例が成立しない。
+ */
+
 /**
  * 事例が期待する報告の一覧。1つの値が複数の違反へ分解される事例（ショートハンドの
  * 複合値など）は messageIds で件数まで書く。件数を問わないと、複合値のうち1つしか
@@ -73,6 +79,7 @@ describe('bypass フィクスチャ（lint）', () => {
               name: one.name,
               code: one.code,
               options: optionsOf(one, setupValue),
+              ...(one.filename === undefined ? {} : { filename: one.filename }),
             })),
           invalid: fixture.cases
             .filter((/** @type {any} */ one) => one.expect === 'violation')
@@ -80,6 +87,7 @@ describe('bypass フィクスチャ（lint）', () => {
               name: one.name,
               code: one.code,
               options: optionsOf(one, setupValue),
+              ...(one.filename === undefined ? {} : { filename: one.filename }),
               errors: messageIdsOf(one).map((messageId) => ({ messageId })),
             })),
         })

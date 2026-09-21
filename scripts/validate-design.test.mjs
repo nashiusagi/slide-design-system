@@ -12,6 +12,7 @@ import { describe, expect, it } from 'vitest'
 import {
   checkBypassFixtureCoverage,
   checkCanvasMatchesRuntime,
+  checkComponentClasses,
   checkContrast,
   checkDecks,
   checkGamut,
@@ -184,6 +185,60 @@ describe('checkMeasureRuleCoverage', () => {
   })
 })
 
+describe('checkComponentClasses', () => {
+  const components = [{ name: 'slide-title' }, { name: 'bullet-list' }]
+  const validCss = '.slide-title { margin: 0; }\n.bullet-list { margin: 0; }\n'
+
+  it('契約と実装が過不足なく一致していれば何も返さない', () => {
+    expect(checkComponentClasses(components, validCss)).toEqual([])
+  })
+
+  it('子孫セレクタで書いた部分も実装と見なす', () => {
+    // 部品の中の要素（.bullet-list > li + li）にだけ当てる規則を、別のクラスの実装と
+    // 数えないこと。数えると、書き方を変えただけで「契約に無いクラス」の報告が出る。
+    expect(checkComponentClasses(components, `${validCss}.bullet-list > li + li { margin: 0; }\n`)).toEqual([])
+  })
+
+  it('契約にあるのに実装が無いと捕まえる', () => {
+    const found = checkComponentClasses(components, '.slide-title { margin: 0; }\n')
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('.bullet-list')
+  })
+
+  it('契約に無いクラスを実装していると捕まえる', () => {
+    // レイアウトの slide--* と違い、部品のクラス名には共通の接頭辞が無い。余りを絞り込む
+    // 条件が置けないので、契約名以外はすべて余りとして報告する。
+    const found = checkComponentClasses(components, `${validCss}.caption { margin: 0; }\n`)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('.caption')
+  })
+
+  it('子孫セレクタの祖先側に名前が出るだけでは、実装したと見なさない', () => {
+    // .slide-title の規則を消し、.slide-title .bullet-list の祖先としてだけ名前を残す。
+    // 祖先側を数えると、見た目を持たない部品が「実装済み」として通る（PR #56 のレビュー）。
+    const found = checkComponentClasses(components, '.slide-title .bullet-list { margin: 0; }\n')
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('.slide-title')
+  })
+
+  it('コメントの中に書かれただけのクラス名は実装と見なさない', () => {
+    const found = checkComponentClasses(components, '/* .bullet-list は後で書く */\n.slide-title {}\n')
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('.bullet-list')
+  })
+
+  it('CSS として解析できなければ、例外ではなく問題として返す', () => {
+    const found = checkComponentClasses(components, '.slide-title { margin: 0;\n')
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('CSS として解析できない')
+  })
+})
+
 describe('checkLayoutClasses', () => {
   const layouts = [
     { name: 'title', classes: ['slide--title'] },
@@ -209,6 +264,15 @@ describe('checkLayoutClasses', () => {
 
     expect(found).toHaveLength(1)
     expect(found[0]).toContain('.slide--statement')
+  })
+
+  it('子孫セレクタの祖先側に名前が出るだけでは、実装したと見なさない', () => {
+    // 部品側（checkComponentClasses）と同じ見方を通っていること。レイアウト側だけが
+    // 祖先を数える状態になると、2つの検査の守備範囲が静かにずれる。
+    const found = checkLayoutClasses(layouts, `.slide--title {}\n.slide--bullets .item { margin: 0; }\n`)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('.slide--bullets')
   })
 
   it('コメントの中に書かれただけのクラス名は実装と見なさない', () => {

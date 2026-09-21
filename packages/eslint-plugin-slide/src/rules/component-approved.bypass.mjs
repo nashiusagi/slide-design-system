@@ -56,6 +56,14 @@ export default {
       expect: 'ok',
     },
     {
+      exclusion: 'canonical-implementation',
+      name: '正規の実装は自分の契約名を定義する側。ここを弾くと import する相手が作れない',
+      code: 'export function Statement() { return <p /> }',
+      filename: 'src/components/Statement.tsx',
+      expect: 'ok',
+      options: () => [{ implementsContractsIn: 'src/components' }],
+    },
+    {
       exclusion: 'layout-not-static',
       name: '囲む Slide の layout が静的に読めないと、allowedIn と突き合わせる相手が決まらない',
       code: 'import { Statement } from "../components"\nconst el = <Slide layout={dynamicLayout}><Statement text="x" /></Slide>',

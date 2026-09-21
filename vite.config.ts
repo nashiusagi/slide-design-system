@@ -31,7 +31,9 @@ export default defineConfig({
      *   ビルドエントリの境界を検査する（src/docs/docs.css.test.ts / DR-0047）
      *
      * 対象はこの2つだけに絞る。CSS 全体の処理を有効にすると、jsdom が組版しない
-     * スタイルの読み込みを毎回払うことになる。
+     * スタイルの読み込みを毎回払うことになる。部品の CSS（src/components/components.css）は
+     * ここに要らない。契約名との対応は pnpm design:check がファイルを直に読んで検査する
+     * （DR-0050）。
      */
     css: { include: [/design\/theme\.css/, /src\/docs\/docs\.css/] },
     globals: false,

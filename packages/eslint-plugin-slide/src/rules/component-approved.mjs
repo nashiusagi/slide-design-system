@@ -3,12 +3,17 @@
  * （シャドーイング）しない。契約名の component は、その `allowedIn` に無い
  * layout の下で使わない（design/rules.json）。
  *
- * component の実際の React 実装（`SlideTitle` 等）はまだ無い（DR-0035:
- * 「component の実際の React 実装は別 Issue が決める」）。このルールは
- * 実装の中身を検査するのではなく、契約名と同じ名前を**この JSX 契約と無関係な
- * 実装で埋めていないか**（別モジュールが提供する正規の実装をインポートせず、
+ * このルールは実装の中身を検査するのではなく、契約名と同じ名前を**この JSX 契約と
+ * 無関係な実装で埋めていないか**（別モジュールが提供する正規の実装をインポートせず、
  * 同名のローカル関数・変数・クラスをこのファイルで定義していないか）と、
  * 使う場所が `allowedIn` と一致しているかだけを見る。
+ *
+ * 正規の実装（DR-0050）だけは、契約名を定義する側である。そこまで再定義として弾くと、
+ * import して使うべき相手がどこにも作れない。正規の実装を置くディレクトリは、ルール
+ * オプション `implementsContractsIn` で外から与える（`eslint.config.js`）。置き場所を
+ * ルールへ書き込まないのは、実装の在り処を決めるのが DR-0050 であって、この検査では
+ * ないからだ。名前の一覧を設定へ書かないのも同じ理由による——設定とファイルの対応が
+ * ずれたときに、ずれた側が広い方へ倒れる。
  *
  * 再定義は関数宣言・アロー関数・関数式・class 宣言・class 式と記法が分かれる。
  * どれか1つを見落とすと、記法を変えるだけで素通りする（component-approved.bypass.mjs）。
@@ -16,6 +21,8 @@
  * **このルールが意図的に見ない領域は design/rules.json の scopeExclusions が
  * 正本**（DR-0044）。
  */
+import { basename, extname, isAbsolute, join, relative } from 'node:path'
+
 import { jsxAttributeStringValue } from '../lib/jsx-style.mjs'
 import { descriptionOf, listComponents, toPascalCase } from '../lib/design-contracts.mjs'
 
@@ -51,6 +58,39 @@ function findEnclosingLayout(context, node) {
   return undefined
 }
 
+/**
+ * このファイルが正規の実装として定義してよい契約名。オプションが無ければ null。
+ *
+ * 見るのはパス全体で、指定されたディレクトリの直下にある `<名前>.<拡張子>` にちょうど
+ * 一致したときだけ、その `<名前>` を返す。**この形をどこまで許すかは
+ * `design/rules.json` の `canonical-implementation` が正本**（DR-0044）。一致しない
+ * 書き方は `component-approved.test.mjs` の `invalid` が固定している。
+ *
+ * 返す名前が契約名として実在するかは見ない。実在しない名前を返しても、呼び出し側の
+ * 対応表に無いので何も外れない。
+ *
+ * @param {import('eslint').Rule.RuleContext} context
+ * @returns {string | null}
+ */
+function canonicalNameFor(context) {
+  const directory = context.options[0]?.implementsContractsIn
+
+  if (typeof directory !== 'string' || directory.length === 0) {
+    return null
+  }
+
+  const filename = context.filename
+
+  // RuleTester は相対パスの filename をそのまま渡す。実行時は絶対パスで来るので、
+  // どちらもリポジトリルート（context.cwd）からの相対パスへ揃えてから突き合わせる。
+  const relativePath = isAbsolute(filename) ? relative(context.cwd, filename) : filename
+  const name = basename(relativePath, extname(relativePath))
+
+  return relativePath === join(directory, `${name}${extname(relativePath)}`) && !name.includes('.')
+    ? name
+    : null
+}
+
 /** @type {import('eslint').Rule.RuleModule} */
 const rule = {
   meta: {
@@ -58,7 +98,20 @@ const rule = {
     docs: {
       description: descriptionOf('component-approved'),
     },
-    schema: [],
+    schema: [
+      {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          /**
+           * 正規の実装を置くディレクトリ（リポジトリルートからの相対パス）。ここの直下に
+           * ある `<契約名>.<拡張子>` だけが、自分の契約名の定義を許される
+           * （design/rules.json の scopeExclusions の `canonical-implementation`）。
+           */
+          implementsContractsIn: { type: 'string' },
+        },
+      },
+    ],
     messages: {
       shadowed:
         "'{{name}}' は design/components/ の契約名。ローカルで再定義せず、正規の実装を import して使うこと。",
@@ -68,6 +121,7 @@ const rule = {
   },
   create(context) {
     const components = listComponents()
+    const definableName = canonicalNameFor(context)
     const byPascalName = new Map(
       components.map((component) => [toPascalCase(component.name), component]),
     )
@@ -75,6 +129,11 @@ const rule = {
     /** @param {any} idNode */
     function checkShadow(idNode) {
       const name = /** @type {any} */ (idNode).name
+
+      // 自分の契約名だけは定義してよい。それ以外の契約名は、実装のファイルでも弾く。
+      if (name === definableName) {
+        return
+      }
 
       if (typeof name === 'string' && byPascalName.has(name)) {
         context.report({ node: idNode, messageId: 'shadowed', data: { name } })

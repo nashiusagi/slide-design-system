@@ -1,0 +1,61 @@
+/*
+ * design/components/ にある各契約の実装が使うスタイル（DR-0050）。
+ *
+ * クラス名は契約名そのもの（`.slide-title` / `.bullet-list` …）。レイアウトの
+ * `.slide--<layout>`（design/layout.css、DR-0030）とは綴りで区別が付く。契約名と
+ * このファイルのクラスが過不足なく対応していることは pnpm design:check が検査する
+ * （scripts/validate-design.mjs の checkComponentClasses）。
+ *
+ * ここが持つのは部品そのものの見た目だけで、配置と余白は design/layout.css が持つ。
+ * レイアウトのクラスを子孫セレクタで参照しない。参照すると、契約に無い軸
+ * （レイアウトごとの見え方）を部品が持つことになる。
+ *
+ * 値はすべて design/theme.css の --dh-* から取り、生の色・長さは書かない（DR-0018）。
+ * このファイルが lint の対象に入らない理由は design/rules.json の no-raw-color /
+ * no-raw-scale の scopeExclusions（non-jsx-source）が正本で、そこに書いてある。
+ * 検査が掛からないので、上の規約は人が守る。
+ */
+
+/* 1 行に収める（契約の使い方）。折り返しを許すと、長い見出しが黙って2行になって
+ * 収まってしまい、契約を外れたことが誰にも見えない。折り返さなければキャンバスから
+ * はみ出すので、目でも実測でも気付ける。
+ *
+ * ただし実測（no-overflow）がこれを捕まえるようになるのは、スライド本体がこの CSS と
+ * トークンを読み込み、pnpm measure が pnpm check に載ってからだ（DR-0038 の帰結）。
+ * いまこの CSS を読み込むのはカタログだけで、スライドのビルド出力には入らない。 */
+.slide-title {
+  margin: 0;
+  color: var(--dh-color-text);
+  font-size: var(--dh-type-size-slide-title);
+  font-weight: var(--dh-type-weight-bold);
+  line-height: var(--dh-type-line-height-tight);
+  white-space: nowrap;
+}
+
+.bullet-list {
+  margin: 0;
+  padding-inline-start: var(--dh-space-xl);
+  color: var(--dh-color-text);
+  font-size: var(--dh-type-size-body-large);
+  line-height: var(--dh-type-line-height-normal);
+}
+
+.bullet-list > li + li {
+  margin-block-start: var(--dh-space-md);
+}
+
+/* 大きさだけで主役にする。太らせないのは、同じ枚に置かれる強調（.emphasis）との
+ * あいだで手段が重なるのを避けるため。 */
+.statement {
+  margin: 0;
+  color: var(--dh-color-text);
+  font-size: var(--dh-type-size-statement);
+  font-weight: var(--dh-type-weight-regular);
+  line-height: var(--dh-type-line-height-tight);
+}
+
+/* 強調の手段は色の一点だけ（DR-0007）。strong の既定の太さは地の文へ戻す。 */
+.emphasis {
+  color: var(--dh-color-accent);
+  font-weight: inherit;
+}

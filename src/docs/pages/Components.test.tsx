@@ -110,21 +110,75 @@ describe('Components', () => {
   })
 
   /*
-   * このページの目的そのもの。契約にあるのに実装が無い部品を、画面上の穴として出す（DR-0049）。
-   * 4部品すべてが未実装なのが、いまの正しい状態である。
+   * 契約と実装の差を画面に出す場所（DR-0049）。いまは差が無く、4部品すべてに登録がある。
    */
-  it('実装が無い部品は「未実装」と明示され、いまは全部品がその状態になる', () => {
+  it('全部品に登録があり、「未実装」の枠が1つも残らない', () => {
     const { container } = render(<Components />)
 
     const marks = [...container.querySelectorAll('[data-implemented]')]
 
     expect(marks).toHaveLength(COMPONENTS.length)
     expect(marks.map((mark) => mark.getAttribute('data-implemented'))).toEqual(
-      COMPONENTS.map(() => 'false'),
+      COMPONENTS.map(() => 'true'),
     )
 
-    for (const mark of marks) {
-      expect(mark.textContent).toBe('未実装')
+    expect(container.querySelectorAll('.doc-component__unimplemented')).toHaveLength(0)
+  })
+
+  /*
+   * 登録の有無より一歩踏み込む。プレビューが実装を描いていることを、契約名のクラス
+   * （DR-0050 が決めた規則）が出ているかで見る。
+   *
+   * 登録だけを見ると、プレビューを空の要素へ書き換えても全部の検査が通り、カタログは
+   * 「実装済み」と表示したまま何も描かない（PR #56 のレビュー）。実装が別のクラス名を
+   * 付けた場合も、design:check は CSS 側しか見ないのでここでしか気付けない。
+   */
+  it('各部品のプレビューが、契約名のクラスを持つ要素を描く', () => {
+    const { container } = render(<Components />)
+
+    const cards = [...container.querySelectorAll('.doc-component')]
+
+    expect(cards).toHaveLength(COMPONENTS.length)
+
+    cards.forEach((card, index) => {
+      const component = COMPONENTS[index]
+
+      expect(
+        card.querySelector(`.doc-component__preview .${component.name}`),
+        `${component.name} のプレビューに .${component.name} が無い`,
+      ).not.toBeNull()
+    })
+  })
+
+  /*
+   * 登録が無い部品は、空欄ではなく「未実装」と書いた枠になる（DR-0049 決定2）。実データでは
+   * もう踏まない枝なので、表を差し替えて踏む。ここが消えると、契約を足して実装が追いつかない
+   * ときの見え方を誰も確かめていない状態になる。
+   */
+  it('登録が無い部品は「未実装」と明示される', async () => {
+    vi.resetModules()
+    vi.doMock('../components', async () => ({
+      ...(await vi.importActual<typeof import('../components')>('../components')),
+      COMPONENT_PREVIEWS: {},
+    }))
+
+    try {
+      const { Components: WithoutPreviews } = await import('./Components')
+      const { container } = render(<WithoutPreviews />)
+
+      const marks = [...container.querySelectorAll('[data-implemented]')]
+
+      expect(marks).toHaveLength(COMPONENTS.length)
+      expect(marks.map((mark) => mark.getAttribute('data-implemented'))).toEqual(
+        COMPONENTS.map(() => 'false'),
+      )
+
+      for (const mark of marks) {
+        expect(mark.textContent).toBe('未実装')
+      }
+    } finally {
+      vi.doUnmock('../components')
+      vi.resetModules()
     }
   })
 
@@ -191,8 +245,8 @@ describe('Components', () => {
   })
 
   /*
-   * 実装がある側の見え方。登録表が空のままだと、この枝は一度も描かれない。#37 が登録したときに
-   * 初めて動く経路を、いま踏んでおく。
+   * 登録された相手がそのまま描かれること。実データの登録は4件とも本物の部品なので、
+   * 「登録を引いて描いている」のか「たまたま別の経路で描けている」のかがここでしか分かれない。
    */
   it('登録のある部品は、未実装ではなくそのプレビューを描く', async () => {
     const Marker: ComponentType = () => <span data-testid="preview-marker" />
