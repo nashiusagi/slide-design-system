@@ -601,93 +601,133 @@ function classesTargetedBySelector(selector) {
 }
 
 /**
+ * セレクタが実際に**対象にしている**クラスだけを返す。右端の複合セレクタ（最後の
+ * 結合子より後ろ）に現れるクラスだけを数える。
+ *
+ * 子孫セレクタの祖先側に書かれたクラスを数えない。数えると、`.statement .emphasis {}`
+ * のように別の部品の規則の中で名前が出てくるだけで `.statement` を「実装済み」と
+ * 判定でき、見た目を持たない部品がカタログに実装済みとして並ぶ（PR #56 のレビュー参照）。
+ *
+ * 取り出した各ノードは classesTargetedBySelector へ渡し直す。疑似クラス引数の扱い
+ * （NON_TARGETING_PSEUDO_CLASSES）を、右端側でもそのまま効かせるため。
+ *
+ * @param {string} selector
+ * @returns {Set<string>}
+ */
+function classesOnSelectorSubject(selector) {
+  const classes = new Set()
+
+  selectorParser((selectors) => {
+    selectors.each((one) => {
+      const nodes = one.nodes ?? []
+      const lastCombinator = nodes.map((node) => node.type).lastIndexOf('combinator')
+
+      for (const node of nodes.slice(lastCombinator + 1)) {
+        for (const className of classesTargetedBySelector(String(node))) {
+          classes.add(className)
+        }
+      }
+    })
+  }).processSync(selector)
+
+  return classes
+}
+
+/**
+ * CSS が、宣言された名前の集合をちょうど実装しているかを見る共通部分。過不足どちらも
+ * 検査する。宣言に無いクラスが実装に残っていると、使われなくなった契約の実装が残り
+ * 続けても気付けない。
+ *
+ * CSS は postcss で構文木にパースしてから読む（DR-0041）。正規表現で「セレクタらしき
+ * 部分」を判定する以前の実装は、コメント内の文字列・属性セレクタの引用符付き値・疑似
+ * クラス引数・属性値内の `]` の4種で、実装していないクラスを実装済みと誤判定する不具合を
+ * 繰り返した（PR #21 のレビュー参照）。正式な構文木を使えば、これらは元々セレクタの外か
+ * 疑似クラス引数の中にしか現れないため、個別の抜け道潰しが要らなくなる。
+ *
+ * **レイアウト側・部品側で1つの関数を通す。** 同じ見方を2箇所へ写すと、片方だけが記法の
+ * 抜け道を塞いだ状態になり、もう片方は誤判定を続ける（PR #56 のレビュー参照）。
+ *
+ * 構文解析自体が失敗した場合は例外を投げず、他の検査（checks の残り）が続けられるよう
+ * 問題文字列として返す。checkDecks が構文エラーを扱う形と揃える。
+ *
+ * @param {{
+ *   path: string,
+ *   cssSource: string,
+ *   declared: Set<string>,
+ *   isExtra: (name: string) => boolean,
+ *   missingMessage: (name: string) => string,
+ *   extraMessage: (name: string) => string,
+ * }} params
+ * @returns {string[]}
+ */
+function checkCssImplementsNames({ path, cssSource, declared, isExtra, missingMessage, extraMessage }) {
+  const implemented = new Set()
+
+  try {
+    postcss.parse(cssSource, { from: resolve(path) }).walkRules((rule) => {
+      for (const className of classesOnSelectorSubject(rule.selector)) {
+        implemented.add(className)
+      }
+    })
+  } catch (error) {
+    return [`${path}: CSS として解析できない: ${/** @type {Error} */ (error).message}`]
+  }
+
+  const missing = [...declared].filter((name) => !implemented.has(name)).map(missingMessage)
+  const extra = [...implemented].filter((name) => !declared.has(name) && isExtra(name)).map(extraMessage)
+
+  return [...missing, ...extra]
+}
+
+/**
  * design/layout.css が、レイアウト契約の classes をちょうど実装しているか
- * （DR-0018 / DR-0030）。過不足どちらも検査する。契約に無いクラスが実装に
- * 残っていると、使われなくなったレイアウトの実装が残り続けても気付けない。
+ * （DR-0018 / DR-0030）。
  *
- * CSS は postcss で構文木にパースしてから読む（DR-0041）。正規表現で
- * 「セレクタらしき部分」を判定する以前の実装は、コメント内の文字列・属性
- * セレクタの引用符付き値・疑似クラス引数・属性値内の `]` の4種で、実装して
- * いないクラスを実装済みと誤判定する不具合を繰り返した（PR #21 のレビュー
- * 参照）。正式な構文木を使えば、これらは元々セレクタの外か疑似クラス引数の
- * 中にしか現れないため、個別の抜け道潰しが要らなくなる。
- *
- * 構文解析自体が失敗した場合は例外を投げず、他の検査（checks の残り）が
- * 続けられるよう問題文字列として返す。checkDecks が構文エラーを扱う形と揃える。
+ * 余りは `slide--` で始まるクラスだけを見る。レイアウトのクラス名には共通の接頭辞が
+ * あり（DR-0030）、それ以外のクラスがこのファイルへ在ることを禁じてはいないため。
  *
  * @param {{ name: string, classes: string[] }[]} layouts
  * @param {string} cssSource design/layout.css の中身
  * @returns {string[]}
  */
 export function checkLayoutClasses(layouts, cssSource) {
-  const declared = new Set(layouts.flatMap((layout) => layout.classes))
-  const implemented = new Set()
-
-  try {
-    postcss.parse(cssSource, { from: resolve('design/layout.css') }).walkRules((rule) => {
-      for (const className of classesTargetedBySelector(rule.selector)) {
-        implemented.add(className)
-      }
-    })
-  } catch (error) {
-    return [`design/layout.css: CSS として解析できない: ${/** @type {Error} */ (error).message}`]
-  }
-
-  const missing = [...declared]
-    .filter((name) => !implemented.has(name))
-    .map((name) => `design/layout.css: レイアウト契約の classes にある .${name} を実装していない`)
-
-  const extra = [...implemented]
-    .filter((name) => name.startsWith('slide--') && !declared.has(name))
-    .map((name) => `design/layout.css: .${name} を実装しているが、design/layouts/ のどの契約にも無い`)
-
-  return [...missing, ...extra]
+  return checkCssImplementsNames({
+    path: 'design/layout.css',
+    cssSource,
+    declared: new Set(layouts.flatMap((layout) => layout.classes)),
+    isExtra: (name) => name.startsWith('slide--'),
+    missingMessage: (name) => `design/layout.css: レイアウト契約の classes にある .${name} を実装していない`,
+    extraMessage: (name) => `design/layout.css: .${name} を実装しているが、design/layouts/ のどの契約にも無い`,
+  })
 }
 
 /**
  * src/components/components.css が、部品契約の名前をちょうど実装しているか
- * （DR-0018 / DR-0050）。過不足どちらも検査する。
+ * （DR-0018 / DR-0050）。
  *
  * 部品契約は `classes` を持たない（DR-0035）。クラス名を決めるのは実装側で、その規則
  * ——契約名をそのままクラス名にする——を決めたのが DR-0050 である。ここはその規則に
  * 従っているかを見る。契約に対応するクラスが無ければ、その部品は見た目を持たないまま
- * カタログの登録表（DR-0049）に並び、実装済みとして表示される。逆に契約に無いクラスが
- * 残っていると、消えた契約の実装が残り続けても気付けない。
+ * カタログの登録表（DR-0049）に並び、実装済みとして表示される。
  *
- * レイアウトの `slide--*` と違い、部品のクラス名には共通の接頭辞が無い。そのため実装側の
- * 余りを絞り込む条件が置けず、契約名以外のクラスはすべて余りとして報告する。部品の
- * 見た目だけを持つファイルなので、それ以外のクラスが要る場面は無い。
- *
- * 判定は checkLayoutClasses と同じ見方（postcss の構文木、DR-0041）で行う。別の見方を
- * 持ち込むと、片方だけが記法の抜け道を塞いだ状態になる。
+ * レイアウトの `slide--*` と違い、部品のクラス名には共通の接頭辞が無い。そのため余りを
+ * 絞り込む条件が置けず、契約名以外のクラスはすべて余りとして報告する。部品の見た目だけを
+ * 持つファイルなので、それ以外のクラスが要る場面は無い。
  *
  * @param {{ name: string }[]} components
  * @param {string} cssSource src/components/components.css の中身
  * @returns {string[]}
  */
 export function checkComponentClasses(components, cssSource) {
-  const declared = new Set(components.map((component) => component.name))
-  const implemented = new Set()
-
-  try {
-    postcss.parse(cssSource, { from: resolve('src/components/components.css') }).walkRules((rule) => {
-      for (const className of classesTargetedBySelector(rule.selector)) {
-        implemented.add(className)
-      }
-    })
-  } catch (error) {
-    return [`src/components/components.css: CSS として解析できない: ${/** @type {Error} */ (error).message}`]
-  }
-
-  const missing = [...declared]
-    .filter((name) => !implemented.has(name))
-    .map((name) => `src/components/components.css: 部品契約 '${name}' に対応する .${name} を実装していない`)
-
-  const extra = [...implemented]
-    .filter((name) => !declared.has(name))
-    .map((name) => `src/components/components.css: .${name} を実装しているが、design/components/ のどの契約にも無い`)
-
-  return [...missing, ...extra]
+  return checkCssImplementsNames({
+    path: 'src/components/components.css',
+    cssSource,
+    declared: new Set(components.map((component) => component.name)),
+    isExtra: () => true,
+    missingMessage: (name) => `src/components/components.css: 部品契約 '${name}' に対応する .${name} を実装していない`,
+    extraMessage: (name) =>
+      `src/components/components.css: .${name} を実装しているが、design/components/ のどの契約にも無い`,
+  })
 }
 
 /**

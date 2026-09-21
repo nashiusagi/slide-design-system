@@ -14,12 +14,20 @@
  * 置き場所をルールへ書き込まないのは、実装の在り処を決めるのが DR-0050 であって、
  * この検査ではないからだ。
  *
+ * **外すのは、そのファイル自身の契約名1つだけ。** オプションを持つファイルで全契約名の
+ * 再定義を許すと、正規の実装の置き場所でありさえすれば契約名を無関係な実装で埋められる
+ * ——このルールの半分がその置き場所で消える（PR #56 のレビュー）。どの名前を許すかは
+ * ファイル名から導く（`Statement.tsx` なら `Statement` だけ）。名前の一覧を設定へ書くと、
+ * 設定とファイルの対応がずれたときに、ずれた側が広い方へ倒れる。
+ *
  * 再定義は関数宣言・アロー関数・関数式・class 宣言・class 式と記法が分かれる。
  * どれか1つを見落とすと、記法を変えるだけで素通りする（component-approved.bypass.mjs）。
  *
  * **このルールが意図的に見ない領域は design/rules.json の scopeExclusions が
  * 正本**（DR-0044）。
  */
+import { basename } from 'node:path'
+
 import { jsxAttributeStringValue } from '../lib/jsx-style.mjs'
 import { descriptionOf, listComponents, toPascalCase } from '../lib/design-contracts.mjs'
 
@@ -68,8 +76,9 @@ const rule = {
         additionalProperties: false,
         properties: {
           /**
-           * このファイルが契約名の正規の実装かどうか。真なら再定義の検査を外す
-           * （design/rules.json の scopeExclusions の `canonical-implementation`）。
+           * このファイルが契約名の正規の実装かどうか。真なら、ファイル名と一致する
+           * 契約名1つだけ再定義の検査を外す（design/rules.json の scopeExclusions の
+           * `canonical-implementation`）。
            */
           implementsContracts: { type: 'boolean' },
         },
@@ -84,18 +93,25 @@ const rule = {
   },
   create(context) {
     const components = listComponents()
-    const implementsContracts = context.options[0]?.implementsContracts === true
+    // このファイルが正規の実装として定義してよい契約名。オプションが無ければ null。
+    // 拡張子を落とすだけで、契約名として実在するかは見ない——実在しない名前を返しても、
+    // byPascalName に無いので何も外れない。
+    const definableName =
+      context.options[0]?.implementsContracts === true
+        ? basename(context.filename).replace(/\..*$/, '')
+        : null
     const byPascalName = new Map(
       components.map((component) => [toPascalCase(component.name), component]),
     )
 
     /** @param {any} idNode */
     function checkShadow(idNode) {
-      if (implementsContracts) {
+      const name = /** @type {any} */ (idNode).name
+
+      // 自分の契約名だけは定義してよい。それ以外の契約名は、実装のファイルでも弾く。
+      if (name === definableName) {
         return
       }
-
-      const name = /** @type {any} */ (idNode).name
 
       if (typeof name === 'string' && byPascalName.has(name)) {
         context.report({ node: idNode, messageId: 'shadowed', data: { name } })

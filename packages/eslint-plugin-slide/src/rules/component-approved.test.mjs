@@ -27,10 +27,11 @@ describe('component-approved', () => {
         'const el = <Statement text="x" />',
         // 波括弧で包んだ文字列リテラルでも、allowedIn どおりの layout なら通る。
         'import { Statement } from "../components"\nconst el = <Slide layout={"statement"}><Statement text="x" /></Slide>',
-        // 正規の実装（DR-0050）は契約名を定義する側。ここを再定義として弾くと、
-        // import して使うべき相手をどこにも作れない。
+        // 正規の実装（DR-0050）は自分の契約名を定義する側。ここを再定義として弾くと、
+        // import して使うべき相手をどこにも作れない。許すのはファイル名と一致する名前だけ。
         {
           code: 'export function Statement({ text }) { return <p className="statement">{text}</p> }',
+          filename: 'src/components/Statement.tsx',
           options: [{ implementsContracts: true }],
         },
       ],
@@ -45,14 +46,32 @@ describe('component-approved', () => {
           errors: [{ messageId: 'shadowed' }],
         },
         {
-          // オプションを与えなければ、正規の実装と同じ書き方でも再定義として弾く。
-          // 既定で緩むと、どのファイルでも契約名を埋められる。
+          // オプションを空で与えても緩まない。既定が緩むと、どのファイルでも契約名を埋められる。
+          // options を省いた事例とは別の経路（オプションの解決）を踏む。
           code: 'export function Statement({ text }) { return <p>{text}</p> }',
+          filename: 'src/components/Statement.tsx',
+          options: [{}],
+          errors: [{ messageId: 'shadowed' }],
+        },
+        {
+          // 正規の実装のファイルでも、外れるのは自分の契約名だけ。別の契約名を
+          // ローカル実装で埋める書き方は弾く（PR #56 のレビューで見つかった抜け道）。
+          code: 'const Emphasis = () => <strong className="emph" />\nexport function Statement() { return <p><Emphasis /></p> }',
+          filename: 'src/components/Statement.tsx',
+          options: [{ implementsContracts: true }],
+          errors: [{ messageId: 'shadowed' }],
+        },
+        {
+          // 契約名と一致しないファイル名では、何も外れない。
+          code: 'export function Statement({ text }) { return <p>{text}</p> }',
+          filename: 'src/components/index.ts',
+          options: [{ implementsContracts: true }],
           errors: [{ messageId: 'shadowed' }],
         },
         {
           // 実装のファイルでも、allowedIn の判定までは外さない。外す範囲は再定義だけ。
           code: 'import { Statement } from "./Statement"\nconst el = <Slide layout="title"><Statement text="x" /></Slide>',
+          filename: 'src/components/Statement.tsx',
           options: [{ implementsContracts: true }],
           errors: [{ messageId: 'disallowedLayout' }],
         },

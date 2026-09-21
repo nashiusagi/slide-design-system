@@ -32,9 +32,9 @@ function TextList({ title, items }: { title: string; items: string[] }): ReactNo
 /**
  * スロットの表。部品名・必須かどうか・最大数を出す。
  *
- * 部品名は `design/components/` の契約名。部品のページ（`#/components`）は在るが、ここからの
- * リンクはまだ張っていない。張るのはこの表の仕事の範囲を超える（節つき hash の張り方は
- * DR-0048、逆向きは Components のページが持っている）。
+ * 部品名は `design/components/` の契約名。部品のページ（`#/components`）は在り、逆向き
+ * （部品 → レイアウト）のリンクは Components のページが張っている。こちらからのリンクは
+ * 未着手で、張らない理由があるわけではない。張り方は逆向きと同じ（節つき hash、DR-0048）。
  */
 function SlotTable({ slots }: { slots: LayoutSlot[] }): ReactNode {
   return (

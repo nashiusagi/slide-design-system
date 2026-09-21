@@ -65,8 +65,11 @@ export function componentSectionId(componentName: string): string {
  * 決めており、カタログはそれを知らないまま登録だけを見る。
  *
  * **ここへの登録を忘れると、実装済みの部品が「未実装」と表示され続ける。** 型検査も lint も
- * 通るので、機械では捕まらない（DR-0049 の帰結）。キーが契約名であることだけは
- * `components.test.ts` が見る。
+ * 通る。DR-0049 は登録表が空だった時点で「機械では捕まらない」と書いたが、いまは
+ * `components.test.ts` が全契約に登録が在ることを見ているので、登録漏れはそこで落ちる。
+ *
+ * 落ちないのは、**登録された先が本当にその部品を描くか**のほうだ。そちらは
+ * `pages/Components.test.tsx` が、プレビューに契約名のクラスが出ているかで見ている。
  */
 export const COMPONENT_PREVIEWS: Record<string, ComponentType> = {
   'bullet-list': BulletListPreview,

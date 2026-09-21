@@ -13,7 +13,11 @@ import { Deck, Fragment, Slide } from './runtime'
  * 見た目はまだ付かない。`design/theme.css` / `design/layout.css` をここから
  * 読み込んでいないので、部品のクラスは当たるが値が無い。読み込みを足す Issue が
  * `pnpm measure` の `pnpm check` への組み込みまで持つ（DR-0038 の帰結）。
- * 文言は deck 契約（`design/decks/harness-intro.md`）から来る。
+ *
+ * 文言はここにベタ書きしてある。対応する deck 契約は
+ * `design/decks/harness-intro.md`（`deck-conformance` が枚数と layout の並びを
+ * 突き合わせている）だが、本文をそこから引く形にはなっていない。引くようにするのは
+ * 別 Issue で、ここに deck の文言を写すこともしない。
  */
 export function App() {
   return (

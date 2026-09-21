@@ -16,8 +16,13 @@ export type BulletListProps = {
 export function BulletList({ items }: BulletListProps) {
   return (
     <ul className="bullet-list">
-      {items.map((item) => (
-        <li key={item}>{item}</li>
+      {/*
+        key は添字で取る。項目の文字列を key にすると、同じ文言が2つ並んだときに衝突する
+        ——受け取るのはスライドの本文なので、短い文言が重なることは起こる。並べ替えも
+        部分更新もしない葉の一覧なので、添字で不都合が出ない。
+      */}
+      {items.map((item, index) => (
+        <li key={index}>{item}</li>
       ))}
     </ul>
   )

@@ -110,10 +110,9 @@ describe('Components', () => {
   })
 
   /*
-   * 契約と実装の差を画面に出す場所（DR-0049）。いまは差が無く、4部品すべてが実描画になる
-   * ——それが Issue #37 の受け入れ基準そのものである。
+   * 契約と実装の差を画面に出す場所（DR-0049）。いまは差が無く、4部品すべてに登録がある。
    */
-  it('全部品が実描画になり、「未実装」の枠が1つも残らない', () => {
+  it('全部品に登録があり、「未実装」の枠が1つも残らない', () => {
     const { container } = render(<Components />)
 
     const marks = [...container.querySelectorAll('[data-implemented]')]
@@ -124,6 +123,31 @@ describe('Components', () => {
     )
 
     expect(container.querySelectorAll('.doc-component__unimplemented')).toHaveLength(0)
+  })
+
+  /*
+   * 登録の有無より一歩踏み込む。プレビューが実装を描いていることを、契約名のクラス
+   * （DR-0050 が決めた規則）が出ているかで見る。
+   *
+   * 登録だけを見ると、プレビューを空の要素へ書き換えても全部の検査が通り、カタログは
+   * 「実装済み」と表示したまま何も描かない（PR #56 のレビュー）。実装が別のクラス名を
+   * 付けた場合も、design:check は CSS 側しか見ないのでここでしか気付けない。
+   */
+  it('各部品のプレビューが、契約名のクラスを持つ要素を描く', () => {
+    const { container } = render(<Components />)
+
+    const cards = [...container.querySelectorAll('.doc-component')]
+
+    expect(cards).toHaveLength(COMPONENTS.length)
+
+    cards.forEach((card, index) => {
+      const component = COMPONENTS[index]
+
+      expect(
+        card.querySelector(`.doc-component__preview .${component.name}`),
+        `${component.name} のプレビューに .${component.name} が無い`,
+      ).not.toBeNull()
+    })
   })
 
   /*

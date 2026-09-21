@@ -57,8 +57,9 @@ export default {
     },
     {
       exclusion: 'canonical-implementation',
-      name: '正規の実装は契約名を定義する側。ここを弾くと import する相手が作れない',
+      name: '正規の実装は自分の契約名を定義する側。ここを弾くと import する相手が作れない',
       code: 'export function Statement() { return <p /> }',
+      filename: 'src/components/Statement.tsx',
       expect: 'ok',
       options: () => [{ implementsContracts: true }],
     },

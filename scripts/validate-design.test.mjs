@@ -215,6 +215,15 @@ describe('checkComponentClasses', () => {
     expect(found[0]).toContain('.caption')
   })
 
+  it('子孫セレクタの祖先側に名前が出るだけでは、実装したと見なさない', () => {
+    // .slide-title の規則を消し、.slide-title .bullet-list の祖先としてだけ名前を残す。
+    // 祖先側を数えると、見た目を持たない部品が「実装済み」として通る（PR #56 のレビュー）。
+    const found = checkComponentClasses(components, '.slide-title .bullet-list { margin: 0; }\n')
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('.slide-title')
+  })
+
   it('コメントの中に書かれただけのクラス名は実装と見なさない', () => {
     const found = checkComponentClasses(components, '/* .bullet-list は後で書く */\n.slide-title {}\n')
 
@@ -255,6 +264,15 @@ describe('checkLayoutClasses', () => {
 
     expect(found).toHaveLength(1)
     expect(found[0]).toContain('.slide--statement')
+  })
+
+  it('子孫セレクタの祖先側に名前が出るだけでは、実装したと見なさない', () => {
+    // 部品側（checkComponentClasses）と同じ見方を通っていること。レイアウト側だけが
+    // 祖先を数える状態になると、2つの検査の守備範囲が静かにずれる。
+    const found = checkLayoutClasses(layouts, `.slide--title {}\n.slide--bullets .item { margin: 0; }\n`)
+
+    expect(found).toHaveLength(1)
+    expect(found[0]).toContain('.slide--bullets')
   })
 
   it('コメントの中に書かれただけのクラス名は実装と見なさない', () => {

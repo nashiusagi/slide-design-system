@@ -10,10 +10,14 @@ import { BulletList, Emphasis, SlideTitle, Statement } from '.'
  */
 
 describe('SlideTitle', () => {
-  it('見出しとして描かれる', () => {
+  /*
+   * 階層まで見る。`heading` ロールは h1〜h6 のどれにも当たるので、ロールだけを見ると
+   * h2 へ変えても通る。h1 であることは DR-0050 の判断なので、機械で固定する。
+   */
+  it('最上位の見出しとして描かれる', () => {
     render(<SlideTitle text="設計契約からスライドを書く" />)
 
-    const heading = screen.getByRole('heading', { name: '設計契約からスライドを書く' })
+    const heading = screen.getByRole('heading', { level: 1, name: '設計契約からスライドを書く' })
 
     expect(heading).toHaveClass('slide-title')
   })
