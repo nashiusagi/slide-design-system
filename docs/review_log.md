@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-21（PR #57 レビュー 2周目）
+最終更新: 2026-09-21（PR #57 レビュー 3周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -28,6 +28,7 @@
 | `decisions/dr-restates-canonical-value` | DR が正本の値を本文に書き写した | 9 | PR #57 | 未着手 |
 | `contract/source-of-truth-ambiguous` | 「正本」がどのファイルを指すか一意でない | 7 | PR #57 | 未着手 |
 | `inspection/rule-id-mapping-incomplete` | ルールIDと実装の対応検査が一部の method しか覆っていない | 3 | PR #57 | 未着手 |
+| `code/fix-lacks-regression-test` | 指摘を受けた修正に、それを守る回帰テストが無い | 3 | PR #57 | 未着手 |
 | `inspection/bundle-boundary-unchecked` | 分離すると決めたビルドエントリ間の参照境界を保証する検査が無い | 3 | PR #57 | 未着手 |
 | `inspection/rule-has-bypass` | 検査ルールに抜け道があり、書き方を変えると素通りする | 18 | PR #56 | 仕組み化済み（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43） |
 | `inspection/rule-scope-inconsistent` | 同じルールIDの守備範囲が文書間で食い違う | 6 | PR #55 | 仕組み化済み（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43）。守備範囲の宣言を `design/rules.json` に一本化した |
@@ -90,7 +91,7 @@
 | `code/tsconfig-include-no-op` | コード品質 | tsconfig の include が実際には対象を拾っていない | 1 | PR #18 | PR #18 |
 | `code/state-reset-not-recovered` | コード品質 | 状態を防御的にリセットしたが、復帰の経路が無く値が戻らない | 1 | PR #19 | PR #19 |
 | `code/effect-timing-mismatch` | コード品質 | effect の実行時期がコメントの主張と食い違う | 1 | PR #19 | PR #19 |
-| `code/fix-lacks-regression-test` | コード品質 | 指摘を受けた修正に、それを守る回帰テストが無い | 2 | PR #19 | PR #24 |
+| `code/fix-lacks-regression-test` | コード品質 | 指摘を受けた修正に、それを守る回帰テストが無い | 3 | PR #19 | PR #57 |
 | `code/check-false-negative-on-empty-output` | コード品質 | 生成物が空ファイルのとき突き合わせが偽陰性を出す | 1 | PR #20 | PR #20 |
 | `inspection/rule-coverage-partial` | 検査 | 判定対象の列挙に穴があり、基準を割った組み合わせを見逃す | 11 | PR #20 | PR #57 |
 | `inspection/invalid-case-untested` | 検査 | 検査そのものに invalid ケースのテストが無い | 5 | PR #20 | PR #57 |
@@ -177,7 +178,7 @@
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #57 | 2026-09-21 | 0 | 12 | 12 | [pr-57.md](./reviews/pr-57.md) |
+| #57 | 2026-09-21 | 0 | 15 | 12 | [pr-57.md](./reviews/pr-57.md) |
 | #56 | 2026-09-21 | 2 | 14 | 14 | [pr-56.md](./reviews/pr-56.md) |
 | #55 | 2026-09-21 | 0 | 13 | 12 | [pr-55.md](./reviews/pr-55.md) |
 | #53 | 2026-09-21 | 0 | 12 | 7 | [pr-53.md](./reviews/pr-53.md) |
