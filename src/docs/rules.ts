@@ -79,7 +79,7 @@ export const HUMAN_JUDGED_METHOD = 'review'
 export type RuleImplementation = 'implemented' | 'unimplemented' | 'human'
 
 /**
- * ルールの実装の状態を返す（DR-0051 決定1）。
+ * ルールの実装の状態を返す（DR-0051 決定1・決定2）。
  *
  * 未実装の一覧が根拠になるのは、`pnpm design:check` の実装対応検査が覆う `lint` / `measure`
  * のルールだけだ。人が判断する method（`HUMAN_JUDGED_METHOD`）には対応検査が無く、一覧に
@@ -91,6 +91,7 @@ export type RuleImplementation = 'implemented' | 'unimplemented' | 'human'
  * 一覧も反映されない。
  */
 export function ruleImplementation(rule: RuleContract, unimplemented: string[]): RuleImplementation {
+  // 決定2。この分岐を落とすと、人が判断するルールが「実装済み」として並ぶ。
   if (rule.method === HUMAN_JUDGED_METHOD) {
     return 'human'
   }

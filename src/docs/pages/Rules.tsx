@@ -85,8 +85,15 @@ function Thresholds({ rule }: { rule: RuleContract }): ReactNode {
   )
 }
 
-/** ルール1件の素性。`method` は節の見出しにも出るが、ルール単位で読めるようここにも置く。 */
-function RuleMeta({ rule }: { rule: RuleContract }): ReactNode {
+/**
+ * ルール1件の素性。`method` は節の見出しにも出るが、ルール単位で読めるようここにも置く。
+ *
+ * 公開しているのはテストのため。契約にまだ `review` の method のルールが無く、ページ全体を
+ * 描くだけでは「人が判断」の見え方（DR-0051 決定2）を一度も踏めない。判定そのものは
+ * `ruleImplementation` が持つが、**判定と画面をつなぐ配線**——表示名の引き方と属性——は
+ * ここに在り、そこを架空のルールで踏めるようにしておく。
+ */
+export function RuleMeta({ rule }: { rule: RuleContract }): ReactNode {
   const implementation = ruleImplementation(rule, UNIMPLEMENTED_RULE_IDS)
 
   return (

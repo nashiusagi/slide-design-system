@@ -14,7 +14,8 @@ import slidePlugin from './packages/eslint-plugin-slide/src/index.mjs'
  * から引く（DR-0051）が、同じ向きで検査スクリプトの**コード**まで読めると、DR-0051 が却下
  * した判定根拠（`scripts/lib/measure-rules.mjs` の実装一覧を直接読む形）が、lint も検査も
  * 通る状態で戻せる。JSON かどうかは拡張子で見る——`no-restricted-imports` の glob には
- * 「これ以外を禁じる」を書けないので、構文側（`no-restricted-syntax`）で否定する。
+ * 「これ以外を禁じる」を書けないので、構文側（`no-restricted-syntax`）で否定する。静的 import と
+ * 動的 import は AST のノードが別なので、両方へ同じ条件を掛ける。
  *
  * @returns {import('eslint').Linter.RulesRecord}
  */
@@ -22,13 +23,13 @@ function catalogImportRules() {
   return forbidCrossEntryImports(
     boundary.forbiddenFromCatalog,
     'カタログはスライド本体（src/App.tsx / src/runtime/）を参照しない（DR-0042）。',
-    [
-      {
-        selector: "ImportDeclaration[source.value=/scripts\\//]:not([source.value=/\\.json$/])",
-        message:
-          'カタログが scripts/ から読んでよいのはデータ（JSON）だけ（DR-0051）。検査スクリプトのコードを読むと、実装状況の判定根拠が増える。',
-      },
-    ],
+    // 静的 import（ImportDeclaration）と動的 import（ImportExpression）は別のノードなので、
+    // 片方だけを見ると、もう片方の書き方で同じ経路が戻る。
+    ['ImportDeclaration', 'ImportExpression'].map((node) => ({
+      selector: `${node}[source.value=/scripts\\//]:not([source.value=/\\.json$/])`,
+      message:
+        'カタログが scripts/ から読んでよいのはデータ（JSON）だけ（DR-0051）。検査スクリプトのコードを読むと、実装状況の判定根拠が増える。',
+    })),
   )
 }
 

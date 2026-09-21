@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import {
+  HUMAN_JUDGED_METHOD,
   IMPLEMENTATION_LABELS,
   RULES,
   UNIMPLEMENTED_RULE_IDS,
@@ -10,7 +11,7 @@ import {
   rulesByMethod,
   thresholdEntries,
 } from '../rules'
-import { Rules } from './Rules'
+import { RuleMeta, Rules } from './Rules'
 
 /** ルール1件のカード。節 ID で引く。 */
 function cardOf(container: HTMLElement, ruleId: string): HTMLElement {
@@ -20,6 +21,24 @@ function cardOf(container: HTMLElement, ruleId: string): HTMLElement {
 
   return card as HTMLElement
 }
+
+/*
+ * 「人が判断」の見え方（DR-0051 決定2）。契約にこの method のルールがまだ無いので、架空の
+ * ルールで配線を踏む。ページ全体を描くテストは契約に在るルールしか通らず、この分岐は
+ * `review` のルールが現れた日まで一度も実行されない。
+ */
+describe('RuleMeta', () => {
+  it('人が判断する method では、実装の有無ではなく人が判断すると出す', () => {
+    const rule = { id: 'charlie', method: HUMAN_JUDGED_METHOD, severity: 'error', description: '架空' }
+
+    const { container } = render(<RuleMeta rule={rule} />)
+
+    expect(container.querySelector('[data-implementation]')).toHaveAttribute('data-implementation', 'human')
+    expect(container).toHaveTextContent(IMPLEMENTATION_LABELS.human)
+    expect(container).not.toHaveTextContent(IMPLEMENTATION_LABELS.implemented)
+    expect(container).not.toHaveTextContent(IMPLEMENTATION_LABELS.unimplemented)
+  })
+})
 
 describe('Rules', () => {
   /*
