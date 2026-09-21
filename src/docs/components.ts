@@ -45,7 +45,7 @@ export const COMPONENTS: ComponentContract[] = contractsFrom(
  *
  * レイアウトの `layoutSectionId` と同じ役目。いまこの hash を指すリンクは無いが、`id` を
  * 置く側だけが先にあると、後からリンクを張る人が契約名を直接書く形に倣ってしまう。DR-0048 の
- * 帰結が「節を持つページを足すときは対応を読み込み口へ置く」と定めているのはそのためだ。
+ * 帰結が、節を持つページには読み込み口へ対応を置くよう求めているのはそのためだ。
  */
 export function componentSectionId(componentName: string): string {
   return componentName
