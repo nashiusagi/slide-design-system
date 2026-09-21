@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-21（PR #55 レビュー 1周目）
+最終更新: 2026-09-21（PR #55 レビュー 2周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -39,7 +39,7 @@
 | `inspection/rule-coverage-partial` | 判定対象の列挙に穴があり、基準を割った組み合わせを見逃す | 9 | PR #55 | 一部（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43）。`enumeration-tail` の軸で事例を要求するが、網羅性の証明ではない |
 | `phase/completion-criterion-not-verified-e2e` | Issue の完了条件が、単体テストのみで統合パスを通さず検証されている | 7 | PR #55 | 未着手 |
 | `writing/contradictory-instruction` | 同じ状況に対する指示が文書間で食い違う | 7 | PR #53 | 未着手 |
-| `writing/dangling-quote-reference` | 文書内の引用符付き参照が、書き換え後のどの語句・項目にも対応しなくなった | 5 | PR #41 | 未着手 |
+| `writing/dangling-quote-reference` | 文書内の引用符付き参照が、書き換え後のどの語句・項目にも対応しなくなった | 6 | PR #55 | 未着手 |
 | `writing/test-title-ambiguous` | テストタイトルが、そのテストの固定する不変条件を示していない | 7 | PR #53 | 未着手 |
 | `code/dead-check-entry` | より強い条件に覆われ、単独では決して落ちない検査項目がある | 3 | PR #47 | 未着手 |
 | `contract/workflow-constant-duplicated` | 他が持つ取り決め（パス・上限値）が書き写された | 3 | PR #47 | 未着手 |
@@ -113,7 +113,7 @@
 | `decisions/citation-overclaims-source-scope` | 決定記録 | 正本として引用した資料の、実際の記述範囲より広い主張をしている | 5 | PR #28 | PR #53 |
 | `writing/subjectless-predicate` | 日本語 | 文の主語が省略され、何の話かが読み取りにくい | 3 | PR #28 | PR #51 |
 | `decisions/citation-points-to-wrong-file` | 決定記録 | 正本として引用したファイルが、実際にはその内容を記述していない | 2 | PR #28 | PR #51 |
-| `writing/dangling-quote-reference` | 日本語 | 文書内の引用符付き参照が、書き換え後のどの語句・項目にも対応しなくなった | 5 | PR #26 | PR #41 |
+| `writing/dangling-quote-reference` | 日本語 | 文書内の引用符付き参照が、書き換え後のどの語句・項目にも対応しなくなった | 6 | PR #26 | PR #55 |
 | `code/ci-workflow-missing-permissions` | コード品質 | CI ワークフローに GITHUB_TOKEN の権限制限が明示されていない | 1 | PR #30 | PR #30 |
 | `code/ci-actions-pinned-by-tag` | コード品質 | 外部 Actions がコミット SHA ではなくタグで固定されている | 1 | PR #30 | PR #30 |
 | `inspection/ci-check-cancelled-on-push` | 検査 | push トリガーの concurrency が ref 単位で、先行 commit の check が完了前に cancel されうる | 1 | PR #30 | PR #30 |
@@ -159,7 +159,7 @@
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #55 | 2026-09-21 | 0 | 7 | 10 | [pr-55.md](./reviews/pr-55.md) |
+| #55 | 2026-09-21 | 0 | 10 | 12 | [pr-55.md](./reviews/pr-55.md) |
 | #53 | 2026-09-21 | 0 | 12 | 7 | [pr-53.md](./reviews/pr-53.md) |
 | #52 | 2026-09-20 | 0 | 23 | 15 | [pr-52.md](./reviews/pr-52.md) |
 | #51 | 2026-09-12 | 1 | 15 | 7 | [pr-51.md](./reviews/pr-51.md) |
