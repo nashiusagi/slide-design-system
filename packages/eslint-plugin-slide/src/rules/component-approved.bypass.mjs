@@ -61,7 +61,7 @@ export default {
       code: 'export function Statement() { return <p /> }',
       filename: 'src/components/Statement.tsx',
       expect: 'ok',
-      options: () => [{ implementsContracts: true }],
+      options: () => [{ implementsContractsIn: 'src/components' }],
     },
     {
       exclusion: 'layout-not-static',

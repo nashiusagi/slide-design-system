@@ -99,11 +99,15 @@ export default tseslint.config(
   {
     // 部品の正規の実装（DR-0050）。ここは契約名を定義する側なので、再定義（シャドーイング）
     // の検査だけを外す。外さないと、import して使うべき相手をどこにも作れない。allowedIn の
-    // 判定は外さない。対象をこの1箇所に絞るため、ルールオプションで外から指定する。
-    files: ['src/components/**/*.{ts,tsx}'],
+    // 判定は外さない。
+    //
+    // 正規の実装がどこに在るかを知っているのはこの設定だけで、ルールはそれを値として受け取る
+    // （DR-0050）。ルールは「このディレクトリの直下の <契約名>.<拡張子>」という形に
+    // ちょうど一致したファイルだけを、その契約名の定義者として扱う。
+    files: ['src/components/*.{ts,tsx}'],
     plugins: { slide: slidePlugin },
     rules: {
-      'slide/component-approved': ['error', { implementsContracts: true }],
+      'slide/component-approved': ['error', { implementsContractsIn: 'src/components' }],
     },
   },
   {

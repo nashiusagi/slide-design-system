@@ -16,9 +16,16 @@
  *
  * **外すのは、そのファイル自身の契約名1つだけ。** オプションを持つファイルで全契約名の
  * 再定義を許すと、正規の実装の置き場所でありさえすれば契約名を無関係な実装で埋められる
- * ——このルールの半分がその置き場所で消える（PR #56 のレビュー）。どの名前を許すかは
- * ファイル名から導く（`Statement.tsx` なら `Statement` だけ）。名前の一覧を設定へ書くと、
- * 設定とファイルの対応がずれたときに、ずれた側が広い方へ倒れる。
+ * ——このルールの半分がその置き場所で消える（PR #56 のレビュー1周目）。
+ *
+ * どの名前を許すかは**ファイルのパス全体**から導く。オプションには正規の実装を置く
+ * ディレクトリを渡し、ルールは「そのディレクトリの直下にある `<契約名>.<拡張子>`」
+ * という形にちょうど一致するかを見る。名前の一覧を設定へ書かないのは、設定とファイルの
+ * 対応がずれたときに、ずれた側が広い方へ倒れるからだ。
+ *
+ * 一致をベースネームだけで見ない。ベースネームだけだと `Statement.mock.tsx` や
+ * 入れ子の `variants/Statement.tsx` が同じ名前を名乗れる（PR #56 のレビュー2周目で、
+ * 両方とも実際に素通りした）。どちらも「正規の実装は1つ」という前提を壊す。
  *
  * 再定義は関数宣言・アロー関数・関数式・class 宣言・class 式と記法が分かれる。
  * どれか1つを見落とすと、記法を変えるだけで素通りする（component-approved.bypass.mjs）。
@@ -26,7 +33,7 @@
  * **このルールが意図的に見ない領域は design/rules.json の scopeExclusions が
  * 正本**（DR-0044）。
  */
-import { basename } from 'node:path'
+import { basename, extname, isAbsolute, join, relative } from 'node:path'
 
 import { jsxAttributeStringValue } from '../lib/jsx-style.mjs'
 import { descriptionOf, listComponents, toPascalCase } from '../lib/design-contracts.mjs'
@@ -63,6 +70,38 @@ function findEnclosingLayout(context, node) {
   return undefined
 }
 
+/**
+ * このファイルが正規の実装として定義してよい契約名。オプションが無ければ null。
+ *
+ * 見るのはパス全体で、指定されたディレクトリの**直下**にある `<名前>.<拡張子>` に
+ * ちょうど一致したときだけ、その `<名前>` を返す。入れ子のディレクトリも、拡張子の
+ * 前にもう一段ドットを挟んだ名前も、一致しない。
+ *
+ * 返す名前が契約名として実在するかは見ない。実在しない名前を返しても、呼び出し側の
+ * 対応表に無いので何も外れない。
+ *
+ * @param {import('eslint').Rule.RuleContext} context
+ * @returns {string | null}
+ */
+function canonicalNameFor(context) {
+  const directory = context.options[0]?.implementsContractsIn
+
+  if (typeof directory !== 'string' || directory.length === 0) {
+    return null
+  }
+
+  const filename = context.filename
+
+  // RuleTester は相対パスの filename をそのまま渡す。実行時は絶対パスで来るので、
+  // どちらもリポジトリルート（context.cwd）からの相対パスへ揃えてから突き合わせる。
+  const relativePath = isAbsolute(filename) ? relative(context.cwd, filename) : filename
+  const name = basename(relativePath, extname(relativePath))
+
+  return relativePath === join(directory, `${name}${extname(relativePath)}`) && !name.includes('.')
+    ? name
+    : null
+}
+
 /** @type {import('eslint').Rule.RuleModule} */
 const rule = {
   meta: {
@@ -76,11 +115,11 @@ const rule = {
         additionalProperties: false,
         properties: {
           /**
-           * このファイルが契約名の正規の実装かどうか。真なら、ファイル名と一致する
-           * 契約名1つだけ再定義の検査を外す（design/rules.json の scopeExclusions の
-           * `canonical-implementation`）。
+           * 正規の実装を置くディレクトリ（リポジトリルートからの相対パス）。ここの直下に
+           * ある `<契約名>.<拡張子>` だけが、自分の契約名の定義を許される
+           * （design/rules.json の scopeExclusions の `canonical-implementation`）。
            */
-          implementsContracts: { type: 'boolean' },
+          implementsContractsIn: { type: 'string' },
         },
       },
     ],
@@ -93,13 +132,7 @@ const rule = {
   },
   create(context) {
     const components = listComponents()
-    // このファイルが正規の実装として定義してよい契約名。オプションが無ければ null。
-    // 拡張子を落とすだけで、契約名として実在するかは見ない——実在しない名前を返しても、
-    // byPascalName に無いので何も外れない。
-    const definableName =
-      context.options[0]?.implementsContracts === true
-        ? basename(context.filename).replace(/\..*$/, '')
-        : null
+    const definableName = canonicalNameFor(context)
     const byPascalName = new Map(
       components.map((component) => [toPascalCase(component.name), component]),
     )
