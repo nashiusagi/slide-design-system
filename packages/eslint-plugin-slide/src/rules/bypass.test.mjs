@@ -40,8 +40,8 @@ function optionsOf(one, setupValue) {
 }
 
 /*
- * 事例は filename を持てる。ルールがファイル名を見る場合（component-approved の
- * implementsContracts は、そのファイルが定義してよい契約名をファイル名から導く）、
+ * 事例は filename を持てる。ルールがファイルのパスを見る場合（component-approved の
+ * implementsContractsIn は、そのファイルが定義してよい契約名をパスから導く）、
  * RuleTester の既定のファイル名では除外の事例が成立しない。
  */
 

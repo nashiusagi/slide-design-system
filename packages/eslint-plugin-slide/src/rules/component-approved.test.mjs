@@ -1,7 +1,19 @@
+import { join } from 'node:path'
+
 import { RuleTester } from 'eslint'
 import { describe, it } from 'vitest'
 
 import rule from './component-approved.mjs'
+
+/*
+ * 実行時、ESLint はルールへ絶対パスの filename を渡す。RuleTester は書いたものを
+ * そのまま渡すので、相対パスの事例だけを並べると、絶対パスを cwd 基準へ直す枝
+ * （component-approved.mjs の canonicalNameFor）が一度も実行されない。本番で必ず
+ * 通る側がテストの外に出る（PR #56 のレビュー3周目）。
+ *
+ * cwd と同じ基準で組み立てるので、リポジトリの場所にもテストの実行位置にも依存しない。
+ */
+const absolute = (/** @type {string} */ relativePath) => join(process.cwd(), relativePath)
 
 const ruleTester = new RuleTester({
   languageOptions: {
@@ -33,6 +45,12 @@ describe('component-approved', () => {
         {
           code: 'export function Statement({ text }) { return <p className="statement">{text}</p> }',
           filename: 'src/components/Statement.tsx',
+          options: [{ implementsContractsIn: 'src/components' }],
+        },
+        {
+          // 絶対パスでも同じ判定になる。実行時に通るのはこちらの枝。
+          code: 'export function Statement({ text }) { return <p className="statement">{text}</p> }',
+          filename: absolute('src/components/Statement.tsx'),
           options: [{ implementsContractsIn: 'src/components' }],
         },
       ],
@@ -82,6 +100,14 @@ describe('component-approved', () => {
           // 正規の実装を名乗れる（PR #56 のレビュー2周目の抜け道）。
           code: 'export function Statement({ text }) { return <p>{text}</p> }',
           filename: 'src/components/variants/Statement.tsx',
+          options: [{ implementsContractsIn: 'src/components' }],
+          errors: [{ messageId: 'shadowed' }],
+        },
+        {
+          // 絶対パスでも入れ子は弾く。相対パスの事例だけだと、cwd 基準へ直す枝が
+          // 壊れても「外れない側」の結果が同じなので気付けない。
+          code: 'export function Statement({ text }) { return <p>{text}</p> }',
+          filename: absolute('src/components/variants/Statement.tsx'),
           options: [{ implementsContractsIn: 'src/components' }],
           errors: [{ messageId: 'shadowed' }],
         },
