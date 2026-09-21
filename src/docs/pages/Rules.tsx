@@ -1,5 +1,5 @@
 /**
- * 検証ルールのページ。`design/rules.json` のルールを `method` ごとに並べる。
+ * 検査ルールのページ。`design/rules.json` のルールを `method` ごとに並べる。
  *
  * 契約の文言をここへ書き写さない（DR-0042 決定2）。並べる対象も、各項目の中身も、閾値の値も、
  * すべて `RULES` と `thresholdEntries` から引く。ここが持つのは見出しの日本語と、どの形で
@@ -8,14 +8,16 @@
  * カタログ側の対応表に無いまま画面へ出ることになる。
  *
  * 実装の有無は `scripts/unimplemented-rules.json` から引く（DR-0051）。カタログは状態を
- * 持たず、`pnpm design:check` が免除に使っているのと同じ一覧を読む。
+ * 持たず、`pnpm design:check` が免除に使っているのと同じ一覧を読む。人が判断する method は
+ * その一覧の管轄外なので、実装の有無ではなく「人が判断」と出す。
  */
 import type { ReactNode } from 'react'
 
 import {
+  IMPLEMENTATION_LABELS,
   RULES,
   UNIMPLEMENTED_RULE_IDS,
-  ruleImplemented,
+  ruleImplementation,
   ruleSectionId,
   rulesByMethod,
   thresholdEntries,
@@ -65,8 +67,8 @@ function ThresholdValueView({ value }: { value: ThresholdValue }): ReactNode {
 /**
  * 閾値の節。持たないルールでは何も出さない。
  *
- * 「閾値なし」と書かない。閾値を持つかどうかは契約の性質で、部品の「未実装」（DR-0049 決定2）
- * のように埋まるべき穴ではない。
+ * 「閾値なし」と書かない。閾値を持つかどうかは契約の性質で、実装の「未実装」（DR-0049 決定2 /
+ * DR-0051 決定3）のように埋まるべき穴ではない。
  */
 function Thresholds({ rule }: { rule: RuleContract }): ReactNode {
   const entries = thresholdEntries(rule.id)
@@ -85,10 +87,10 @@ function Thresholds({ rule }: { rule: RuleContract }): ReactNode {
 
 /** ルール1件の素性。`method` は節の見出しにも出るが、ルール単位で読めるようここにも置く。 */
 function RuleMeta({ rule }: { rule: RuleContract }): ReactNode {
-  const implemented = ruleImplemented(rule.id, UNIMPLEMENTED_RULE_IDS)
+  const implementation = ruleImplementation(rule, UNIMPLEMENTED_RULE_IDS)
 
   return (
-    <dl className="doc-threshold doc-rule__meta">
+    <dl className="doc-threshold">
       <div className="doc-threshold__row">
         <dt className="doc-threshold__key">method</dt>
         <dd className="doc-threshold__value">
@@ -103,8 +105,8 @@ function RuleMeta({ rule }: { rule: RuleContract }): ReactNode {
       </div>
       <div className="doc-threshold__row">
         <dt className="doc-threshold__key">実装</dt>
-        <dd className="doc-threshold__value" data-implemented={implemented}>
-          {implemented ? '実装済み' : '未実装'}
+        <dd className="doc-threshold__value" data-implementation={implementation}>
+          {IMPLEMENTATION_LABELS[implementation]}
         </dd>
       </div>
     </dl>
@@ -117,7 +119,7 @@ export function Rules() {
       <p className="doc-page__lead">
         design/rules.json のルールを method ごとに並べている。閾値は同じ契約のトップレベルから、
         実装の有無は pnpm design:check が免除に使う scripts/unimplemented-rules.json
-        から引いている。違反の一覧はここには出ない。
+        から引いている。人が判断する method のルールは、その一覧の管轄外として区別している。
       </p>
 
       {rulesByMethod(RULES).map(([method, rules]) => (

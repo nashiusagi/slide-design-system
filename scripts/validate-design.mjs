@@ -308,7 +308,7 @@ export function checkMeasureRuleCoverage(rules, implementedRuleIds, knownUnimple
     .filter((id) => implemented.has(id))
     .map(
       (id) =>
-        `scripts/validate-design.mjs: '${id}' は knownUnimplementedRuleIds にあるが、既に scripts/measure-slides.mjs で実装されている。許容リストから外すこと`,
+        `scripts/unimplemented-rules.json: '${id}' は unimplementedRuleIds にあるが、既に scripts/measure-slides.mjs で実装されている。この一覧から外すこと`,
     )
 
   return [...missing, ...extra, ...staleKnownUnimplemented]
@@ -975,13 +975,8 @@ async function main() {
   const tokens = readJson('design/tokens.json')
   const rules = readJson('design/rules.json')
   /*
-   * 宣言だけがあり、実装がまだ無いルールID。実装との対応検査（checkMeasureRuleCoverage）と
-   * bypass フィクスチャの検査（checkBypassFixtureCoverage）の両方がこの一覧を免除に使う。
-   * 2箇所に別々の一覧を置くと、実装した日に片方だけ外れて食い違う。
-   *
-   * 一覧そのものは scripts/unimplemented-rules.json が持つ。デザインカタログの #/rules も
-   * 同じファイルを読んで実装状況を表示する（DR-0051）。カタログはブラウザ側のバンドルなので
-   * この検査スクリプトを import できず、ここに直接書くと同じ状態が2箇所に並ぶ。
+   * 未実装のルールIDの一覧。何のための一覧で、なぜ1箇所に置くのかは
+   * scripts/unimplemented-rules.json の $comment が持つ（DR-0051）。ここには書き写さない。
    *
    * 読み込みは他の契約と同じく main() の中で行う。モジュールの最上位で読むと、検査関数だけを
    * import するテスト（scripts/validate-design.test.mjs）の読み込み時にファイル読み込みが走る。

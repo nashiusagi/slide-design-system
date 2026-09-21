@@ -21,5 +21,5 @@ export const LAYOUTS_PAGE_ID = 'layouts'
 
 export const COMPONENTS_PAGE_ID = 'components'
 
-/** 検証ルールのページ。 */
+/** 検査ルールのページ。 */
 export const RULES_PAGE_ID = 'rules'

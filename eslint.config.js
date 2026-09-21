@@ -7,6 +7,32 @@ import tseslint from 'typescript-eslint'
 import slidePlugin from './packages/eslint-plugin-slide/src/index.mjs'
 
 /**
+ * カタログ（src/docs/）に掛ける import の制限。
+ *
+ * スライド本体との相互参照の禁止（DR-0042）に加えて、`scripts/` から読んでよいのはデータ
+ * （JSON）だけ、という制限を重ねる。カタログは実装状況を `scripts/unimplemented-rules.json`
+ * から引く（DR-0051）が、同じ向きで検査スクリプトの**コード**まで読めると、DR-0051 が却下
+ * した判定根拠（`scripts/lib/measure-rules.mjs` の実装一覧を直接読む形）が、lint も検査も
+ * 通る状態で戻せる。JSON かどうかは拡張子で見る——`no-restricted-imports` の glob には
+ * 「これ以外を禁じる」を書けないので、構文側（`no-restricted-syntax`）で否定する。
+ *
+ * @returns {import('eslint').Linter.RulesRecord}
+ */
+function catalogImportRules() {
+  return forbidCrossEntryImports(
+    boundary.forbiddenFromCatalog,
+    'カタログはスライド本体（src/App.tsx / src/runtime/）を参照しない（DR-0042）。',
+    [
+      {
+        selector: "ImportDeclaration[source.value=/scripts\\//]:not([source.value=/\\.json$/])",
+        message:
+          'カタログが scripts/ から読んでよいのはデータ（JSON）だけ（DR-0051）。検査スクリプトのコードを読むと、実装状況の判定根拠が増える。',
+      },
+    ],
+  )
+}
+
+/**
  * ビルドエントリの境界の正本。JSON の import は、この設定ファイルを型検査する tsc
  * （tsconfig.node.json）が受け付けないため、require で読む。
  *
@@ -24,9 +50,10 @@ const boundary = createRequire(import.meta.url)('./scripts/cross-entry-boundary.
  *
  * @param {string[]} names 禁止する相手のモジュール名（パスの最終セグメント）
  * @param {string} message 違反時に出す説明
+ * @param {{ selector: string, message: string }[]} [extraSyntax] 同じ対象へ重ねる構文の禁止
  * @returns {import('eslint').Linter.RulesRecord}
  */
-function forbidCrossEntryImports(names, message) {
+function forbidCrossEntryImports(names, message, extraSyntax = []) {
   return {
     // 静的 import。拡張子付き（'../App.js'）は `**/App` に一致しないので別に挙げる。
     'no-restricted-imports': [
@@ -53,6 +80,7 @@ function forbidCrossEntryImports(names, message) {
         message:
           'import() の引数はリテラルで書く。組み立てたパスは lint が読めず、ビルドエントリの境界検査を素通りする（DR-0042）。',
       },
+      ...extraSyntax,
     ],
   }
 }
@@ -115,10 +143,7 @@ export default tseslint.config(
     // 本番と同一の物でなくなる（DR-0011 / DR-0022）。ビルドは通ってしまうのでここで弾く。
     // 禁止の組み立ては forbidCrossEntryImports が持つ（DR-0042）。
     files: ['src/docs/**/*.{ts,tsx}'],
-    rules: forbidCrossEntryImports(
-      boundary.forbiddenFromCatalog,
-      'カタログはスライド本体（src/App.tsx / src/runtime/）を参照しない（DR-0042）。',
-    ),
+    rules: catalogImportRules(),
   },
   {
     // 逆向き。スライド本体からカタログを参照しない（DR-0042）。

@@ -35,5 +35,5 @@ export const DOCS_PAGES: [DocsPage, ...DocsPage[]] = [
   { id: FOUNDATIONS_PAGE_ID, title: '基礎', Body: Foundations },
   { id: LAYOUTS_PAGE_ID, title: 'レイアウト', Body: Layouts },
   { id: COMPONENTS_PAGE_ID, title: '部品', Body: Components },
-  { id: RULES_PAGE_ID, title: '検証ルール', Body: Rules },
+  { id: RULES_PAGE_ID, title: '検査ルール', Body: Rules },
 ]

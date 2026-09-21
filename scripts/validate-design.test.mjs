@@ -181,7 +181,7 @@ describe('checkMeasureRuleCoverage', () => {
     // 実装され次第、許容リストから外す運用（design/rules.json 参照）が崩れていないか。
     const found = checkMeasureRuleCoverage(rules, ['no-overflow'], ['no-overflow', 'deck-body-fidelity'])
 
-    expect(found).toEqual([expect.stringContaining("'no-overflow' は knownUnimplementedRuleIds にあるが")])
+    expect(found).toEqual([expect.stringContaining("'no-overflow' は unimplementedRuleIds にあるが")])
   })
 })
 

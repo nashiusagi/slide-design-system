@@ -1,7 +1,15 @@
 import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { RULES, UNIMPLEMENTED_RULE_IDS, ruleSectionId, rulesByMethod, thresholdEntries } from '../rules'
+import {
+  IMPLEMENTATION_LABELS,
+  RULES,
+  UNIMPLEMENTED_RULE_IDS,
+  ruleImplementation,
+  ruleSectionId,
+  rulesByMethod,
+  thresholdEntries,
+} from '../rules'
 import { Rules } from './Rules'
 
 /** ルール1件のカード。節 ID で引く。 */
@@ -14,13 +22,15 @@ function cardOf(container: HTMLElement, ruleId: string): HTMLElement {
 }
 
 describe('Rules', () => {
-  it('契約のルールをすべて、契約の並びで描く', () => {
+  /*
+   * カードの件数だけを見る。節 ID の並びまでの突き合わせは `section-links.test.tsx` が持つ
+   * （既存の2ページと分担を揃える。両方で同じ期待値を書くと、落ちるときは必ず両方落ちる）。
+   */
+  it('契約のルールをすべてカードとして描く', () => {
     const { container } = render(<Rules />)
 
     expect(RULES.length).toBeGreaterThan(0)
-    expect([...container.querySelectorAll('.doc-rule')].map((card) => card.id)).toEqual(
-      rulesByMethod(RULES).flatMap(([, rules]) => rules.map((rule) => ruleSectionId(rule.id))),
-    )
+    expect(container.querySelectorAll('.doc-rule')).toHaveLength(RULES.length)
   })
 
   /*
@@ -94,26 +104,27 @@ describe('Rules', () => {
   })
 
   /*
-   * 実装の有無。未実装の一覧に在るルールだけが「未実装」と出る。件数も見る——1件だけ正しく
-   * 出して残りを取り違える実装でも、個別の照合だけなら通る余地がある。
+   * 実装の状態。判定そのものは `ruleImplementation` の側で固定してあるので、ここが見るのは
+   * 「カードが判定と同じものを出しているか」——属性と表示名の両方を見る。件数も見る。1件だけ
+   * 正しく出して残りを取り違える実装でも、個別の照合だけなら通る余地がある。
    */
-  it('未実装のルールを未実装として出し、それ以外は実装済みとして出す', () => {
+  it('各ルールの実装の状態を、判定と同じ値で出す', () => {
     const { container } = render(<Rules />)
 
     expect(UNIMPLEMENTED_RULE_IDS.length).toBeGreaterThan(0)
 
     for (const rule of RULES) {
       const card = cardOf(container, rule.id)
-      const implemented = !UNIMPLEMENTED_RULE_IDS.includes(rule.id)
+      const implementation = ruleImplementation(rule, UNIMPLEMENTED_RULE_IDS)
 
-      expect(card.querySelector('[data-implemented]')).toHaveAttribute(
-        'data-implemented',
-        String(implemented),
+      expect(card.querySelector('[data-implementation]')).toHaveAttribute(
+        'data-implementation',
+        implementation,
       )
-      expect(card).toHaveTextContent(implemented ? '実装済み' : '未実装')
+      expect(card).toHaveTextContent(IMPLEMENTATION_LABELS[implementation])
     }
 
-    expect(container.querySelectorAll('[data-implemented="false"]')).toHaveLength(
+    expect(container.querySelectorAll('[data-implementation="unimplemented"]')).toHaveLength(
       UNIMPLEMENTED_RULE_IDS.length,
     )
   })

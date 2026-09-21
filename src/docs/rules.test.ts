@@ -3,9 +3,10 @@ import { describe, expect, it } from 'vitest'
 import { formatDocsHash, parseDocsHash } from './hash'
 import { RULES_PAGE_ID } from './page-ids'
 import {
+  HUMAN_JUDGED_METHOD,
   RULES,
   UNIMPLEMENTED_RULE_IDS,
-  ruleImplemented,
+  ruleImplementation,
   ruleSectionId,
   rulesByMethod,
   thresholdEntries,
@@ -116,6 +117,17 @@ describe('thresholdEntries', () => {
     for (const key of blocks) {
       expect(ruleKeys, `${key} を引くルールが無い`).toContain(key)
     }
+
+    /*
+     * 名前が対応しているだけでは足りない。ブロックが配列やスカラーへ変わると
+     * `thresholdEntries` は null を返し、値は画面から静かに消える。引いた結果が描ける形で
+     * あることまで見る。
+     */
+    for (const rule of RULES) {
+      if (blocks.includes(thresholdKey(rule.id))) {
+        expect(thresholdEntries(rule.id), `${rule.id} の閾値ブロックを引けない`).not.toBeNull()
+      }
+    }
   })
 
   it('閾値ブロックの中身を、$ で始まるキーを除いて返す', () => {
@@ -140,7 +152,7 @@ describe('thresholdEntries', () => {
   })
 })
 
-describe('ruleImplemented', () => {
+describe('ruleImplementation', () => {
   /*
    * 未実装の一覧がルールIDの綴りとして正しいこと。綴りを誤ると、未実装のルールが
    * 「実装済み」と表示され、しかも型検査も lint も通る。
@@ -156,9 +168,48 @@ describe('ruleImplemented', () => {
     }
   })
 
+  /*
+   * 契約の文章と未実装の一覧は、同じ状態を別々に述べている。`design/rules.json` の
+   * description が「未実装」と書いたルールは、一覧にも載っていなければならない（DR-0051 帰結）。
+   *
+   * 判定の根拠は一覧のほうで、この検査は両者が食い違ったことを知らせるだけだ。実装した人が
+   * 一覧から外して契約の文章を直し忘れると、カードは「実装済み」と表示しつつ本文で「未実装」と
+   * 言い続ける——その状態でここが落ちる。
+   */
+  it('契約の description が未実装と述べるルールは、未実装の一覧にも載っている', () => {
+    const declaredUnimplemented = RULES.filter((rule) => rule.description.includes('未実装')).map(
+      (rule) => rule.id,
+    )
+
+    expect(declaredUnimplemented.length).toBeGreaterThan(0)
+    expect([...declaredUnimplemented].sort()).toEqual(
+      [...UNIMPLEMENTED_RULE_IDS].filter((id) => declaredUnimplemented.includes(id)).sort(),
+    )
+
+    for (const id of UNIMPLEMENTED_RULE_IDS) {
+      expect(declaredUnimplemented, `${id} が契約の description では未実装と読めない`).toContain(id)
+    }
+  })
+
   it('一覧に在れば未実装、無ければ実装済みとする', () => {
-    expect(ruleImplemented('alfa', ['bravo'])).toBe(true)
-    expect(ruleImplemented('bravo', ['bravo'])).toBe(false)
-    expect(ruleImplemented('bravo', [])).toBe(true)
+    const rule = { id: 'bravo', method: 'lint', severity: 'error', description: '架空' }
+
+    expect(ruleImplementation({ ...rule, id: 'alfa' }, ['bravo'])).toBe('implemented')
+    expect(ruleImplementation(rule, ['bravo'])).toBe('unimplemented')
+    expect(ruleImplementation(rule, [])).toBe('implemented')
+  })
+
+  /*
+   * 人が判断する method（DR-0011）には実装対応の検査が無く、一覧に無いことが実装の存在を
+   * 意味しない。ここを実装済みと表示すると、自動検査が効いているという誤った読みになる。
+   *
+   * いまの契約にこの method のルールは無いので、架空のルールで固定する。契約に現れるのを
+   * 待つと、現れた日に初めて表示が壊れていたことが分かる。
+   */
+  it('人が判断する method は、一覧の有無によらず実装の話にしない', () => {
+    const rule = { id: 'charlie', method: HUMAN_JUDGED_METHOD, severity: 'error', description: '架空' }
+
+    expect(ruleImplementation(rule, [])).toBe('human')
+    expect(ruleImplementation(rule, ['charlie'])).toBe('human')
   })
 })

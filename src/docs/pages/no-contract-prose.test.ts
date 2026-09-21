@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 
 import { COMPONENTS } from '../components'
 import { LAYOUTS } from '../layouts'
-import { RULES } from '../rules'
 
 /*
  * 契約の文言がカタログのソースへ書き写されていないことを見る（DR-0042 決定2）。
@@ -64,15 +63,37 @@ const RULES_CONTRACT = Object.values(
   import.meta.glob<object>('/design/rules.json', { eager: true, import: 'default' }),
 )[0]
 
+/**
+ * 契約の中にある文章を、入れ子ごと集める。
+ *
+ * `design/rules.json` は1ファイルの中に、ルールの `description`、除外の `description`、
+ * 閾値ブロックごとの `$comment` を持つ。名指しで拾う形にすると、閾値ブロックが増えたときに
+ * 拾い漏れる——しかも**画面に出ない文章ほど、解説としてカタログへ写す動機が強い**。キーの
+ * 名前で再帰的に集めることで、契約の構造が増えても列挙を足さずに済む。
+ *
+ * レイアウト・部品の契約はこの関数を通さない。あちらは表示する項目が型として決まっており、
+ * どの項目が文章かを1件ずつ書いたほうが、拾っている範囲が読んで分かる。
+ */
+function proseIn(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.flatMap(proseIn)
+  }
+
+  if (typeof value !== 'object' || value === null) {
+    return []
+  }
+
+  return Object.entries(value).flatMap(([key, nested]) =>
+    typeof nested === 'string' ? (key === 'description' || key === '$comment' ? [nested] : []) : proseIn(nested),
+  )
+}
+
 /** 契約が持つ文章。ここに挙がったものがソースに現れたら、それが複製である。 */
 const CONTRACT_PROSE: ContractProse[] = [
   {
     label: 'design/rules.json',
     contract: RULES_CONTRACT,
-    texts: [
-      ...RULES.map((rule) => rule.description),
-      ...(commentOf(RULES_CONTRACT) === null ? [] : [commentOf(RULES_CONTRACT) as string]),
-    ],
+    texts: proseIn(RULES_CONTRACT),
   },
   ...LAYOUTS.map((layout) => ({
     label: `design/layouts/${layout.name}.json`,
@@ -233,6 +254,17 @@ describe('カタログの実装', () => {
       expect(typeof comment, `${label} が $comment を持たない`).toBe('string')
       expect(texts, `${label} の $comment が対象に入っていない`).toContain(comment)
     }
+  })
+
+  /*
+   * 集め方そのものを固定する。ここが壊れると、`design/rules.json` の突き合わせは
+   * 「文章が1つも無い」という理由で通ってしまう。入れ子の配列・オブジェクトの底にある
+   * `description` と `$comment` まで届くこと、それ以外のキーの文字列は拾わないことを見る。
+   */
+  it('契約の入れ子から、description と $comment だけを集める', () => {
+    expect(
+      proseIn({ $comment: 'あ', name: 'ignored', rules: [{ description: 'い', items: [{ $comment: 'う' }] }] }),
+    ).toEqual(['あ', 'い', 'う'])
   })
 
   /*

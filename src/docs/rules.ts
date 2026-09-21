@@ -37,26 +37,21 @@ export const RULES: RuleContract[] = rulesJson.rules
  * 正本は `scripts/unimplemented-rules.json` で、`scripts/validate-design.mjs` の実装対応
  * 検査も同じファイルを読む。カタログ側に状態を持たない。
  *
- * 形が変わっていたら落とす。キーを綴り誤ると `undefined` になり、そのまま使うと**全ルールが
- * 実装済みとして表示される**。空の配列は正しい状態（未実装が無い）なので許すが、配列でない
- * ものは許さない。
+ * 実行時の形の検査は置かない。`tsconfig.app.json` の `resolveJsonModule` が JSON の形を
+ * 型として付けるので、キーを綴り誤れば型検査が落ちる。実行時に落とす形にすると、型検査が
+ * 先に捕まえる事象に対して、決して通らない分岐をバンドルへ入れることになる。
  */
-const unimplementedRuleIds: unknown = unimplementedRules.unimplementedRuleIds
-
-if (!Array.isArray(unimplementedRuleIds)) {
-  throw new Error(
-    'scripts/unimplemented-rules.json の unimplementedRuleIds を配列として読めなかった。キーの綴りを確認すること（DR-0051）。',
-  )
-}
-
-export const UNIMPLEMENTED_RULE_IDS: string[] = unimplementedRuleIds
+export const UNIMPLEMENTED_RULE_IDS: string[] = unimplementedRules.unimplementedRuleIds
 
 /**
  * ルール1件を指す節 ID。`#/rules/<節ID>` のリンク先になる（DR-0048 決定3）。
  *
  * レイアウトの `layoutSectionId`・部品の `componentSectionId` と同じ役目。いまこの hash を
- * 指すリンクは無い（部品からルールへの対応は契約に無く、張っていない。DR-0051 決定3）が、
+ * 指すリンクは無い（部品からルールへの対応は契約に無く、張っていない。DR-0051 決定4）が、
  * `id` を置く側だけが先にあると、後からリンクを張る人が契約名を直接書く形に倣ってしまう。
+ * だから節 ID の作り方をこの関数1箇所に持つ。DR-0048 の帰結が、節を持つページには読み込み口へ
+ * 対応を置くよう求めているのはそのためだ。リンクを張らないこと自体は暫定ではなく、DR-0051
+ * 決定4 が決めた恒久の形である。
  *
  * ルールIDが hash の節 ID の書式（英小文字・数字・ハイフン）に収まることは `rules.test.ts` が
  * 全ルールについて固定している。スキーマの `pattern` が `^[a-z]+(-[a-z]+)*$` を求めているので
@@ -67,14 +62,47 @@ export function ruleSectionId(ruleId: string): string {
 }
 
 /**
- * ルールの実装が在るか（DR-0051 決定1）。
+ * 自動判定を持たない `method`（DR-0011）。
+ *
+ * `scripts/validate-design.mjs` の `checkBypassFixtureCoverage` も、同じ値をフィクスチャ要求
+ * の対象から外している。値は `design/schemas/rules.schema.json` の enum が持つ語彙のひとつ。
+ */
+export const HUMAN_JUDGED_METHOD = 'review'
+
+/**
+ * ルールの実装の状態。
+ *
+ * - `implemented` — 実装が在る
+ * - `unimplemented` — 宣言だけがあり、実装がまだ無い
+ * - `human` — 人が判断する method なので、機械の実装という概念が無い（DR-0011）
+ */
+export type RuleImplementation = 'implemented' | 'unimplemented' | 'human'
+
+/**
+ * ルールの実装の状態を返す（DR-0051 決定1）。
+ *
+ * 未実装の一覧が根拠になるのは、`pnpm design:check` の実装対応検査が覆う `lint` / `measure`
+ * のルールだけだ。人が判断する method（`HUMAN_JUDGED_METHOD`）には対応検査が無く、一覧に
+ * 無いことが実装の存在を意味しない。そこを一緒くたにすると、**人が判断すると決めたルールを
+ * 「実装済み」と表示する**——自動検査が効いているという誤った読みを画面が作る。
  *
  * 一覧を引数で受け取り、既定値を持たない。理由は `previewFor`（DR-0049 決定4）と同じ——
  * 省略できる形にすると、呼び出しがどの一覧を見ているかその場で読めず、テストが差し替えた
  * 一覧も反映されない。
  */
-export function ruleImplemented(ruleId: string, unimplemented: string[]): boolean {
-  return !unimplemented.includes(ruleId)
+export function ruleImplementation(rule: RuleContract, unimplemented: string[]): RuleImplementation {
+  if (rule.method === HUMAN_JUDGED_METHOD) {
+    return 'human'
+  }
+
+  return unimplemented.includes(rule.id) ? 'unimplemented' : 'implemented'
+}
+
+/** 実装の状態の表示名。画面に出る語をここ1箇所に持つ。 */
+export const IMPLEMENTATION_LABELS: Record<RuleImplementation, string> = {
+  implemented: '実装済み',
+  unimplemented: '未実装',
+  human: '人が判断',
 }
 
 /** `min-font-size` → `minFontSize`。ルールIDから閾値ブロックのキーを作る。 */

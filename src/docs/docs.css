@@ -347,7 +347,7 @@ body {
 }
 
 /*
- * 検証ルール（契約一覧）のページ。
+ * 検査ルール（契約一覧）のページ。
  *
  * ルールは method（lint / measure / review）ごとに束ねる。束の中はカードが並ぶので、
  * 束そのものはカードにせず、見出しと間隔だけを持つ。
@@ -364,10 +364,6 @@ body {
   font-size: var(--dh-type-size-caption);
   font-weight: var(--dh-type-weight-bold);
   line-height: var(--dh-type-line-height-tight);
-}
-
-.doc-rule {
-  gap: var(--dh-space-md);
 }
 
 /*
@@ -409,7 +405,7 @@ body {
 }
 
 /* 未実装のルールは、実装済みと見分けが付く色にする（DR-0049 決定2 と同じ理由）。 */
-.doc-threshold__value[data-implemented='false'] {
+.doc-threshold__value[data-implementation='unimplemented'] {
   color: var(--dh-color-warning);
   font-weight: var(--dh-type-weight-bold);
 }

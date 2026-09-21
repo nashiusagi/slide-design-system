@@ -46,7 +46,7 @@
 | [0048](./0048-docs-hash-carries-section.md) | カタログの hash は `#/<ページID>/<節ID>` まで持つ |
 | [0049](./0049-catalog-detects-implementation-by-registry.md) | 部品の実装の有無は、カタログの登録表で判定する |
 | [0050](./0050-components-implemented-outside-runtime.md) | 部品は `src/components/` に React コンポーネントとして実装し、クラス名は契約名から取る |
-| [0051](./0051-catalog-rules-page-sources.md) | 検証ルールのページは、実装状況を検査の許容リストから引き、部品からのリンクは張らない |
+| [0051](./0051-catalog-rules-page-sources.md) | 検査ルールのページは、実装状況を未実装ルールの一覧から引き、部品からのリンクは張らない |
 
 ### 契約の構造
 
