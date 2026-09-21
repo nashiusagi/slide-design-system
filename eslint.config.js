@@ -23,9 +23,11 @@ function catalogImportRules() {
   return forbidCrossEntryImports(
     boundary.forbiddenFromCatalog,
     'カタログはスライド本体（src/App.tsx / src/runtime/）を参照しない（DR-0042）。',
-    // 静的 import（ImportDeclaration）と動的 import（ImportExpression）は別のノードなので、
-    // 片方だけを見ると、もう片方の書き方で同じ経路が戻る。
-    ['ImportDeclaration', 'ImportExpression'].map((node) => ({
+    // `source` を持つノードをすべて見る。静的 import・動的 import・再エクスポートは別の
+    // ノードで、どれか1つでも落とすとその書き方で同じ経路が戻る。再エクスポートは
+    // `export * from 'scripts/...'` を src/docs/ の中へ1枚挟むだけで、以降は普通の import と
+    // して読めるようになるため、抜け道として静的 import と等価である。
+    ['ImportDeclaration', 'ImportExpression', 'ExportNamedDeclaration', 'ExportAllDeclaration'].map((node) => ({
       selector: `${node}[source.value=/scripts\\//]:not([source.value=/\\.json$/])`,
       message:
         'カタログが scripts/ から読んでよいのはデータ（JSON）だけ（DR-0051）。検査スクリプトのコードを読むと、実装状況の判定根拠が増える。',
