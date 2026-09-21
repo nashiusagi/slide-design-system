@@ -113,6 +113,42 @@ function packed(text: string): string {
   return text.replace(/\s+/g, '')
 }
 
+/**
+ * JSX の式コンテナ（`{...}`）を落とす。
+ *
+ * JSX の地の文は、途中へ `{''}` や `{変数}` を1つ挟むだけで分断できる。画面に出る文字は
+ * 変わらないのに、生のソースの上では連続しなくなる。`staticStrings` はそもそも引用符の
+ * 無い地の文を見ないので、こちらも素通りする——`${''}` をテンプレートリテラルで塞いだ形の、
+ * JSX 版にあたる。
+ *
+ * 落とすのは**改行を含まない** `{...}` だけ。内側から順に、変わらなくなるまで繰り返す。
+ *
+ * 改行で区切るのは、関数の本体を落とさないためだ。制限なしに内側から落とすと、`{''}` を
+ * 消した次の周で関数の本体が最も内側になり、中の JSX ごと消える——地の文が消えれば、
+ * 複製はそこに無いことになってしまう。地の文を割るために挟む式は1行に収まる。
+ *
+ * 1行のオブジェクトや短い関数本体も一緒に落ちる。落ちた結果として無関係な文が繋がることは
+ * あるが、契約の文章は長い日本語の文なので、偶然その並びになる余地は無い。
+ *
+ * 改行を挟んだ式（`{\n''\n}`）で割る形は残る。塞いでいるのは、整形しても1行に収まる
+ * 書き方までである。
+ */
+function withoutJsxExpressions(source: string): string {
+  let text = source
+
+  for (let pass = 0; pass < 10; pass += 1) {
+    const next = text.replace(/\{[^{}\n]*\}/g, '')
+
+    if (next === text) {
+      break
+    }
+
+    text = next
+  }
+
+  return text
+}
+
 describe('カタログの実装', () => {
   it('契約の文言をソースへ書き写していない', () => {
     /*
@@ -126,12 +162,16 @@ describe('カタログの実装', () => {
       expect(source.length, `${path} の中身が空`).toBeGreaterThan(0)
 
       /*
-       * 2つの見方で突き合わせる。生のソース（空白を落としたもの）は JSX のテキストのように
-       * 引用符を持たない複製を捕まえ、静的に決まる文字列は分断された複製を捕まえる。
-       * 片方だけでは、もう片方の形が素通りする。
+       * 3つの見方で突き合わせる。どれか1つでは、他の形が素通りする。
+       *
+       * - 素のソース: JSX のテキストのように引用符を持たない複製。オブジェクトの中の
+       *   文字列のように、式を落とすと一緒に消えてしまうものもここで捕まえる
+       * - 式を落としたソース: JSX の地の文を `{''}` や `{変数}` で分断した複製
+       * - 静的に決まる文字列: 文字列リテラルを `+` や `${...}` で分断した複製
        */
       const views = [
         { name: '素のソース', text: packed(source) },
+        { name: '式を落としたソース', text: packed(withoutJsxExpressions(source)) },
         { name: '静的に決まる文字列', text: staticStrings(source) },
       ]
 
@@ -154,14 +194,17 @@ describe('カタログの実装', () => {
    *
    * 名前の一致で見ない。`statement` はレイアウト名と部品名の両方に在るので、名前では
    * どちらの契約を見ているか区別できない。生成元の契約とエントリを1対1で突き合わせる。
+   *
+   * 期待値に `commentOf` を使わない。集める側と期待値の側が同じ関数を呼ぶと、その関数が
+   * 「全契約について非 null だが中身が違う値」を返すようになっても、両側が同じ壊れ方を
+   * するので通ってしまう。ここでは契約の実体から直に読む。
    */
   it('各契約の $comment が、その契約の突き合わせ対象に入っている', () => {
-    const withComment = CONTRACT_PROSE.filter(({ contract }) => commentOf(contract) !== null)
+    for (const { label, contract, texts } of CONTRACT_PROSE) {
+      const comment = (contract as { $comment?: unknown }).$comment
 
-    expect(withComment.length).toBe(CONTRACT_PROSE.length)
-
-    for (const { label, contract, texts } of withComment) {
-      expect(texts, `${label} の $comment が対象に入っていない`).toContain(commentOf(contract))
+      expect(typeof comment, `${label} が $comment を持たない`).toBe('string')
+      expect(texts, `${label} の $comment が対象に入っていない`).toContain(comment)
     }
   })
 
@@ -178,5 +221,14 @@ describe('カタログの実装', () => {
     expect(staticStrings("const a = `あい${x}うえ`")).toBe('あいうえ')
     expect(staticStrings("const a = 'あい\n  うえ'")).toBe('あいうえ')
     expect(staticStrings('const a = 1')).toBe('')
+  })
+
+  /*
+   * 式を落とす側も固定する。ここが壊れると、JSX の地の文を分断した複製が素通りする。
+   */
+  it('JSX の式コンテナを落として、地の文を1本に繋げる', () => {
+    expect(packed(withoutJsxExpressions("<p>あい{''}うえ</p>"))).toBe('<p>あいうえ</p>')
+    expect(packed(withoutJsxExpressions('<p>あい{x}うえ</p>'))).toBe('<p>あいうえ</p>')
+    expect(packed(withoutJsxExpressions('<p>あい{f({ y: 1 })}うえ</p>'))).toBe('<p>あいうえ</p>')
   })
 })
