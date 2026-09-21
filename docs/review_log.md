@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-21（PR #56 レビュー 1周目）
+最終更新: 2026-09-21（PR #56 レビュー 2周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -127,6 +127,7 @@
 | `code/list-key-collides-on-duplicate-items` | コード品質 | 一覧の key を値そのものにしており、同じ値が並ぶと衝突する | 1 | PR #56 | PR #56 |
 | `contract/stale-contract-comment` | 設計契約 | 契約側の文書が「実装はまだ無い」と述べたまま、実装の追加で古くなった | 1 | PR #56 | PR #56 |
 | `contract/contract-constraint-unenforced` | 設計契約 | 契約が定めた制約（個数の上限等）を実装も検査も担保していない | 1 | PR #56 | PR #56 |
+| `writing/misplaced-correction` | 日本語 | 文書内の訂正が、上書きする元の記述から離れた場所に置かれ、どちらも残る | 1 | PR #56 | PR #56 |
 | `code/parse-error-message-lacks-source-path` | コード品質 | 構文エラーのメッセージが実ファイルパスの代わりに内部プレースホルダを含む | 1 | PR #39 | PR #39 |
 | `code/non-targeting-pseudo-has-untested` | コード品質 | 意味論を書き分けた疑似クラスの一部だけ、対応する回帰テストが無い | 1 | PR #39 | PR #39 |
 | `inspection/bundle-boundary-unchecked` | 検査 | 分離すると決めたビルドエントリ間の参照境界を保証する検査が無い | 2 | PR #40 | PR #53 |
@@ -168,7 +169,7 @@
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #56 | 2026-09-21 | 1 | 9 | 14 | [pr-56.md](./reviews/pr-56.md) |
+| #56 | 2026-09-21 | 2 | 10 | 14 | [pr-56.md](./reviews/pr-56.md) |
 | #55 | 2026-09-21 | 0 | 13 | 12 | [pr-55.md](./reviews/pr-55.md) |
 | #53 | 2026-09-21 | 0 | 12 | 7 | [pr-53.md](./reviews/pr-53.md) |
 | #52 | 2026-09-20 | 0 | 23 | 15 | [pr-52.md](./reviews/pr-52.md) |
