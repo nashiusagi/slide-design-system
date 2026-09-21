@@ -10,7 +10,7 @@
  */
 import type { ReactNode } from 'react'
 
-import { LAYOUTS, type LayoutContract, type LayoutSlot } from '../layouts'
+import { LAYOUTS, layoutSectionId, type LayoutContract, type LayoutSlot } from '../layouts'
 import { cssVar } from '../tokens'
 
 /** 文字列の並びを箇条書きにする。使うとき・使わないときで同じ形を使う。 */
@@ -95,7 +95,7 @@ export function Layouts() {
       </p>
 
       {LAYOUTS.map((layout) => (
-        <section key={layout.name} className="doc-card doc-layout">
+        <section key={layout.name} id={layoutSectionId(layout.name)} className="doc-card doc-layout">
           <h2 className="doc-card__title">{layout.name}</h2>
           <p className="doc-card__body">{layout.role}</p>
 

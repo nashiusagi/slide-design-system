@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 
 import { formatDocsHash, parseDocsHash } from './hash'
 import { DOCS_PAGES, type DocsPage } from './pages'
@@ -9,9 +9,31 @@ import { DOCS_PAGES, type DocsPage } from './pages'
  * `DOCS_PAGES` は非空タプルなので先頭は必ず在る。ここが `undefined` を返す余地は無い。
  */
 function resolvePage(hash: string): DocsPage {
-  const id = parseDocsHash(hash)
+  const location = parseDocsHash(hash)
 
-  return DOCS_PAGES.find((page) => page.id === id) ?? DOCS_PAGES[0]
+  return DOCS_PAGES.find((page) => page.id === location?.pageId) ?? DOCS_PAGES[0]
+}
+
+/**
+ * hash が節を指していれば、その節へスクロールする（DR-0048）。
+ *
+ * 節が実在するかはここで初めて分かる。無ければ何もしない——ページの先頭が出る。
+ * 契約を消したときに、その節を指す古いリンクが空白の画面になるより、ページが出た方がよい。
+ *
+ * 描画後でなければ対象の要素が無いので layout effect で行う。`scrollIntoView` は jsdom が
+ * 持たないため、在るときだけ呼ぶ。
+ */
+function useScrollToSection(hash: string, pageId: string): void {
+  useLayoutEffect(() => {
+    const sectionId = parseDocsHash(hash)?.sectionId
+
+    if (sectionId === undefined || sectionId === null) {
+      return
+    }
+
+    document.getElementById(sectionId)?.scrollIntoView?.({ block: 'start' })
+    // ページが変われば、同じ節 ID でも別の要素を指す。ページも依存に入れる。
+  }, [hash, pageId])
 }
 
 /**
@@ -38,6 +60,8 @@ export function DocsApp() {
   }, [])
 
   const page = resolvePage(hash)
+
+  useScrollToSection(hash, page.id)
 
   return (
     <div className="docs-shell">

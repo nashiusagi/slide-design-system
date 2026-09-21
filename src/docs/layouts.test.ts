@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { LAYOUTS, layoutsFrom, type LayoutContract } from './layouts'
+import { formatDocsHash, parseDocsHash } from './hash'
+import { LAYOUTS, layoutSectionId, layoutsFrom, type LayoutContract } from './layouts'
 
 /**
  * 契約ファイルの実体。カタログが読んだものと突き合わせる。
@@ -51,6 +52,23 @@ describe('LAYOUTS', () => {
         expect(typeof slot.required).toBe('boolean')
         expect(typeof slot.max).toBe('number')
       }
+    }
+  })
+})
+
+describe('layoutSectionId', () => {
+  /*
+   * 節 ID が hash の書式に収まらないと、部品ページから張ったリンクは書式違反として先頭ページ
+   * へ落ちる。リンクは付いたままなので、押すまで壊れたことが分からない。往復で固定する。
+   */
+  it('どの契約の節 ID も hash として往復する', () => {
+    for (const layout of LAYOUTS) {
+      const sectionId = layoutSectionId(layout.name)
+
+      expect(parseDocsHash(formatDocsHash('layouts', sectionId))).toEqual({
+        pageId: 'layouts',
+        sectionId,
+      })
     }
   })
 })

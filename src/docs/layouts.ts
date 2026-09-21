@@ -59,6 +59,20 @@ export function layoutsFrom(modules: Record<string, LayoutContract>): LayoutCont
   return entries.sort(([leftPath], [rightPath]) => leftPath.localeCompare(rightPath)).map(([, contract]) => contract)
 }
 
+/**
+ * レイアウト1件を指す節 ID。`#/layouts/<節ID>` のリンク先になる（DR-0048）。
+ *
+ * 値は契約の名前そのものだが、リンクを張る側（部品ページの `allowedIn`）と、`id` を置く側
+ * （レイアウトのページ）が別のファイルにある。両方が「名前をそのまま使う」と書くと、片方だけ
+ * 変えたときにリンクが黙って外れる。対応をここ1箇所に持つ。
+ *
+ * 名前が hash の節 ID の書式（英小文字・数字・ハイフン）に収まることは `layouts.test.ts` が
+ * 全契約について固定している。収まらない名前が入ると、リンクは書式違反で先頭ページへ落ちる。
+ */
+export function layoutSectionId(layoutName: string): string {
+  return layoutName
+}
+
 /** レイアウト契約の一覧（DR-0010 が3種と決めた対象そのもの）。 */
 export const LAYOUTS: LayoutContract[] = layoutsFrom(
   import.meta.glob<LayoutContract>('../../design/layouts/*.json', { eager: true, import: 'default' }),
