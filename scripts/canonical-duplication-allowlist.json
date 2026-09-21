@@ -29,7 +29,7 @@
       "path": "src/docs/docs.css",
       "target": "design/rules.json の noRawScale.allowedLiterals",
       "reason": "カタログの CSS が実際に使っている値（親要素基準の寸法と、ヘアライン境界線）である。allowedLiterals はこの書き方を許すと宣言した側であって、CSS がそれを写したのではない。CSS から JSON を参照する手段も無い。",
-      "count": 8
+      "count": 9
     },
     {
       "path": "docs/decisions/0010-three-layouts.md",

@@ -86,6 +86,48 @@ describe('DocsApp', () => {
     expect(screen.queryByRole('heading', { level: 1, name: DOCS_PAGES[0].title })).not.toBeInTheDocument()
   })
 
+  /*
+   * 節つきの hash（DR-0048）。部品ページの allowedIn から張るリンクがこの形で、外れると
+   * リンクは付いたまま先頭ページへ落ちる。
+   */
+  it('節つきの hash でも、そのページが表示される', () => {
+    window.history.replaceState(null, '', formatDocsHash(second.id, 'any-section'))
+
+    render(<DocsApp />)
+
+    expect(screen.getByRole('heading', { level: 1, name: second.title })).toBeInTheDocument()
+  })
+
+  it('hash が指す節が在れば、そこへスクロールする', () => {
+    const target = document.createElement('div')
+    target.id = 'scroll-target'
+    const scrollIntoView = vi.fn()
+    target.scrollIntoView = scrollIntoView
+    document.body.appendChild(target)
+
+    try {
+      window.history.replaceState(null, '', formatDocsHash(second.id, 'scroll-target'))
+
+      render(<DocsApp />)
+
+      expect(scrollIntoView).toHaveBeenCalled()
+    } finally {
+      target.remove()
+    }
+  })
+
+  /*
+   * 契約を消すと、その節を指す古いリンクは行き先を失う。落とさずページを出す——空白の画面より
+   * ページが出た方がよい（DR-0048）。
+   */
+  it('hash が指す節が無くても落ちず、ページを表示する', () => {
+    window.history.replaceState(null, '', formatDocsHash(second.id, 'missing-section'))
+
+    render(<DocsApp />)
+
+    expect(screen.getByRole('heading', { level: 1, name: second.title })).toBeInTheDocument()
+  })
+
   it('aria-current="page" は表示中のページのリンクにしか付かない', () => {
     window.history.replaceState(null, '', formatDocsHash(second.id))
 

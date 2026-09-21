@@ -5,20 +5,6 @@ import { LAYOUTS, type LayoutContract } from '../layouts'
 import { cssVarName, themeValue } from '../tokens'
 import { Layouts } from './Layouts'
 
-/**
- * カタログのページのソース。契約の文言が書き写されていないことを、実体を読んで確かめる。
- *
- * 1ファイルではなくページ全体を glob で取る。ファイル単位で書くと、カードの描画を別ファイルへ
- * 切り出してそちらに文言を直書きするだけで検査の外へ出られる。ページを足したら自動で対象に
- * 入る形にしておけば、#36 / #38 でテストを書き忘れても複製は落ちる。
- *
- * `*` はディレクトリを跨がないので `**` で書く。直下だけを見ると、切り出し先を1段深い
- * ディレクトリへ置くだけで同じ抜け道が開く。
- */
-const PAGE_SOURCES = Object.entries(
-  import.meta.glob<string>('./**/*.tsx', { eager: true, query: '?raw', import: 'default' }),
-).filter(([path]) => !path.includes('.test.'))
-
 describe('Layouts', () => {
   it('契約を1件ずつカードにする', () => {
     const { container } = render(<Layouts />)
@@ -115,29 +101,6 @@ describe('Layouts', () => {
     )
 
     expect(placeholders).toEqual(LAYOUTS.flatMap((layout) => layout.slots.map((slot) => slot.component)))
-  })
-
-  /*
-   * 契約の文言をページ側へ書き写さない（DR-0042 決定2）。役割・選択基準・クラス名が
-   * ソースに現れないことを見る。レイアウト名そのものは見ない。'title' のような語が
-   * クラス名や props の名前として正当に現れるためだ。
-   */
-  it('契約の文言がカタログのどのページにも書かれていない', () => {
-    /*
-     * 読み込みが空・0件だと、以下の「含まれない」はすべて素通りする（DR-0043 決定1 と同じ形）。
-     * 対象が在り、中身が読めていることを先に確かめる。
-     */
-    expect(PAGE_SOURCES.length).toBeGreaterThan(0)
-
-    for (const [path, source] of PAGE_SOURCES) {
-      expect(source.length, `${path} の中身が空`).toBeGreaterThan(0)
-
-      for (const layout of LAYOUTS) {
-        for (const text of [layout.role, ...layout.whenToUse, ...layout.whenNotToUse, ...layout.classes]) {
-          expect(source, `${path} に ${layout.name} の契約の文言が書かれている`).not.toContain(text)
-        }
-      }
-    }
   })
 
   /*

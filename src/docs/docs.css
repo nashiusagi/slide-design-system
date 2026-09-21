@@ -280,24 +280,29 @@ body {
   padding-left: var(--dh-space-lg);
 }
 
-.doc-slot-table {
+.doc-slot-table,
+.doc-prop-table {
   border-collapse: collapse;
   text-align: left;
 }
 
 .doc-slot-table th,
-.doc-slot-table td {
+.doc-slot-table td,
+.doc-prop-table th,
+.doc-prop-table td {
   padding: var(--dh-space-2xs) var(--dh-space-md) var(--dh-space-2xs) 0;
+  vertical-align: top;
 }
 
-.doc-slot-table th {
+.doc-slot-table th,
+.doc-prop-table th {
   color: var(--dh-color-text-muted);
   font-weight: var(--dh-type-weight-bold);
 }
 
 /*
  * プレビューの中身。部品の実装がまだ無いので、置き場所だけを示す枠を出す
- * （実装は #37、一覧は #36）。部品の見た目をここで先取りしない。
+ * （実装は Issue #37、一覧はカタログの #/components）。部品の見た目をここで先取りしない。
  */
 .doc-slot-placeholder {
   margin: 0;
@@ -306,4 +311,29 @@ body {
   border-radius: var(--dh-radius-sm);
   color: var(--dh-color-text-muted);
   font-size: var(--dh-type-size-body);
+}
+
+/*
+ * 部品（契約一覧）のページ。
+ *
+ * 実装が無い部品は、空欄ではなく「未実装」と書いた枠を出す（DR-0049）。空欄にすると、
+ * まだ描いていないのか実装が無いのかが読み手に伝わらない。
+ */
+.doc-component {
+  gap: var(--dh-space-lg);
+}
+
+.doc-component__unimplemented {
+  margin: 0;
+  padding: var(--dh-space-lg);
+  border: 1px dashed var(--dh-color-border);
+  border-radius: var(--dh-radius-sm);
+  color: var(--dh-color-text-muted);
+  text-align: center;
+}
+
+.doc-component__preview {
+  padding: var(--dh-space-lg);
+  border-radius: var(--dh-radius-sm);
+  background: var(--dh-color-background);
 }

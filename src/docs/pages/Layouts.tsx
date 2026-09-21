@@ -5,12 +5,12 @@
  * 契約の文言をここへ書き写さない（DR-0042 決定2）。並べる対象も、各項目の中身も、
  * すべて `LAYOUTS` から引く。ここが持つのは見出しの日本語と、どの図形で描くかだけだ。
  *
- * プレビューの中身はプレースホルダ。部品（`design/components/`）の実装はまだ無く、
- * 一覧とプレビューは #36 / #37 が持つ。ここで先取りして描かない。
+ * プレビューの中身はプレースホルダ。部品（`design/components/`）の実装はまだ無い。契約の一覧は
+ * カタログの `#/components` にあり、実装は Issue #37 が持つ。ここで先取りして描かない。
  */
 import type { ReactNode } from 'react'
 
-import { LAYOUTS, type LayoutContract, type LayoutSlot } from '../layouts'
+import { LAYOUTS, layoutSectionId, type LayoutContract, type LayoutSlot } from '../layouts'
 import { cssVar } from '../tokens'
 
 /** 文字列の並びを箇条書きにする。使うとき・使わないときで同じ形を使う。 */
@@ -95,7 +95,7 @@ export function Layouts() {
       </p>
 
       {LAYOUTS.map((layout) => (
-        <section key={layout.name} className="doc-card doc-layout">
+        <section key={layout.name} id={layoutSectionId(layout.name)} className="doc-card doc-layout">
           <h2 className="doc-card__title">{layout.name}</h2>
           <p className="doc-card__body">{layout.role}</p>
 
