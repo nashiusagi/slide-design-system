@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react'
 
 import { Foundations } from './pages/Foundations'
+import { COMPONENTS_PAGE_ID, FOUNDATIONS_PAGE_ID, LAYOUTS_PAGE_ID } from './page-ids'
 import { Components } from './pages/Components'
 import { Layouts } from './pages/Layouts'
 
@@ -29,7 +30,7 @@ export type DocsPage = {
  * deck 契約（`design/decks/`）は発表ごとの構成であり、Phase 1 のカタログは持たない。
  */
 export const DOCS_PAGES: [DocsPage, ...DocsPage[]] = [
-  { id: 'foundations', title: '基礎', Body: Foundations },
-  { id: 'layouts', title: 'レイアウト', Body: Layouts },
-  { id: 'components', title: '部品', Body: Components },
+  { id: FOUNDATIONS_PAGE_ID, title: '基礎', Body: Foundations },
+  { id: LAYOUTS_PAGE_ID, title: 'レイアウト', Body: Layouts },
+  { id: COMPONENTS_PAGE_ID, title: '部品', Body: Components },
 ]

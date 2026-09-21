@@ -2,7 +2,7 @@ import type { ComponentType } from 'react'
 
 import { describe, expect, it } from 'vitest'
 
-import { COMPONENTS, COMPONENT_PREVIEWS, componentsFrom, previewFor, type ComponentContract } from './components'
+import { COMPONENTS, COMPONENT_PREVIEWS, previewFor } from './components'
 import { LAYOUTS } from './layouts'
 
 /**
@@ -65,29 +65,6 @@ describe('COMPONENTS', () => {
   })
 })
 
-describe('componentsFrom', () => {
-  it('読み込みが0件なら例外を投げる', () => {
-    expect(() => componentsFrom({})).toThrow(/design\/components\//)
-  })
-
-  it('モジュールのパス順に並べ替える', () => {
-    const contractOf = (name: string): ComponentContract => ({
-      name,
-      role: `${name} の役割`,
-      allowedIn: ['title'],
-      usage: ['使い方'],
-      props: { text: { type: 'string', required: true, description: '文言' } },
-    })
-
-    const sorted = componentsFrom({
-      '../../design/components/zulu.json': contractOf('zulu'),
-      '../../design/components/alfa.json': contractOf('alfa'),
-    })
-
-    expect(sorted.map((component) => component.name)).toEqual(['alfa', 'zulu'])
-  })
-})
-
 describe('previewFor', () => {
   /*
    * いまはこれが正しい状態（DR-0049）。実装が入ったらこのテストは落ちる——落ちたときに、
@@ -106,10 +83,25 @@ describe('previewFor', () => {
    * 登録がある側の枝を踏む。登録表が空のままだと、この枝は一度も実行されないまま
    * 「未実装と出る」ことだけが確かめられた状態になる。
    */
+  /*
+   * 登録表のキーが契約名と一致していること。いまは表が空なので空振りに見えるが、#37 が表を
+   * 埋めた後もここが残る。キーを綴り誤ると、実装済みの部品が「未実装」と表示され続け、型検査も
+   * lint も通る（DR-0049 の帰結が挙げる登録漏れの裏返し）。
+   */
+  it('登録表のキーは、どれも契約名である', () => {
+    const names = COMPONENTS.map((component) => component.name)
+
+    for (const key of Object.keys(COMPONENT_PREVIEWS)) {
+      expect(names, `${key} という契約は無い`).toContain(key)
+    }
+  })
+
   it('登録があればそれを返す', () => {
     const Dummy: ComponentType = () => null
 
-    expect(previewFor('slide-title', { 'slide-title': Dummy })).toBe(Dummy)
-    expect(previewFor('bullet-list', { 'slide-title': Dummy })).toBeNull()
+    // 架空の名前で見る。実在の契約名を使うと、契約が改名されてもテストは通り続け、
+    // 「実在するもの」として書かれた名前が実在しなくなる。
+    expect(previewFor('alfa', { alfa: Dummy })).toBe(Dummy)
+    expect(previewFor('zulu', { alfa: Dummy })).toBeNull()
   })
 })

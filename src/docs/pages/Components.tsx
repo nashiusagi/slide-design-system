@@ -13,12 +13,14 @@ import type { ReactNode } from 'react'
 import {
   COMPONENTS,
   COMPONENT_PREVIEWS,
+  componentSectionId,
   previewFor,
   type ComponentContract,
   type ComponentProp,
 } from '../components'
 import { formatDocsHash } from '../hash'
 import { LAYOUTS, layoutSectionId } from '../layouts'
+import { LAYOUTS_PAGE_ID } from '../page-ids'
 
 /** レイアウト名から、そのレイアウトが部品に与えるスロットの条件を引く。 */
 function slotOf(layoutName: string, componentName: string) {
@@ -51,7 +53,7 @@ function AllowedInTable({ component }: { component: ComponentContract }): ReactN
           return (
             <tr key={layoutName}>
               <td>
-                <a href={formatDocsHash('layouts', layoutSectionId(layoutName))}>{layoutName}</a>
+                <a href={formatDocsHash(LAYOUTS_PAGE_ID, layoutSectionId(layoutName))}>{layoutName}</a>
               </td>
               <td>{slot === undefined ? '—' : slot.required ? '必須' : '任意'}</td>
               <td>{slot === undefined ? '—' : slot.max}</td>
@@ -121,12 +123,12 @@ export function Components() {
   return (
     <>
       <p className="doc-page__lead">
-        design/components/ の契約を並べている。プレビューは実装がある部品だけが描かれ、無いものは
+        design/components/ の契約を並べている。プレビューは実装がある部品にだけ描かれ、無いものは
         未実装と出る。いまは実装が無いので、すべて未実装になる。
       </p>
 
       {COMPONENTS.map((component) => (
-        <section key={component.name} id={component.name} className="doc-card doc-component">
+        <section key={component.name} id={componentSectionId(component.name)} className="doc-card doc-component">
           <h2 className="doc-card__title">{component.name}</h2>
           <p className="doc-card__body">{component.role}</p>
 

@@ -101,7 +101,9 @@ describe('Components', () => {
             (candidate) => candidate.component === component.name,
           )
 
-          return [layoutName, slot?.required === true ? '必須' : '任意', String(slot?.max)]
+          return slot === undefined
+            ? [layoutName, '—', '—']
+            : [layoutName, slot.required ? '必須' : '任意', String(slot.max)]
         }),
       ),
     )
@@ -123,6 +125,68 @@ describe('Components', () => {
 
     for (const mark of marks) {
       expect(mark.textContent).toBe('未実装')
+    }
+  })
+
+  /*
+   * 実データの偏りで、実装を定数へ固定しても落ちない列がある。いま design/components/ の props は
+   * 4件すべて required: true、design/layouts/ の slots は5件すべて max: 1 で、値の種類が1つしか
+   * 無い。テストの期待値も実装と同じ式で組み立てているため、実装が契約を見なくなっても一致する。
+   * 種類のある契約を差し替えて、その2列だけを踏む。
+   */
+  it('props の必須欄と、スロットの最大数を、契約の値から引く', async () => {
+    const varied: ComponentContract = {
+      name: 'varied',
+      role: '値の種類を持つ契約。',
+      allowedIn: ['bullets'],
+      usage: ['検査用'],
+      props: {
+        required: { type: 'string', required: true, description: '必須の prop。' },
+        optional: { type: 'string', required: false, description: '任意の prop。' },
+      },
+    }
+
+    vi.resetModules()
+    vi.doMock('../components', async () => ({
+      ...(await vi.importActual<typeof import('../components')>('../components')),
+      COMPONENTS: [varied],
+    }))
+    vi.doMock('../layouts', async () => ({
+      ...(await vi.importActual<typeof import('../layouts')>('../layouts')),
+      LAYOUTS: [
+        {
+          name: 'bullets',
+          role: '検査用',
+          whenToUse: ['検査用'],
+          whenNotToUse: ['検査用'],
+          classes: ['slide--bullets'],
+          slots: [{ component: 'varied', required: false, max: 3 }],
+        },
+      ],
+    }))
+
+    try {
+      const { Components: WithVaried } = await import('./Components')
+      const { container } = render(<WithVaried />)
+
+      const propCells = [...container.querySelectorAll('.doc-prop-table')[0].querySelectorAll('tbody tr')].map(
+        (row) => [...row.querySelectorAll('td')].map((cell) => cell.textContent),
+      )
+
+      expect(propCells).toEqual([
+        ['required', 'string', '必須', '必須の prop。'],
+        ['optional', 'string', '任意', '任意の prop。'],
+      ])
+
+      const slotCells = [...container.querySelectorAll('.doc-prop-table')[1].querySelectorAll('tbody td')].map(
+        (cell) => cell.textContent,
+      )
+
+      expect(slotCells).toEqual(['bullets', '任意', '3'])
+    } finally {
+      vi.doUnmock('../components')
+      vi.doUnmock('../layouts')
+      vi.resetModules()
     }
   })
 
@@ -192,7 +256,9 @@ describe('Components', () => {
     const orphan: ComponentContract = {
       name: 'orphan',
       role: 'どのレイアウトのスロットにも居ない部品。',
-      allowedIn: ['title'],
+      // 実在するレイアウト名を使う。実在しない名前だと、slotOf が undefined を返す理由が
+      // 「レイアウトが無い」に変わり、見たい枝（レイアウトは在るがスロットに居ない）を踏まない。
+      allowedIn: [LAYOUTS[0].name],
       usage: ['検査用'],
       props: { text: { type: 'string', required: true, description: '文言。' } },
     }
@@ -211,7 +277,7 @@ describe('Components', () => {
         (cell) => cell.textContent,
       )
 
-      expect(cells).toEqual(['title', '—', '—'])
+      expect(cells).toEqual([LAYOUTS[0].name, '—', '—'])
     } finally {
       vi.doUnmock('../components')
       vi.resetModules()

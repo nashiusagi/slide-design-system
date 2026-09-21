@@ -3,10 +3,13 @@
  *
  * 読み方はレイアウト（`src/docs/layouts.ts`）と同じで、ファイル名を列挙せず
  * `import.meta.glob` でディレクトリごと読む。契約を1つ足せばページへ自動で現れる。
- * 一覧を持たない根拠は DR-0042 決定2（契約の文言・一覧をカタログ側へ書き写さない）で、
- * 守るのは人である。
+ * 一覧を持たない根拠は DR-0042 決定2（契約の文言・一覧をカタログ側へ書き写さない）。この
+ * うち**文言**の複製は `src/docs/pages/no-contract-prose.test.ts` が全契約・全ソースについて
+ * 見るが、**一覧**（名前の並び）を写した場合は機械では捕まらない。そちらは人が守る。
  */
 import type { ComponentType } from 'react'
+
+import { contractsFrom } from './contracts'
 
 /** `design/schemas/component.schema.json` の `props` の値。 */
 export type ComponentProp = {
@@ -30,28 +33,23 @@ export type ComponentContract = {
   props: Record<string, ComponentProp>
 }
 
-/**
- * 読み込んだモジュールを、パス順に並べた契約の配列にする。
- *
- * 0件なら落とす理由は `layoutsFrom`（`src/docs/layouts.ts`）と同じ。glob のパスがずれても
- * ページは「契約が0件」の姿で描かれ、件数を突き合わせるテストも `0 === 0` で通る。
- */
-export function componentsFrom(modules: Record<string, ComponentContract>): ComponentContract[] {
-  const entries = Object.entries(modules)
-
-  if (entries.length === 0) {
-    throw new Error(
-      'design/components/ の契約を読み込めなかった（0件）。src/docs/components.ts の import.meta.glob のパスを確認すること。',
-    )
-  }
-
-  return entries.sort(([leftPath], [rightPath]) => leftPath.localeCompare(rightPath)).map(([, contract]) => contract)
-}
-
 /** 部品契約の一覧。 */
-export const COMPONENTS: ComponentContract[] = componentsFrom(
+export const COMPONENTS: ComponentContract[] = contractsFrom(
   import.meta.glob<ComponentContract>('../../design/components/*.json', { eager: true, import: 'default' }),
+  'design/components/',
+  'src/docs/components.ts',
 )
+
+/**
+ * 部品1件を指す節 ID。`#/components/<節ID>` のリンク先になる（DR-0048 決定3）。
+ *
+ * レイアウトの `layoutSectionId` と同じ役目。いまこの hash を指すリンクは無いが、`id` を
+ * 置く側だけが先にあると、後からリンクを張る人が契約名を直接書く形に倣ってしまう。DR-0048 の
+ * 帰結が「節を持つページを足すときは対応を読み込み口へ置く」と定めているのはそのためだ。
+ */
+export function componentSectionId(componentName: string): string {
+  return componentName
+}
 
 /**
  * 部品のプレビューを描くもの。契約名から引く（DR-0049）。
@@ -69,10 +67,9 @@ export const COMPONENT_PREVIEWS: Record<string, ComponentType> = {}
 /**
  * 契約名に対応するプレビューを返す。登録が無ければ `null`——すなわち未実装。
  *
- * 登録表を引数で受け取り、既定値を持たない。既定値にすると、この関数の中で束縛された
- * `COMPONENT_PREVIEWS` を見ることになり、呼び出し側が別の登録表を渡す道が塞がる。登録が
- * 空のままでは、実装がある側の枝が一度も実行されないまま「未実装と出る」ことだけが
- * 確かめられた状態になる。
+ * 登録表を引数で受け取り、既定値を持たない（DR-0049 決定4）。既定値でも呼び出し側は上書き
+ * できるが、省略した呼び出しは何を見ているかがその場で読めず、省略するとモジュールの束縛を
+ * そのまま読むので、テストが差し替えた表が反映されない。
  */
 export function previewFor(
   componentName: string,

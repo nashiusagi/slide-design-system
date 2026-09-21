@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { formatDocsHash, parseDocsHash } from './hash'
-import { LAYOUTS, layoutSectionId, layoutsFrom, type LayoutContract } from './layouts'
+import { LAYOUTS, layoutSectionId } from './layouts'
 
 /**
  * 契約ファイルの実体。カタログが読んだものと突き合わせる。
@@ -70,33 +70,5 @@ describe('layoutSectionId', () => {
         sectionId,
       })
     }
-  })
-})
-
-describe('layoutsFrom', () => {
-  /*
-   * 0件で落とすガードそのものを踏む。ガードが壊れても、正常系のテストは実在する契約を
-   * 読んで通り続けるので、ここが唯一の検出経路になる（DR-0047 決定4）。
-   */
-  it('読み込みが0件なら例外を投げる', () => {
-    expect(() => layoutsFrom({})).toThrow(/design\/layouts\//)
-  })
-
-  it('モジュールのパス順に並べ替える', () => {
-    const contractOf = (name: string): LayoutContract => ({
-      name,
-      role: `${name} の役割`,
-      whenToUse: ['使うとき'],
-      whenNotToUse: ['使わないとき'],
-      classes: [`slide--${name}`],
-      slots: [{ component: 'slide-title', required: true, max: 1 }],
-    })
-
-    const sorted = layoutsFrom({
-      '../../design/layouts/zulu.json': contractOf('zulu'),
-      '../../design/layouts/alfa.json': contractOf('alfa'),
-    })
-
-    expect(sorted.map((layout) => layout.name)).toEqual(['alfa', 'zulu'])
   })
 })
