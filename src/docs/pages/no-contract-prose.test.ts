@@ -82,6 +82,11 @@ const CONTRACT_PROSE: ContractProse[] = [
  * 取り出し、間に何も挟まずに繋げる。** 分断に使われる `+` や `${...}` は、繋げた時点で消える。
  * 行をまたぐ折り返しは、リテラルの中の改行と前後の空白を落とせば繋がる。
  *
+ * **ただしこれだけでは足りない。** JSX の子要素として書いたテキスト（`<p>あいう</p>`）は
+ * 引用符を持たないので、ここには現れない。しかもページのリード文がまさにその形で、契約文言を
+ * 貼るとしたら最も起こりやすい場所である。空白を落とした生のソースと、この関数の結果の
+ * **両方**を見る必要がある（`describe` の中で両方に対して突き合わせている）。
+ *
  * 塞げない形は残る。文言を別々の変数へ分けて持ち、描画時に組み立てる書き方は一致しない。
  * 塞いでいるのは「1箇所へ貼って整形した」形までである。
  */
@@ -120,13 +125,25 @@ describe('カタログの実装', () => {
     for (const [path, source] of SOURCES) {
       expect(source.length, `${path} の中身が空`).toBeGreaterThan(0)
 
-      const strings = staticStrings(source)
+      /*
+       * 2つの見方で突き合わせる。生のソース（空白を落としたもの）は JSX のテキストのように
+       * 引用符を持たない複製を捕まえ、静的に決まる文字列は分断された複製を捕まえる。
+       * 片方だけでは、もう片方の形が素通りする。
+       */
+      const views = [
+        { name: '素のソース', text: packed(source) },
+        { name: '静的に決まる文字列', text: staticStrings(source) },
+      ]
 
       for (const { label, texts } of CONTRACT_PROSE) {
         expect(texts.length, `${label} から文章を1つも集めていない`).toBeGreaterThan(0)
 
         for (const text of texts) {
-          expect(strings, `${path} に ${label} の文言が書かれている`).not.toContain(packed(text))
+          for (const view of views) {
+            expect(view.text, `${path} の${view.name}に ${label} の文言が書かれている`).not.toContain(
+              packed(text),
+            )
+          }
         }
       }
     }
@@ -151,6 +168,8 @@ describe('カタログの実装', () => {
   /*
    * 取り出し方そのものを固定する。ここが壊れると、上の検査は「文字列が1つも無い」という理由で
    * 通ってしまう。分断に使われた3つの形が、どれも繋がった1本になることを見る。
+   *
+   * 生のソース側の見方は、`packed` が空白を落とすだけなので、ここでは固定しない。
    */
   it('静的に決まる文字列を、分断の書き方によらず1本に繋げる', () => {
     expect(staticStrings("const a = 'あいう'")).toBe('あいう')
