@@ -64,7 +64,7 @@ function findEnclosingLayout(context, node) {
  * 見るのはパス全体で、指定されたディレクトリの直下にある `<名前>.<拡張子>` にちょうど
  * 一致したときだけ、その `<名前>` を返す。**この形をどこまで許すかは
  * `design/rules.json` の `canonical-implementation` が正本**（DR-0044）。一致しない
- * 書き方の実例は `component-approved.bypass.mjs` に事例として置いてある。
+ * 書き方は `component-approved.test.mjs` の `invalid` が固定している。
  *
  * 返す名前が契約名として実在するかは見ない。実在しない名前を返しても、呼び出し側の
  * 対応表に無いので何も外れない。
