@@ -8,9 +8,11 @@
  * 対象外（DR-0037）。このファイルは lint されないので、上の規約は人が守る。
  *
  * ここはカタログの外枠（ナビゲーション・ページ枠・カード）だけを持つ。スライドの
- * 見た目は design/layout.css が持ち、こちらへは持ち込まない。
+ * 見た目は design/layout.css が持ち、その中身をこちらへ書き直さない。レイアウトの
+ * プレビューは design/layout.css を読み込んで当てる（DR-0047）。
  */
 @import '../../design/theme.css';
+@import '../../design/layout.css';
 
 html,
 body,
@@ -230,12 +232,78 @@ body {
 /*
  * キャンバス。実寸のまま置くと画面に収まらないので、縮めて見せる。
  * zoom は枠の外側の寸法も縮むので、囲みの高さを別に指定せずに済む。
+ *
+ * 基礎のページ（寸法そのものの見本）と、レイアウトのページ（プレビュー）が同じ枠を使う。
+ * 縮尺を別々に持つと、同じ実寸の箱が2つの大きさで並ぶ。
  */
 .doc-canvas {
   zoom: 0.25;
 }
 
+/*
+ * 実寸の箱。寸法は JSX 側が canvas トークンから当てる。
+ *
+ * 実行時の .slide（src/runtime/runtime.css）から写しているのは box-sizing だけ。カタログは
+ * src/runtime/ を参照できない（DR-0042）ので、ここだけ同じ箱を自前で作る（DR-0047 決定2）。
+ * 境界線と背景は、縮めた箱の範囲を見せるためのカタログ自身の装飾で、.slide には無い。
+ * 中の余白と配置はどちらでもなく、design/layout.css の .slide--* が決める。
+ */
 .doc-canvas__frame {
+  box-sizing: border-box;
   border: 1px solid var(--dh-color-border);
   background: var(--dh-color-background);
+}
+
+/*
+ * レイアウト（契約一覧）のページ。
+ */
+.doc-layout {
+  gap: var(--dh-space-lg);
+}
+
+.doc-layout__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dh-space-2xs);
+}
+
+.doc-layout__section-title {
+  margin: 0;
+  color: var(--dh-color-text-muted);
+  font-size: var(--dh-type-size-caption);
+  font-weight: var(--dh-type-weight-bold);
+  line-height: var(--dh-type-line-height-tight);
+}
+
+.doc-layout__list {
+  margin: 0;
+  padding-left: var(--dh-space-lg);
+}
+
+.doc-slot-table {
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.doc-slot-table th,
+.doc-slot-table td {
+  padding: var(--dh-space-2xs) var(--dh-space-md) var(--dh-space-2xs) 0;
+}
+
+.doc-slot-table th {
+  color: var(--dh-color-text-muted);
+  font-weight: var(--dh-type-weight-bold);
+}
+
+/*
+ * プレビューの中身。部品の実装がまだ無いので、置き場所だけを示す枠を出す
+ * （実装は #37、一覧は #36）。部品の見た目をここで先取りしない。
+ */
+.doc-slot-placeholder {
+  margin: 0;
+  padding: var(--dh-space-sm);
+  border: 1px dashed var(--dh-color-border);
+  border-radius: var(--dh-radius-sm);
+  color: var(--dh-color-text-muted);
+  font-size: var(--dh-type-size-body);
 }

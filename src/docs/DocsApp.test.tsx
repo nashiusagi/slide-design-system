@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { DocsApp } from './DocsApp'
+import { formatDocsHash } from './hash'
 import { DOCS_PAGES } from './pages'
 
 beforeEach(() => {
@@ -23,12 +24,6 @@ describe('DocsApp', () => {
     expect(screen.getByRole('heading', { level: 1, name: DOCS_PAGES[0].title })).toBeInTheDocument()
   })
 
-  /*
-   * ページが1枚しかない間は「だけ」の部分を固定できない（リンクが1本しか無いので、
-   * 全リンクへ無条件に付ける実装でも通る）。2枚目が入ったら（#35 / #36 / #38）、現在ページ以外に
-   * 付かないことを確かめるケースを足す。#34 は既存の foundations の中身を書くだけで、
-   * ページは増やさない。
-   */
   it('表示中のページの nav リンクに aria-current="page" が付く', () => {
     window.history.replaceState(null, '', '#/foundations')
 
@@ -40,14 +35,6 @@ describe('DocsApp', () => {
     expect(current[0]).toHaveAttribute('href', '#/foundations')
   })
 
-  /*
-   * ページが1枚しかない間は、hash を変えても表示先が先頭ページのまま変わらないため、
-   * 「hashchange で表示が切り替わる」ことを描画結果では確かめられない。ハンドラの中身
-   * （setHash を呼ぶこと）も同じ理由で固定できない。ここで固定できるのは購読の登録と
-   * 解除だけで、useEffect を落とす回帰はこれで検出できる。2枚目のページが入ったら
-   * （#35 / #36 / #38）、描画結果で切り替わりを確かめるテストを足す。#34 は
-   * ページを増やさない。
-   */
   it('hashchange を購読し、アンマウントで解除する', () => {
     const addEventListener = vi.spyOn(window, 'addEventListener')
     const removeEventListener = vi.spyOn(window, 'removeEventListener')
@@ -63,5 +50,51 @@ describe('DocsApp', () => {
 
     addEventListener.mockRestore()
     removeEventListener.mockRestore()
+  })
+
+  /*
+   * ここから下は、2枚目のページ（#35 の `layouts`）が入って初めて固定できるようになった
+   * 3件。先頭以外のページを返す分岐は、2枚目ができるまで一度も通らなかった。
+   *
+   * 対象を id で名指しせず `DOCS_PAGES` の2件目から引くのは、ページ一覧のどちらが先頭かを
+   * このテストが決めてしまわないため。並びが変わっても「先頭以外へ到達できる」ことだけが
+   * 残る。
+   */
+  const second = DOCS_PAGES[1]
+
+  it('先頭以外のページの hash が、そのページを表示する', () => {
+    expect(second).toBeDefined()
+
+    window.history.replaceState(null, '', formatDocsHash(second.id))
+
+    render(<DocsApp />)
+
+    expect(screen.getByRole('heading', { level: 1, name: second.title })).toBeInTheDocument()
+  })
+
+  it('hashchange で、表示されるページが切り替わる', () => {
+    render(<DocsApp />)
+
+    expect(screen.getByRole('heading', { level: 1, name: DOCS_PAGES[0].title })).toBeInTheDocument()
+
+    act(() => {
+      window.history.replaceState(null, '', formatDocsHash(second.id))
+      window.dispatchEvent(new HashChangeEvent('hashchange'))
+    })
+
+    expect(screen.getByRole('heading', { level: 1, name: second.title })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { level: 1, name: DOCS_PAGES[0].title })).not.toBeInTheDocument()
+  })
+
+  it('aria-current="page" は表示中のページのリンクにしか付かない', () => {
+    window.history.replaceState(null, '', formatDocsHash(second.id))
+
+    render(<DocsApp />)
+
+    const current = screen.getAllByRole('link').filter((link) => link.getAttribute('aria-current') === 'page')
+
+    expect(screen.getAllByRole('link').length).toBeGreaterThan(1)
+    expect(current).toHaveLength(1)
+    expect(current[0]).toHaveAttribute('href', formatDocsHash(second.id))
   })
 })

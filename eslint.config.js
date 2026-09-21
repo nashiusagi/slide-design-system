@@ -1,3 +1,5 @@
+import { createRequire } from 'node:module'
+
 import js from '@eslint/js'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
@@ -5,10 +7,20 @@ import tseslint from 'typescript-eslint'
 import slidePlugin from './packages/eslint-plugin-slide/src/index.mjs'
 
 /**
+ * ビルドエントリの境界の正本。JSON の import は、この設定ファイルを型検査する tsc
+ * （tsconfig.node.json）が受け付けないため、require で読む。
+ *
+ * @type {{ forbiddenFromCatalog: string[], forbiddenFromSlides: string[] }}
+ */
+const boundary = createRequire(import.meta.url)('./scripts/cross-entry-boundary.json')
+
+/**
  * カタログ（src/docs/）とスライド本体（src/App.tsx / src/runtime/）は別のビルドエントリで、
- * 互いを参照しないと決めている（DR-0042）。禁止する相手の名前はここにだけ書き、静的 import 用の
- * glob と動的 import 用の正規表現の両方をここから組み立てる。2系統へ別々に書くと、対象が増えた
- * ときに片方だけ更新され、同じ抜け道が再発する。
+ * 互いを参照しないと決めている（DR-0042）。禁止する相手の名前の正本は
+ * scripts/cross-entry-boundary.json で、ここでは静的 import 用の glob と動的 import 用の
+ * 正規表現の両方をその一覧から組み立てる。2系統へ別々に書くと、対象が増えたときに片方だけ
+ * 更新され、同じ抜け道が再発する。CSS 側の読み込み宣言は ESLint が見ないので、そちらは
+ * src/docs/docs.css.test.ts が同じ一覧から検査する（DR-0047 の帰結）。
  *
  * @param {string[]} names 禁止する相手のモジュール名（パスの最終セグメント）
  * @param {string} message 違反時に出す説明
@@ -90,7 +102,7 @@ export default tseslint.config(
     // 禁止の組み立ては forbidCrossEntryImports が持つ（DR-0042）。
     files: ['src/docs/**/*.{ts,tsx}'],
     rules: forbidCrossEntryImports(
-      ['App', 'runtime'],
+      boundary.forbiddenFromCatalog,
       'カタログはスライド本体（src/App.tsx / src/runtime/）を参照しない（DR-0042）。',
     ),
   },
@@ -100,7 +112,10 @@ export default tseslint.config(
     // ファイルが検査から漏れる。
     files: ['src/**/*.{ts,tsx}'],
     ignores: ['src/docs/**'],
-    rules: forbidCrossEntryImports(['docs'], 'スライド本体はカタログ（src/docs/）を参照しない（DR-0042）。'),
+    rules: forbidCrossEntryImports(
+      boundary.forbiddenFromSlides,
+      'スライド本体はカタログ（src/docs/）を参照しない（DR-0042）。',
+    ),
   },
   {
     // 開発用パッケージ（契約検査プラグインなど）。ここは Node で動く。
