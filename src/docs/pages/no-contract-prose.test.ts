@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import { COMPONENTS, type ComponentContract } from '../components'
-import { LAYOUTS, type LayoutContract } from '../layouts'
+import { COMPONENTS } from '../components'
+import { LAYOUTS } from '../layouts'
+import { RULES } from '../rules'
 
 /*
  * 契約の文言がカタログのソースへ書き写されていないことを見る（DR-0042 決定2）。
@@ -26,10 +27,18 @@ const SOURCES = Object.entries(
   import.meta.glob<string>('../**/*.{ts,tsx}', { eager: true, query: '?raw', import: 'default' }),
 ).filter(([path]) => !path.includes('.test.'))
 
-/** 契約と、それが持つ文章。 */
+/**
+ * 契約と、それが持つ文章。
+ *
+ * `contract` の型を契約ごとの型の union にしない。ルールの正本（`design/rules.json`）は
+ * 1ファイルに全ルールが入る形で、そこから取るのは**ファイル全体**（`$comment` を持つのは
+ * ファイルのほう）だ。契約の種類が増えるたびに union を広げる形にすると、型を広げなかった
+ * 人がここへ足すのをやめる方へ働く。ここで要るのは `$comment` を読めることだけなので、
+ * `object` で受けて `commentOf` が形を確かめる。
+ */
 type ContractProse = {
   label: string
-  contract: LayoutContract | ComponentContract
+  contract: object
   texts: string[]
 }
 
@@ -45,8 +54,26 @@ function commentOf(contract: object): string | null {
   return typeof comment === 'string' ? comment : null
 }
 
+/**
+ * 検査ルールの正本。`$comment` を読むためにファイル全体を取る。
+ *
+ * `src/docs/rules.ts` が読んでいるのと同じファイルだが、そちらは表示する項目だけを型として
+ * 公開している（`RuleContract`）。ここで要るのは型に無い `$comment` なので、別に読む。
+ */
+const RULES_CONTRACT = Object.values(
+  import.meta.glob<object>('/design/rules.json', { eager: true, import: 'default' }),
+)[0]
+
 /** 契約が持つ文章。ここに挙がったものがソースに現れたら、それが複製である。 */
 const CONTRACT_PROSE: ContractProse[] = [
+  {
+    label: 'design/rules.json',
+    contract: RULES_CONTRACT,
+    texts: [
+      ...RULES.map((rule) => rule.description),
+      ...(commentOf(RULES_CONTRACT) === null ? [] : [commentOf(RULES_CONTRACT) as string]),
+    ],
+  },
   ...LAYOUTS.map((layout) => ({
     label: `design/layouts/${layout.name}.json`,
     contract: layout,

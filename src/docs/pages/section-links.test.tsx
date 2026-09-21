@@ -6,8 +6,10 @@ import { formatDocsHash, parseDocsHash } from '../hash'
 import { LAYOUTS, layoutSectionId } from '../layouts'
 import { COMPONENTS_PAGE_ID, LAYOUTS_PAGE_ID } from '../page-ids'
 import { DOCS_PAGES } from '../pages'
+import { RULES, ruleSectionId, rulesByMethod } from '../rules'
 import { Components } from './Components'
 import { Layouts } from './Layouts'
+import { Rules } from './Rules'
 
 /*
  * ページを跨ぐ節リンクを、張る側と着く側で突き合わせる（DR-0048）。
@@ -34,6 +36,17 @@ describe('ページを跨ぐ節リンク', () => {
   it('部品のページが、全契約の節 ID を id として描く', () => {
     expect(renderedSectionIds(Components)).toEqual(
       COMPONENTS.map((component) => componentSectionId(component.name)),
+    )
+  })
+
+  /*
+   * 検証ルールのページへ向かうリンクはまだ無い（部品とルールの対応が契約に無いため。
+   * DR-0051 決定3）。それでも節 ID は置いてあるので、着く側だけを見ておく。リンクを張る人が
+   * 現れたとき、着き先が在るかどうかをここで確かめられる。
+   */
+  it('検証ルールのページが、全ルールの節 ID を id として描く', () => {
+    expect(renderedSectionIds(Rules)).toEqual(
+      rulesByMethod(RULES).flatMap(([, rules]) => rules.map((rule) => ruleSectionId(rule.id))),
     )
   })
 

@@ -345,3 +345,71 @@ body {
   border-radius: var(--dh-radius-sm);
   background: var(--dh-color-background);
 }
+
+/*
+ * 検証ルール（契約一覧）のページ。
+ *
+ * ルールは method（lint / measure / review）ごとに束ねる。束の中はカードが並ぶので、
+ * 束そのものはカードにせず、見出しと間隔だけを持つ。
+ */
+.doc-rule-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dh-space-md);
+}
+
+.doc-rule-group__title {
+  margin: 0;
+  color: var(--dh-color-text-muted);
+  font-size: var(--dh-type-size-caption);
+  font-weight: var(--dh-type-weight-bold);
+  line-height: var(--dh-type-line-height-tight);
+}
+
+.doc-rule {
+  gap: var(--dh-space-md);
+}
+
+/*
+ * 閾値と素性の並び。キーと値を横に並べ、入れ子は字下げで示す。
+ *
+ * 値の形（数・文字列・配列・入れ子）は design/rules.json が決めるので、ここでは
+ * どの形でも読める間隔だけを与える。
+ */
+.doc-threshold {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dh-space-2xs);
+  margin: 0;
+}
+
+.doc-threshold__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--dh-space-xs) var(--dh-space-md);
+  min-width: 0;
+}
+
+.doc-threshold__key {
+  color: var(--dh-color-text-muted);
+  font-weight: var(--dh-type-weight-bold);
+}
+
+.doc-threshold__value {
+  margin: 0;
+}
+
+.doc-threshold__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dh-space-2xs);
+  margin: 0;
+  padding-left: var(--dh-space-lg);
+}
+
+/* 未実装のルールは、実装済みと見分けが付く色にする（DR-0049 決定2 と同じ理由）。 */
+.doc-threshold__value[data-implemented='false'] {
+  color: var(--dh-color-warning);
+  font-weight: var(--dh-type-weight-bold);
+}

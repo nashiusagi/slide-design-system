@@ -20,3 +20,6 @@ export const FOUNDATIONS_PAGE_ID = 'foundations'
 export const LAYOUTS_PAGE_ID = 'layouts'
 
 export const COMPONENTS_PAGE_ID = 'components'
+
+/** 検証ルールのページ。 */
+export const RULES_PAGE_ID = 'rules'
