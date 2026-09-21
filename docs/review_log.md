@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-21（PR #57 レビュー 1周目）
+最終更新: 2026-09-21（PR #57 レビュー 2周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -23,7 +23,7 @@
 | `writing/ambiguous-criterion` | 判断基準が曖昧で、契約として実行できない | 10 | PR #56 | 未着手 |
 | `writing/term-inconsistency` | 同じものが複数の呼び名を持ち、外延も揺れる | 14 | PR #57 | 未着手 |
 | `writing/notation-inconsistency` | 表記の不統一（DR 参照がリンクになっていない等） | 7 | PR #55 | 未着手 |
-| `phase/out-of-scope-addition` | フェーズのスコープ外、または DR に接続しないものが混入した | 7 | PR #52 | 未着手 |
+| `phase/out-of-scope-addition` | フェーズのスコープ外、または DR に接続しないものが混入した | 8 | PR #57 | 未着手 |
 | `decisions/undocumented-decision` | DR に無い判断が、PR説明やIssueにだけ書かれている | 15 | PR #57 | 未着手 |
 | `decisions/dr-restates-canonical-value` | DR が正本の値を本文に書き写した | 9 | PR #57 | 未着手 |
 | `contract/source-of-truth-ambiguous` | 「正本」がどのファイルを指すか一意でない | 7 | PR #57 | 未着手 |
@@ -36,7 +36,7 @@
 | `contract/value-outside-source-of-truth` | 正本に置くと決めた値が、正本を参照できない場所にも必要になる | 5 | PR #55 | 未着手 |
 | `contract/design-data-duplicated` | デザインの値が正本以外へ複製された | 13 | PR #56 | 未着手 |
 | `writing/inaccurate-rationale` | 説明文が書いている理由付けが、実装の挙動と食い違う | 15 | PR #57 | 未着手 |
-| `inspection/invalid-case-untested` | 検査そのものに invalid ケースのテストが無い | 4 | PR #53 | 未着手 |
+| `inspection/invalid-case-untested` | 検査そのものに invalid ケースのテストが無い | 5 | PR #57 | 未着手 |
 | `code/test-cannot-detect-regression` | テストが、その名前が示す回帰をフィクスチャの都合で検出できない | 4 | PR #55 | 未着手 |
 | `inspection/rule-coverage-partial` | 判定対象の列挙に穴があり、基準を割った組み合わせを見逃す | 11 | PR #57 | 一部（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43）。`enumeration-tail` の軸で事例を要求するが、網羅性の証明ではない |
 | `phase/completion-criterion-not-verified-e2e` | Issue の完了条件が、単体テストのみで統合パスを通さず検証されている | 9 | PR #57 | 未着手 |
@@ -72,7 +72,7 @@
 | `writing/ambiguous-criterion` | 日本語 | 判断基準が曖昧で、契約として実行できない | 10 | PR #13 | PR #56 |
 | `writing/term-inconsistency` | 日本語 | 同じものが複数の呼び名を持ち、外延も揺れる | 14 | PR #13 | PR #57 |
 | `writing/notation-inconsistency` | 日本語 | 表記の不統一 | 7 | PR #13 | PR #55 |
-| `phase/out-of-scope-addition` | フェーズ | フェーズのスコープ外、または DR に接続しないものが混入した | 7 | PR #13 | PR #52 |
+| `phase/out-of-scope-addition` | フェーズ | フェーズのスコープ外、または DR に接続しないものが混入した | 8 | PR #13 | PR #57 |
 | `decisions/undocumented-decision` | 決定記録 | DR に無い判断が、PR説明やIssueにだけ書かれている | 15 | PR #13 | PR #57 |
 | `contract/workflow-constant-duplicated` | 設計契約 | 他スキルが持つ取り決め（パス・上限値）が書き写された | 4 | PR #17 | PR #56 |
 | `code/review-loop-double-counts-log` | コード品質 | 同一 PR の再レビューが指摘ログを二重に計上する | 1 | PR #17 | PR #17 |
@@ -93,7 +93,7 @@
 | `code/fix-lacks-regression-test` | コード品質 | 指摘を受けた修正に、それを守る回帰テストが無い | 2 | PR #19 | PR #24 |
 | `code/check-false-negative-on-empty-output` | コード品質 | 生成物が空ファイルのとき突き合わせが偽陰性を出す | 1 | PR #20 | PR #20 |
 | `inspection/rule-coverage-partial` | 検査 | 判定対象の列挙に穴があり、基準を割った組み合わせを見逃す | 11 | PR #20 | PR #57 |
-| `inspection/invalid-case-untested` | 検査 | 検査そのものに invalid ケースのテストが無い | 4 | PR #20 | PR #53 |
+| `inspection/invalid-case-untested` | 検査 | 検査そのものに invalid ケースのテストが無い | 5 | PR #20 | PR #57 |
 | `inspection/checked-artifact-not-in-build` | 検査 | 検査した生成物がビルド出力へ入っておらず、緑が実物を保証しない | 2 | PR #20 | PR #56 |
 | `code/test-misses-core-path` | コード品質 | 中核の変換経路がテストで固定されていない | 3 | PR #20 | PR #56 |
 | `code/dead-check-entry` | コード品質 | より強い条件に覆われ、単独では決して落ちない検査項目がある | 3 | PR #20 | PR #47 |
@@ -171,12 +171,13 @@
 | `contract/canonical-rationale-duplicated` | 設計契約 | 正本の `$comment` の説明が、それを読む実装のコメントへ逐語で複製された | 1 | PR #57 | PR #57 |
 | `inspection/mapping-check-ignores-value-shape` | 検査 | 対応の検査が名前の一致しか見ず、引いた値が使える形かを見ていない | 1 | PR #57 | PR #57 |
 | `code/dead-style-declaration` | コード品質 | 当たらないクラス名・基底と同値の宣言が CSS に残る | 1 | PR #57 | PR #57 |
+| `decisions/citation-missing-governing-decision` | 決定記録 | 実装が従っている決定のうち、片方の決定番号しか引用していない | 1 | PR #57 | PR #57 |
 
 ## レビュー履歴
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #57 | 2026-09-21 | 0 | 8 | 10 | [pr-57.md](./reviews/pr-57.md) |
+| #57 | 2026-09-21 | 0 | 12 | 12 | [pr-57.md](./reviews/pr-57.md) |
 | #56 | 2026-09-21 | 2 | 14 | 14 | [pr-56.md](./reviews/pr-56.md) |
 | #55 | 2026-09-21 | 0 | 13 | 12 | [pr-55.md](./reviews/pr-55.md) |
 | #53 | 2026-09-21 | 0 | 12 | 7 | [pr-53.md](./reviews/pr-53.md) |
