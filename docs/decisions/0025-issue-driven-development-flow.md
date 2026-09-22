@@ -1,8 +1,8 @@
 # DR-0025: Issue 起点の開発フローを Agent Skill として固定する
 
-- **状態**: 承認済み
+- **状態**: 承認済み（レビューループの抜け条件は [DR-0052](./0052-review-loop-third-exit.md) が置き換えた）
 - **日付**: 2026-09-06
-- **関連**: [DR-0013](./0013-agent-skill-and-resolver.md), [DR-0021](./0021-starter-contains-runtime-only.md), [DR-0024](./0024-decision-records-not-adr.md)
+- **関連**: [DR-0013](./0013-agent-skill-and-resolver.md), [DR-0021](./0021-starter-contains-runtime-only.md), [DR-0024](./0024-decision-records-not-adr.md), [DR-0052](./0052-review-loop-third-exit.md)
 - **正本**: `.claude/skills/issue-workflow/SKILL.md`（レビューループの上限周回数）／`.claude/skills/pr-review/SKILL.md`（再レビュー時の対象・観点の絞り込み条件と、指摘ログの計上判定）
 
 ## 文脈
@@ -21,7 +21,7 @@ Issue 起点の開発フローを Agent Skill（`.claude/skills/issue-workflow/`
 
 **PR は Draft で先に立て、実装が済んだ時点で Ready にする。** 空コミットを push して着手と同時に PR を作る。Ready 化がレビューの開始線になる。
 
-**レビューは上限を決めて打ち切る。** `pr-review` を呼び、指摘を反映し、また呼ぶ。指摘ゼロのレビューを1周通れば収束、上限を終えてもなお残るか `should` を見送ると判断したら打ち切りとする。直した結果として未対応がゼロになった状態は収束ではない。その修正自体がまだ誰にも見られていないからだ。周回数の値は `.claude/skills/issue-workflow/SKILL.md` の手順5を正本とし、この DR には複製しない（[DR-0024](./0024-decision-records-not-adr.md)）。打ち切った場合は残指摘を PR にコメントし、完了報告は出さない。
+**レビューは上限を決めて打ち切る。** `pr-review` を呼び、指摘を反映し、また呼ぶ。指摘ゼロのレビューを1周通れば収束、上限を終えてもなお残るか `should` を見送ると判断したら打ち切りとする。直した結果として未対応がゼロになった状態は収束ではない。その修正自体がまだ誰にも見られていないからだ。周回数の値は `.claude/skills/issue-workflow/SKILL.md` の手順5を正本とし、この DR には複製しない（[DR-0024](./0024-decision-records-not-adr.md)）。打ち切った場合は残指摘を PR にコメントし、完了報告は出さない。**この抜け条件は [DR-0052](./0052-review-loop-third-exit.md) が置き換えた**——抜け方は3つになり、上限を終えて未対応がゼロのときは「確認未了」として打ち切りと区別する。上限を設けること自体と、そう決めた理由（下記）はそのまま有効である。
 
 **再レビューは初回と別扱いにする。** 2周目以降は対象と観点を絞ってよく、指摘ログは同じ PR で二重に数えない。レビュー履歴の行も PR ごとに1行だけ持つ。絞り込みの条件と計上の判定は `.claude/skills/pr-review/SKILL.md` の手順1・2・4・6 を正本とし、ここには書かない。決定として記録するのは「初回と再レビューを別扱いにする」ことと、その理由である。
 
@@ -70,7 +70,7 @@ Skill の置き場所が 1 箇所で済む。
 
 ## 帰結
 
-- ブランチ命名・Draft 先行・上限を設けること・抜け条件・再レビューの扱い・マージ不可を変えるときは、この DR を置き換える。`.claude/skills/issue-workflow/SKILL.md` を書き換えるだけで済ませない
+- ブランチ命名・Draft 先行・上限を設けること・再レビューの扱い・マージ不可を変えるときは、この DR を置き換える。`.claude/skills/issue-workflow/SKILL.md` を書き換えるだけで済ませない。**抜け条件だけは [DR-0052](./0052-review-loop-third-exit.md) へ移った**ので、そちらを置き換える
 - ただし**上限の周回数そのものは値であり、正本は `.claude/skills/issue-workflow/SKILL.md`** にある。値を変えるだけならこの DR は置き換えない。置き換えが要るのは「上限を設ける」という決定自体を覆すときだ
 - 再レビューの扱いは `pr-review` 側にも受け口が要る。呼ぶ側だけに書いても実効性を持たない
 - Run 成果物を含む変更を扱うときは [DR-0023](./0023-public-repo-with-audit.md) の sanitize / audit を通す。手順への組み込みは、対応するスクリプトが実装された時点で行う
