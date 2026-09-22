@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-22（PR #58 レビュー 2周目）
+最終更新: 2026-09-22（PR #58 レビュー 3周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -46,7 +46,7 @@
 | `writing/test-title-ambiguous` | テストタイトルが、そのテストの固定する不変条件を示していない | 8 | PR #56 | 未着手 |
 | `code/dead-check-entry` | より強い条件に覆われ、単独では決して落ちない検査項目がある | 3 | PR #47 | 未着手 |
 | `contract/workflow-constant-duplicated` | 他が持つ取り決め（パス・上限値）が書き写された | 4 | PR #56 | 未着手 |
-| `decisions/citation-overclaims-source-scope` | 引用した DR・資料の実際の記述範囲より広い主張をしている | 6 | PR #57 | 未着手 |
+| `decisions/citation-overclaims-source-scope` | 引用した DR・資料の実際の記述範囲より広い主張をしている | 7 | PR #58 | 未着手 |
 | `writing/subjectless-predicate` | 文の主語が省略され、何の話かが読み取りにくい | 3 | PR #51 | 未着手 |
 | `writing/incomplete-pr-description` | PR 本文が着手時のままで、完成度と残りが読み取れない | 7 | PR #58 | 未着手 |
 | `decisions/wrong-dr-citation` | 誤った DR 番号・決定番号を根拠として引用している | 4 | PR #56 | 未着手 |
@@ -118,7 +118,7 @@
 | `code/measure-failure-swallowed` | コード品質 | 検査サブプロセスの失敗を握り潰し、無関係なエラーで落ちる | 1 | PR #27 | PR #27 |
 | `decisions/context-broader-than-decision` | 決定記録 | DR の「文脈」が示す範囲より「決定」「帰結」が無言で狭い | 2 | PR #27 | PR #51 |
 | `code/audit-test-env-username-coupling` | コード品質 | テストが実行環境のOSユーザー名に依存し、環境次第で無関係な理由で失敗しうる | 1 | PR #28 | PR #28 |
-| `decisions/citation-overclaims-source-scope` | 決定記録 | 正本として引用した資料の、実際の記述範囲より広い主張をしている | 6 | PR #28 | PR #57 |
+| `decisions/citation-overclaims-source-scope` | 決定記録 | 正本として引用した資料の、実際の記述範囲より広い主張をしている | 7 | PR #28 | PR #58 |
 | `writing/subjectless-predicate` | 日本語 | 文の主語が省略され、何の話かが読み取りにくい | 3 | PR #28 | PR #51 |
 | `decisions/citation-points-to-wrong-file` | 決定記録 | 正本として引用したファイルが、実際にはその内容を記述していない | 3 | PR #28 | PR #56 |
 | `writing/dangling-quote-reference` | 日本語 | 文書内の引用符付き参照が、書き換え後のどの語句・項目にも対応しなくなった | 8 | PR #26 | PR #58 |
@@ -182,12 +182,14 @@
 | `decisions/index-entry-out-of-order` | 決定記録 | 索引の行が、節の中の並び規則（番号の昇順）に従っていない | 1 | PR #58 | PR #58 |
 | `inspection/retry-loop-unbounded-on-self-declared-failure` | 検査 | 自己申告の失敗でやり直せる回数に上限が無く、強制退出の条件へ到達しない | 1 | PR #58 | PR #58 |
 | `contract/source-of-truth-claim-duplicated-in-document` | 設計契約 | 正本の所在を示す宣言が、同じ文書の2箇所に独立して書かれている | 1 | PR #58 | PR #58 |
+| `inspection/convergence-ignores-review-coverage` | 検査 | 収束の判定が、その周に実際に結果を返した観点の網羅性を問わない | 1 | PR #58 | PR #58 |
+| `code/template-example-omits-required-row` | コード品質 | 書式の例が、直前の指示が必須とする行を欠いている | 1 | PR #58 | PR #58 |
 
 ## レビュー履歴
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #58 | 2026-09-22 | 2 | 14 | 7 | [pr-58.md](./reviews/pr-58.md) |
+| #58 | 2026-09-22 | 3 | 20 | 9 | [pr-58.md](./reviews/pr-58.md) |
 | #57 | 2026-09-21 | 0 | 15 | 12 | [pr-57.md](./reviews/pr-57.md) |
 | #56 | 2026-09-21 | 2 | 14 | 14 | [pr-56.md](./reviews/pr-56.md) |
 | #55 | 2026-09-21 | 0 | 13 | 12 | [pr-55.md](./reviews/pr-55.md) |
