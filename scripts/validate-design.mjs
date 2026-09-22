@@ -66,13 +66,6 @@ const readJson = (relativePath) => JSON.parse(readFileSync(resolve(relativePath)
  * の静的な列挙なので、ここと独立に更新が要る。増減させたときは3つのスキーマすべてを
  * 合わせて直すこと。
  */
-/**
- * 宣言だけがあり、実装がまだ無いルールID。実装との対応検査（checkMeasureRuleCoverage）と
- * bypass フィクスチャの検査（checkBypassFixtureCoverage）の両方がこの一覧を免除に使う。
- * 2箇所に別々の一覧を置くと、実装した日に片方だけ外れて食い違う。
- */
-const UNIMPLEMENTED_RULE_IDS = ['deck-body-fidelity']
-
 const LAYOUT_NAMES = ['title', 'bullets', 'statement']
 const COMPONENT_NAMES = ['slide-title', 'bullet-list', 'statement', 'emphasis']
 
@@ -315,7 +308,7 @@ export function checkMeasureRuleCoverage(rules, implementedRuleIds, knownUnimple
     .filter((id) => implemented.has(id))
     .map(
       (id) =>
-        `scripts/validate-design.mjs: '${id}' は knownUnimplementedRuleIds にあるが、既に scripts/measure-slides.mjs で実装されている。許容リストから外すこと`,
+        `scripts/unimplemented-rules.json: '${id}' は unimplementedRuleIds にあるが、既に scripts/measure-slides.mjs で実装されている。この一覧から外すこと`,
     )
 
   return [...missing, ...extra, ...staleKnownUnimplemented]
@@ -981,6 +974,16 @@ function checkResolveDesignContractSmoke() {
 async function main() {
   const tokens = readJson('design/tokens.json')
   const rules = readJson('design/rules.json')
+  /*
+   * 未実装のルールIDの一覧。何のための一覧で、なぜ1箇所に置くのかは
+   * scripts/unimplemented-rules.json の $comment が持つ（DR-0051）。ここには書き写さない。
+   *
+   * 読み込みは他の契約と同じく main() の中で行う。モジュールの最上位で読むと、検査関数だけを
+   * import するテスト（scripts/validate-design.test.mjs）の読み込み時にファイル読み込みが走る。
+   * vitest は Vite の変換を通すため、resolve() が組み立てるパスがそこでは file URL にならず、
+   * 検査の中身と関係の無い理由でテストが1件も走らなくなる。
+   */
+  const unimplementedRuleIds = readJson('scripts/unimplemented-rules.json').unimplementedRuleIds
   const canvasSource = readFileSync(resolve('src/runtime/canvas.ts'), 'utf8')
   const layouts = LAYOUT_NAMES.map((name) => readJson(`design/layouts/${name}.json`))
   const components = COMPONENT_NAMES.map((name) => readJson(`design/components/${name}.json`))
@@ -1029,7 +1032,7 @@ async function main() {
     },
     {
       name: 'design/rules.json の measure ルールと measure-slides.mjs の実装が対応する',
-      run: () => checkMeasureRuleCoverage(rules.rules, IMPLEMENTED_MEASURE_RULE_IDS, UNIMPLEMENTED_RULE_IDS),
+      run: () => checkMeasureRuleCoverage(rules.rules, IMPLEMENTED_MEASURE_RULE_IDS, unimplementedRuleIds),
     },
     {
       name: 'lint ルールの説明が design/rules.json と一致する',
@@ -1040,7 +1043,7 @@ async function main() {
     },
     {
       name: '検査ルールに bypass フィクスチャがあり、宣言した軸と除外を埋めている',
-      run: () => checkBypassFixtureCoverage(rules.rules, bypassFixtures, UNIMPLEMENTED_RULE_IDS),
+      run: () => checkBypassFixtureCoverage(rules.rules, bypassFixtures, unimplementedRuleIds),
     },
     {
       name: 'skills/slide-harness/SKILL.md に設計データが複製されていない',

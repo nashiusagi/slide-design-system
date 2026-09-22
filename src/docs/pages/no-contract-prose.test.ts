@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { COMPONENTS, type ComponentContract } from '../components'
-import { LAYOUTS, type LayoutContract } from '../layouts'
+import { COMPONENTS } from '../components'
+import { LAYOUTS } from '../layouts'
 
 /*
  * 契約の文言がカタログのソースへ書き写されていないことを見る（DR-0042 決定2）。
@@ -26,10 +26,18 @@ const SOURCES = Object.entries(
   import.meta.glob<string>('../**/*.{ts,tsx}', { eager: true, query: '?raw', import: 'default' }),
 ).filter(([path]) => !path.includes('.test.'))
 
-/** 契約と、それが持つ文章。 */
+/**
+ * 契約と、それが持つ文章。
+ *
+ * `contract` の型を契約ごとの型の union にしない。ルールの正本（`design/rules.json`）は
+ * 1ファイルに全ルールが入る形で、そこから取るのは**ファイル全体**（`$comment` を持つのは
+ * ファイルのほう）だ。契約の種類が増えるたびに union を広げる形にすると、型を広げなかった
+ * 人がここへ足すのをやめる方へ働く。ここで要るのは `$comment` を読めることだけなので、
+ * `object` で受けて `commentOf` が形を確かめる。
+ */
 type ContractProse = {
   label: string
-  contract: LayoutContract | ComponentContract
+  contract: object
   texts: string[]
 }
 
@@ -45,8 +53,48 @@ function commentOf(contract: object): string | null {
   return typeof comment === 'string' ? comment : null
 }
 
+/**
+ * 検査ルールの正本。`$comment` を読むためにファイル全体を取る。
+ *
+ * `src/docs/rules.ts` が読んでいるのと同じファイルだが、そちらは表示する項目だけを型として
+ * 公開している（`RuleContract`）。ここで要るのは型に無い `$comment` なので、別に読む。
+ */
+const RULES_CONTRACT = Object.values(
+  import.meta.glob<object>('/design/rules.json', { eager: true, import: 'default' }),
+)[0]
+
+/**
+ * 契約の中にある文章を、入れ子ごと集める。
+ *
+ * `design/rules.json` は1ファイルの中に、ルールの `description`、除外の `description`、
+ * 閾値ブロックごとの `$comment` を持つ。名指しで拾う形にすると、閾値ブロックが増えたときに
+ * 拾い漏れる——しかも**画面に出ない文章ほど、解説としてカタログへ写す動機が強い**。キーの
+ * 名前で再帰的に集めることで、契約の構造が増えても列挙を足さずに済む。
+ *
+ * レイアウト・部品の契約はこの関数を通さない。あちらは表示する項目が型として決まっており、
+ * どの項目が文章かを1件ずつ書いたほうが、拾っている範囲が読んで分かる。
+ */
+function proseIn(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.flatMap(proseIn)
+  }
+
+  if (typeof value !== 'object' || value === null) {
+    return []
+  }
+
+  return Object.entries(value).flatMap(([key, nested]) =>
+    typeof nested === 'string' ? (key === 'description' || key === '$comment' ? [nested] : []) : proseIn(nested),
+  )
+}
+
 /** 契約が持つ文章。ここに挙がったものがソースに現れたら、それが複製である。 */
 const CONTRACT_PROSE: ContractProse[] = [
+  {
+    label: 'design/rules.json',
+    contract: RULES_CONTRACT,
+    texts: proseIn(RULES_CONTRACT),
+  },
   ...LAYOUTS.map((layout) => ({
     label: `design/layouts/${layout.name}.json`,
     contract: layout,
@@ -206,6 +254,17 @@ describe('カタログの実装', () => {
       expect(typeof comment, `${label} が $comment を持たない`).toBe('string')
       expect(texts, `${label} の $comment が対象に入っていない`).toContain(comment)
     }
+  })
+
+  /*
+   * 集め方そのものを固定する。ここが壊れると、`design/rules.json` の突き合わせは
+   * 「文章が1つも無い」という理由で通ってしまう。入れ子の配列・オブジェクトの底にある
+   * `description` と `$comment` まで届くこと、それ以外のキーの文字列は拾わないことを見る。
+   */
+  it('契約の入れ子から、description と $comment だけを集める', () => {
+    expect(
+      proseIn({ $comment: 'あ', name: 'ignored', rules: [{ description: 'い', items: [{ $comment: 'う' }] }] }),
+    ).toEqual(['あ', 'い', 'う'])
   })
 
   /*

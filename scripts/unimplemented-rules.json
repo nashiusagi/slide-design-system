@@ -1,0 +1,4 @@
+{
+  "$comment": "宣言だけがあり、実装がまだ無いルールID（design/rules.json の rules[].id）の唯一の在り処。scripts/validate-design.mjs の実装対応検査（checkMeasureRuleCoverage）と bypass フィクスチャの検査（checkBypassFixtureCoverage）が免除に使い、デザインカタログの #/rules（src/docs/rules.ts）が実装状況の表示に使う。別々の一覧を持つと、実装した日に片方だけ外れて食い違う。この一本化と、一覧を実装状況の根拠にしてよい範囲は DR-0051 が定めている——根拠になるのは対応検査が覆う method（lint / measure）までで、人が判断する method（review）は対応検査を持たないため、ここに無いことが実装の存在を意味しない。",
+  "unimplementedRuleIds": ["deck-body-fidelity"]
+}

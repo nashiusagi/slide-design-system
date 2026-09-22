@@ -3,7 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { DocsApp } from './DocsApp'
 import { formatDocsHash } from './hash'
+import { RULES_PAGE_ID } from './page-ids'
 import { DOCS_PAGES } from './pages'
+import { RULES, ruleSectionId } from './rules'
 
 beforeEach(() => {
   window.history.replaceState(null, '', '/')
@@ -33,6 +35,28 @@ describe('DocsApp', () => {
 
     expect(current).toHaveLength(1)
     expect(current[0]).toHaveAttribute('href', '#/foundations')
+  })
+
+  /*
+   * hash → ページ解決 → 本文の描画までを1本通す。#38 の完了条件（`#/rules` でルールを
+   * 確認できる）は、ページを `DOCS_PAGES` へ登録して初めて満たされるが、ページ側のテストは
+   * `<Rules />` を直接描くので登録を見ていない。登録の行を落としても、この検査が無ければ
+   * すべて緑のまま `#/rules` が先頭ページへ落ちる。
+   *
+   * 対象のページを名指しするのは、完了条件がそのページについて書かれているからだ。ルールの
+   * 節 ID が描かれることまで見るのは、ページ名の一致だけだと本文が空でも通るため。
+   */
+  it('#/rules の hash で、検査ルールのページが解決されて各ルールの節が描かれる', () => {
+    window.history.replaceState(null, '', formatDocsHash(RULES_PAGE_ID))
+
+    const { container } = render(<DocsApp />)
+
+    expect(RULES.length).toBeGreaterThan(0)
+    expect(container.querySelectorAll('.doc-rule')).toHaveLength(RULES.length)
+
+    for (const rule of RULES) {
+      expect(container.querySelector(`#${CSS.escape(ruleSectionId(rule.id))}`), `${rule.id} の節が無い`).not.toBeNull()
+    }
   })
 
   it('hashchange を購読し、アンマウントで解除する', () => {

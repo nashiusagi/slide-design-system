@@ -63,7 +63,7 @@
 
 - **ルールを1つ足すと、`design/rules.json` への宣言とフィクスチャがセットで要る。** どちらも無いと `pnpm design:check` が落ちる
 - 軸の語彙（4つ）は `design/schemas/rules.schema.json` の enum が正本。増やすときはスキーマを変え、既存ルールが新しい軸を宣言すべきかを見直す
-- 実装がまだ無いルール（`deck-body-fidelity`）はフィクスチャを免除する。免除リストは `scripts/validate-design.mjs` の `UNIMPLEMENTED_RULE_IDS` 一箇所で、実装との対応検査と共有する。実装された日に片方だけ外れて食い違う形を作らない
+- 実装がまだ無いルールはフィクスチャを免除する。免除に使う未実装の一覧は `scripts/unimplemented-rules.json` 一箇所で、実装との対応検査と共有する。実装された日に片方だけ外れて食い違う形を作らない。**在り処はもともと `scripts/validate-design.mjs` の定数だったが、デザインカタログが同じ一覧を読んで実装状況を表示するようになり、ファイルへ切り出した（[DR-0051](./0051-catalog-rules-page-sources.md)）**
 - **ルール実装のコメントに「何を見ないか」を書かない。** 書くべき場所は `design/rules.json` の `scopeExclusions` であり、コメントはそこを指す
 - **`method: "review"` のルールは対象外。** 人が画面を見て判断し、自動判定を持たない（[DR-0011](./0011-lint-and-measure.md)）ため、機械で実行する事例を要求しても走らせる入口が無く、宣言だけの飾りになる。スキーマは review のとき `bypassAxes` / `scopeExclusions` を求めず、`checkBypassFixtureCoverage` と `fixturePathFor` も review を外す
 - この DR は自動判定を持つ検査ルール（`design/rules.json` の `method` が `lint` / `measure` のもの）を対象とする。`eslint.config.js` が持つ汎用ルールの設定（`no-restricted-imports` の境界指定など）は対象外だが、同じ抜け道の指摘は PR #40 で出ている。適用範囲を広げるかどうかは、次に同種の指摘が出た時点で判断する
