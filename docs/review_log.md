@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-22（PR #58 レビュー 3周目）
+最終更新: 2026-09-22（PR #58 レビュー 4周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -50,7 +50,7 @@
 | `writing/subjectless-predicate` | 文の主語が省略され、何の話かが読み取りにくい | 3 | PR #51 | 未着手 |
 | `writing/incomplete-pr-description` | PR 本文が着手時のままで、完成度と残りが読み取れない | 7 | PR #58 | 未着手 |
 | `decisions/wrong-dr-citation` | 誤った DR 番号・決定番号を根拠として引用している | 4 | PR #56 | 未着手 |
-| `decisions/one-sided-coupling` | 連動する2箇所のうち片方にしか結線が書かれておらず、逆向きに辿れない | 5 | PR #57 | 未着手 |
+| `decisions/one-sided-coupling` | 連動する2箇所のうち片方にしか結線が書かれておらず、逆向きに辿れない | 6 | PR #58 | 未着手 |
 | `decisions/citation-points-to-wrong-file` | 正本・検査として引用したファイルが、実際にはその内容を持たない | 3 | PR #56 | 未着手 |
 | `decisions/index-section-mismatch` | DR の索引登録が、内容と合わない節に置かれた | 3 | PR #56 | 未着手 |
 | `code/sibling-field-test-gap` | 同じ制約を個別に持つ複数対象のうち、一部にしか回帰テストが無い | 3 | PR #56 | 未着手 |
@@ -163,7 +163,7 @@
 | `decisions/unsatisfiable-reexamination-criterion` | 決定記録 | 見送りの DR の再検討条件が、字義どおりには満たせない形で書かれている | 1 | PR #51 | PR #51 |
 | `decisions/no-recheck-trigger` | 決定記録 | 再検討の条件はあるが、誰がいつ確かめるかの引き金が無い | 1 | PR #51 | PR #51 |
 | `writing/unsourced-external-claim` | 日本語 | 外部ツールの現状についての主張に、確認したバージョンと参照先が無い | 1 | PR #51 | PR #51 |
-| `decisions/one-sided-coupling` | 決定記録 | DR 間の連動が片方の DR にしか書かれておらず、逆向きに辿れない | 5 | PR #51 | PR #57 |
+| `decisions/one-sided-coupling` | 決定記録 | DR 間の連動が片方の DR にしか書かれておらず、逆向きに辿れない | 6 | PR #51 | PR #58 |
 | `decisions/inconsistent-partition` | 決定記録 | 本文が立てた分類と、その直後の適用範囲が同じ段落内で噛み合わない | 2 | PR #51 | PR #58 |
 | `code/test-expectation-contradicts-implementation` | コード品質 | テストの期待値が、実装のフォールバックと逆を書いている | 1 | PR #55 | PR #55 |
 | `code/redundant-effect-dependency` | コード品質 | effect の依存が別の依存から一意に決まり、増やしても条件が変わらない | 1 | PR #55 | PR #55 |
@@ -184,12 +184,13 @@
 | `contract/source-of-truth-claim-duplicated-in-document` | 設計契約 | 正本の所在を示す宣言が、同じ文書の2箇所に独立して書かれている | 1 | PR #58 | PR #58 |
 | `inspection/convergence-ignores-review-coverage` | 検査 | 収束の判定が、その周に実際に結果を返した観点の網羅性を問わない | 1 | PR #58 | PR #58 |
 | `code/template-example-omits-required-row` | コード品質 | 書式の例が、直前の指示が必須とする行を欠いている | 1 | PR #58 | PR #58 |
+| `contract/convergence-criterion-crosses-undeclared-boundary` | 設計契約 | 判定条件が、その Skill が正式に受け取っていない他方の内部状態に依存している | 1 | PR #58 | PR #58 |
 
 ## レビュー履歴
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #58 | 2026-09-22 | 3 | 20 | 9 | [pr-58.md](./reviews/pr-58.md) |
+| #58 | 2026-09-22 | 4 | 25 | 9 | [pr-58.md](./reviews/pr-58.md) |
 | #57 | 2026-09-21 | 0 | 15 | 12 | [pr-57.md](./reviews/pr-57.md) |
 | #56 | 2026-09-21 | 2 | 14 | 14 | [pr-56.md](./reviews/pr-56.md) |
 | #55 | 2026-09-21 | 0 | 13 | 12 | [pr-55.md](./reviews/pr-55.md) |
