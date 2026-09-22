@@ -89,6 +89,7 @@
 | [0039](./0039-experiment-starter-checked-against-root-scaffold.md) | experiments の starter はコミットして持ち、ルート足場との一致を検査する |
 | [0040](./0040-audit-secret-pattern-selection.md) | audit の API キー・token 検査は、主要ベンダーの既知形式 + 汎用の変数代入パターンに限る |
 | [0052](./0052-review-loop-third-exit.md) | レビューループの抜け方に「確認未了」を足す |
+| [0053](./0053-review-coverage-recorded.md) | その周に立った観点は、走らせた側が記録として残す |
 
 ### メタ
 
