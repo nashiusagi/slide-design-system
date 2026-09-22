@@ -2,7 +2,7 @@
 
 - **状態**: 承認済み（レビューループの抜け条件は [DR-0052](./0052-review-loop-third-exit.md) が置き換えた）
 - **日付**: 2026-09-06
-- **関連**: [DR-0013](./0013-agent-skill-and-resolver.md), [DR-0021](./0021-starter-contains-runtime-only.md), [DR-0024](./0024-decision-records-not-adr.md)
+- **関連**: [DR-0013](./0013-agent-skill-and-resolver.md), [DR-0021](./0021-starter-contains-runtime-only.md), [DR-0024](./0024-decision-records-not-adr.md), [DR-0052](./0052-review-loop-third-exit.md)
 - **正本**: `.claude/skills/issue-workflow/SKILL.md`（レビューループの上限周回数）／`.claude/skills/pr-review/SKILL.md`（再レビュー時の対象・観点の絞り込み条件と、指摘ログの計上判定）
 
 ## 文脈
