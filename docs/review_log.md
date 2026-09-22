@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-22（PR #58 レビュー 1周目）
+最終更新: 2026-09-22（PR #58 レビュー 2周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -41,7 +41,7 @@
 | `code/test-cannot-detect-regression` | テストが、その名前が示す回帰をフィクスチャの都合で検出できない | 4 | PR #55 | 未着手 |
 | `inspection/rule-coverage-partial` | 判定対象の列挙に穴があり、基準を割った組み合わせを見逃す | 11 | PR #57 | 一部（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43）。`enumeration-tail` の軸で事例を要求するが、網羅性の証明ではない |
 | `phase/completion-criterion-not-verified-e2e` | Issue の完了条件が、単体テストのみで統合パスを通さず検証されている | 9 | PR #57 | 未着手 |
-| `writing/contradictory-instruction` | 同じ状況に対する指示が文書間で食い違う | 8 | PR #56 | 未着手 |
+| `writing/contradictory-instruction` | 同じ状況に対する指示が文書間で食い違う | 9 | PR #58 | 未着手 |
 | `writing/dangling-quote-reference` | 文書内の引用符付き参照が、書き換え後のどの語句・項目にも対応しなくなった | 8 | PR #58 | 未着手 |
 | `writing/test-title-ambiguous` | テストタイトルが、そのテストの固定する不変条件を示していない | 8 | PR #56 | 未着手 |
 | `code/dead-check-entry` | より強い条件に覆われ、単独では決して落ちない検査項目がある | 3 | PR #47 | 未着手 |
@@ -79,7 +79,7 @@
 | `code/review-loop-double-counts-log` | コード品質 | 同一 PR の再レビューが指摘ログを二重に計上する | 1 | PR #17 | PR #17 |
 | `code/review-artifact-handling-undefined` | コード品質 | レビュー成果物をコミットするかどうかが未定義 | 1 | PR #17 | PR #17 |
 | `code/undefined-command-input` | コード品質 | 手順のコマンドが要求する入力の用意が未定義 | 1 | PR #17 | PR #17 |
-| `writing/contradictory-instruction` | 日本語 | 同じ状況に対する指示が文書間で食い違う | 8 | PR #17 | PR #56 |
+| `writing/contradictory-instruction` | 日本語 | 同じ状況に対する指示が文書間で食い違う | 9 | PR #17 | PR #58 |
 | `decisions/dr-recording-bypass` | 決定記録 | DR の代わりに PR 本文へ書くことを手順が公認している | 1 | PR #17 | PR #17 |
 | `decisions/consequence-not-followed` | 決定記録 | 既存 DR の帰結が、それを通る手順に反映されていない | 11 | PR #17 | PR #58 |
 | `decisions/dr-restates-canonical-value` | 決定記録 | DR が正本の値を本文に書き写した | 10 | PR #17 | PR #58 |
@@ -180,12 +180,14 @@
 | `decisions/decision-lacks-recorded-basis` | 決定記録 | 決定のひとつに、文脈・理由・却下案のどこにも根拠が無い | 1 | PR #58 | PR #58 |
 | `contract/canonical-value-scattered-within-source` | 設計契約 | 正本と決めた節の中で、同じ値が複数の記述に散っている | 1 | PR #58 | PR #58 |
 | `decisions/index-entry-out-of-order` | 決定記録 | 索引の行が、節の中の並び規則（番号の昇順）に従っていない | 1 | PR #58 | PR #58 |
+| `inspection/retry-loop-unbounded-on-self-declared-failure` | 検査 | 自己申告の失敗でやり直せる回数に上限が無く、強制退出の条件へ到達しない | 1 | PR #58 | PR #58 |
+| `contract/source-of-truth-claim-duplicated-in-document` | 設計契約 | 正本の所在を示す宣言が、同じ文書の2箇所に独立して書かれている | 1 | PR #58 | PR #58 |
 
 ## レビュー履歴
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #58 | 2026-09-22 | 1 | 11 | 5 | [pr-58.md](./reviews/pr-58.md) |
+| #58 | 2026-09-22 | 2 | 14 | 7 | [pr-58.md](./reviews/pr-58.md) |
 | #57 | 2026-09-21 | 0 | 15 | 12 | [pr-57.md](./reviews/pr-57.md) |
 | #56 | 2026-09-21 | 2 | 14 | 14 | [pr-56.md](./reviews/pr-56.md) |
 | #55 | 2026-09-21 | 0 | 13 | 12 | [pr-55.md](./reviews/pr-55.md) |
