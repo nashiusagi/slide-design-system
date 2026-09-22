@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-22（PR #58 レビュー 4周目）
+最終更新: 2026-09-22（PR #58 レビュー 5周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -51,7 +51,7 @@
 | `writing/incomplete-pr-description` | PR 本文が着手時のままで、完成度と残りが読み取れない | 7 | PR #58 | 未着手 |
 | `decisions/wrong-dr-citation` | 誤った DR 番号・決定番号を根拠として引用している | 4 | PR #56 | 未着手 |
 | `decisions/one-sided-coupling` | 連動する2箇所のうち片方にしか結線が書かれておらず、逆向きに辿れない | 6 | PR #58 | 未着手 |
-| `decisions/citation-points-to-wrong-file` | 正本・検査として引用したファイルが、実際にはその内容を持たない | 3 | PR #56 | 未着手 |
+| `decisions/citation-points-to-wrong-file` | 正本・検査として引用したファイル・節が、実際にはその内容を持たない | 4 | PR #58 | 未着手 |
 | `decisions/index-section-mismatch` | DR の索引登録が、内容と合わない節に置かれた | 3 | PR #56 | 未着手 |
 | `code/sibling-field-test-gap` | 同じ制約を個別に持つ複数対象のうち、一部にしか回帰テストが無い | 3 | PR #56 | 未着手 |
 | `code/test-duplicates-prior-assertion` | 追加したテストが既存ケースと同じ経路しか通らず、検出力を持たない | 4 | PR #57 | 未着手 |
@@ -120,7 +120,7 @@
 | `code/audit-test-env-username-coupling` | コード品質 | テストが実行環境のOSユーザー名に依存し、環境次第で無関係な理由で失敗しうる | 1 | PR #28 | PR #28 |
 | `decisions/citation-overclaims-source-scope` | 決定記録 | 正本として引用した資料の、実際の記述範囲より広い主張をしている | 7 | PR #28 | PR #58 |
 | `writing/subjectless-predicate` | 日本語 | 文の主語が省略され、何の話かが読み取りにくい | 3 | PR #28 | PR #51 |
-| `decisions/citation-points-to-wrong-file` | 決定記録 | 正本として引用したファイルが、実際にはその内容を記述していない | 3 | PR #28 | PR #56 |
+| `decisions/citation-points-to-wrong-file` | 決定記録 | 正本として引用したファイル・節が、実際にはその内容を記述していない | 4 | PR #28 | PR #58 |
 | `writing/dangling-quote-reference` | 日本語 | 文書内の引用符付き参照が、書き換え後のどの語句・項目にも対応しなくなった | 8 | PR #26 | PR #58 |
 | `code/ci-workflow-missing-permissions` | コード品質 | CI ワークフローに GITHUB_TOKEN の権限制限が明示されていない | 1 | PR #30 | PR #30 |
 | `code/ci-actions-pinned-by-tag` | コード品質 | 外部 Actions がコミット SHA ではなくタグで固定されている | 1 | PR #30 | PR #30 |
@@ -185,12 +185,14 @@
 | `inspection/convergence-ignores-review-coverage` | 検査 | 収束の判定が、その周に実際に結果を返した観点の網羅性を問わない | 1 | PR #58 | PR #58 |
 | `code/template-example-omits-required-row` | コード品質 | 書式の例が、直前の指示が必須とする行を欠いている | 1 | PR #58 | PR #58 |
 | `contract/convergence-criterion-crosses-undeclared-boundary` | 設計契約 | 判定条件が、その Skill が正式に受け取っていない他方の内部状態に依存している | 1 | PR #58 | PR #58 |
+| `decisions/decision-section-scope-creep` | 決定記録 | 決定の見出しに現れない話題が、その決定の本文に積み上がっている | 1 | PR #58 | PR #58 |
+| `code/duplicate-instruction-across-steps` | コード品質 | 同じ実行時の指示が複数の手順に重複し、片方だけが他 Skill の手順番号を名指ししている | 1 | PR #58 | PR #58 |
 
 ## レビュー履歴
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #58 | 2026-09-22 | 4 | 25 | 9 | [pr-58.md](./reviews/pr-58.md) |
+| #58 | 2026-09-22 | 5 | 31 | 11 | [pr-58.md](./reviews/pr-58.md) |
 | #57 | 2026-09-21 | 0 | 15 | 12 | [pr-57.md](./reviews/pr-57.md) |
 | #56 | 2026-09-21 | 2 | 14 | 14 | [pr-56.md](./reviews/pr-56.md) |
 | #55 | 2026-09-21 | 0 | 13 | 12 | [pr-55.md](./reviews/pr-55.md) |
