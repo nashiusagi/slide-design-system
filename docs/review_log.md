@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-23（PR #60 レビュー 3周目）
+最終更新: 2026-09-23（PR #61 で DR 参照の機械検査を追加）
 
 ## ルール化候補（累計3回以上）
 
@@ -32,7 +32,7 @@
 | `inspection/bundle-boundary-unchecked` | 分離すると決めたビルドエントリ間の参照境界を保証する検査が無い | 3 | PR #57 | 未着手 |
 | `inspection/rule-has-bypass` | 検査ルールに抜け道があり、書き方を変えると素通りする | 18 | PR #56 | 仕組み化済み（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43） |
 | `inspection/rule-scope-inconsistent` | 同じルールIDの守備範囲が文書間で食い違う | 6 | PR #55 | 仕組み化済み（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43）。守備範囲の宣言を `design/rules.json` に一本化した |
-| `decisions/consequence-not-followed` | 既存 DR の帰結が、それを通る手順に反映されていない | 11 | PR #58 | 未着手 |
+| `decisions/consequence-not-followed` | 既存 DR の帰結が、それを通る手順に反映されていない | 11 | PR #58 | 見送り（意味の問題で機械判定に向かない。レビューの観点が持つ。[DR-0054](./decisions/0054-decision-reference-checked-by-machine.md)） |
 | `contract/contract-structure-duplicated` | 正本の中身の一覧が、別の文書へ構造ごと複製された | 8 | PR #53 | 未着手 |
 | `contract/value-outside-source-of-truth` | 正本に置くと決めた値が、正本を参照できない場所にも必要になる | 5 | PR #55 | 未着手 |
 | `contract/design-data-duplicated` | デザインの値が正本以外へ複製された | 13 | PR #56 | 未着手 |
@@ -49,10 +49,10 @@
 | `decisions/citation-overclaims-source-scope` | 引用した DR・資料の実際の記述範囲より広い主張をしている | 7 | PR #58 | 未着手 |
 | `writing/subjectless-predicate` | 文の主語が省略され、何の話かが読み取りにくい | 3 | PR #51 | 未着手 |
 | `writing/incomplete-pr-description` | PR 本文が着手時のままで、完成度と残りが読み取れない | 7 | PR #58 | 未着手 |
-| `decisions/wrong-dr-citation` | 誤った DR 番号・決定番号を根拠として引用している | 4 | PR #56 | 未着手 |
-| `decisions/one-sided-coupling` | 連動する2箇所のうち片方にしか結線が書かれておらず、逆向きに辿れない | 6 | PR #58 | 未着手 |
-| `decisions/citation-points-to-wrong-file` | 正本・検査として引用したファイル・節が、実際にはその内容を持たない | 4 | PR #58 | 未着手 |
-| `decisions/index-section-mismatch` | DR の索引登録が、内容と合わない節に置かれた | 3 | PR #56 | 未着手 |
+| `decisions/wrong-dr-citation` | 誤った DR 番号・決定番号を根拠として引用している | 4 | PR #56 | 一部（`decisions:check` が番号の実在とリンクの一致を見る。決定番号の誤りは人が読む。[DR-0054](./decisions/0054-decision-reference-checked-by-machine.md)） |
+| `decisions/one-sided-coupling` | 連動する2箇所のうち片方にしか結線が書かれておらず、逆向きに辿れない | 6 | PR #58 | 見送り（一方向の依存は正常な形。落とすべきは置き換えの関係だけで、状態欄の規則が扱う。[DR-0054](./decisions/0054-decision-reference-checked-by-machine.md)） |
+| `decisions/citation-points-to-wrong-file` | 正本・検査として引用したファイル・節が、実際にはその内容を持たない | 4 | PR #58 | ルール化済み（`decisions:check`。DR へのリンクの実在と番号の一致。[DR-0054](./decisions/0054-decision-reference-checked-by-machine.md)） |
+| `decisions/index-section-mismatch` | DR の索引登録が、内容と合わない節に置かれた | 3 | PR #56 | 一部（`decisions:check` が網羅と昇順を見る。節の分類が内容と合うかは人が読む。[DR-0054](./decisions/0054-decision-reference-checked-by-machine.md)） |
 | `code/sibling-field-test-gap` | 同じ制約を個別に持つ複数対象のうち、一部にしか回帰テストが無い | 3 | PR #56 | 未着手 |
 | `code/test-duplicates-prior-assertion` | 追加したテストが既存ケースと同じ経路しか通らず、検出力を持たない | 4 | PR #57 | 未着手 |
 | `code/test-misses-core-path` | 実装が分岐を持つのに、テストが片側しか踏まない | 3 | PR #56 | 未着手 |

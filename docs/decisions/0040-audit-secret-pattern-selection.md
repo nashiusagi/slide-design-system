@@ -3,7 +3,7 @@
 - **状態**: 承認済み
 - **日付**: 2026-09-10
 - **関連**: [DR-0023](./0023-public-repo-with-audit.md)
-- **正本**: `scripts/audit-public-data.mjs`（`STATIC_LEAK_PATTERNS` の実際のパターン一覧）
+- **実装**: `scripts/audit-public-data.mjs`（`STATIC_LEAK_PATTERNS` の実際のパターン一覧）
 
 ## 文脈
 
