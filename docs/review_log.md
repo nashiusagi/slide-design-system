@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-22（PR #60 レビュー 1周目）
+最終更新: 2026-09-23（PR #60 レビュー 2周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -193,12 +193,14 @@
 | `writing/scope-claim-mismatches-content` | 日本語 | 冒頭の範囲宣言が、その文書が実際に決めている内容より狭い | 1 | PR #60 | PR #60 |
 | `code/branch-unreachable-from-sole-caller` | コード品質 | 唯一の呼び出し元の固定した振る舞いにより、条件分岐が評価されなくなった | 1 | PR #60 | PR #60 |
 | `decisions/alternatives-cover-only-one-decision` | 決定記録 | 却下案が一部の決定しか覆わず、他の決定に代案の記録が無い | 1 | PR #60 | PR #60 |
+| `code/unclosed-fence-swallows-trailing-prose` | コード品質 | コードフェンスが閉じておらず、以降の地の文をブロックへ呑み込む | 1 | PR #60 | PR #60 |
+| `inspection/coverage-list-delimiter-ambiguous` | 検査 | 一覧の区切りが決まっておらず、要素が列の外へ逃げられる | 1 | PR #60 | PR #60 |
 
 ## レビュー履歴
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #60 | 2026-09-22 | 1 | 10 | 3 | [pr-60.md](./reviews/pr-60.md) |
+| #60 | 2026-09-23 | 1 | 15 | 3 | [pr-60.md](./reviews/pr-60.md) |
 | #58 | 2026-09-22 | 5 | 31 | 11 | [pr-58.md](./reviews/pr-58.md) |
 | #57 | 2026-09-21 | 0 | 15 | 12 | [pr-57.md](./reviews/pr-57.md) |
 | #56 | 2026-09-21 | 2 | 14 | 14 | [pr-56.md](./reviews/pr-56.md) |
