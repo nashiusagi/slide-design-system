@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-22（PR #58 レビュー 5周目）
+最終更新: 2026-09-22（PR #60 レビュー 1周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -21,12 +21,12 @@
 | カテゴリID | 要約 | 累計 | 最終指摘 | 状態 |
 |---|---|---|---|---|
 | `writing/ambiguous-criterion` | 判断基準が曖昧で、契約として実行できない | 11 | PR #58 | 未着手 |
-| `writing/term-inconsistency` | 同じものが複数の呼び名を持ち、外延も揺れる | 14 | PR #57 | 未着手 |
+| `writing/term-inconsistency` | 同じものが複数の呼び名を持ち、外延も揺れる | 15 | PR #60 | 未着手 |
 | `writing/notation-inconsistency` | 表記の不統一（DR 参照がリンクになっていない等） | 8 | PR #58 | 未着手 |
 | `phase/out-of-scope-addition` | フェーズのスコープ外、または DR に接続しないものが混入した | 8 | PR #57 | 未着手 |
 | `decisions/undocumented-decision` | DR に無い判断が、PR説明やIssueにだけ書かれている | 15 | PR #57 | 未着手 |
-| `decisions/dr-restates-canonical-value` | DR が正本の値を本文に書き写した | 10 | PR #58 | 未着手 |
-| `contract/source-of-truth-ambiguous` | 「正本」がどのファイルを指すか一意でない | 8 | PR #58 | 未着手 |
+| `decisions/dr-restates-canonical-value` | DR が正本の値を本文に書き写した | 11 | PR #60 | 未着手 |
+| `contract/source-of-truth-ambiguous` | 「正本」がどのファイルを指すか一意でない | 9 | PR #60 | 未着手 |
 | `inspection/rule-id-mapping-incomplete` | ルールIDと実装の対応検査が一部の method しか覆っていない | 3 | PR #57 | 未着手 |
 | `code/fix-lacks-regression-test` | 指摘を受けた修正に、それを守る回帰テストが無い | 3 | PR #57 | 未着手 |
 | `inspection/bundle-boundary-unchecked` | 分離すると決めたビルドエントリ間の参照境界を保証する検査が無い | 3 | PR #57 | 未着手 |
@@ -36,12 +36,12 @@
 | `contract/contract-structure-duplicated` | 正本の中身の一覧が、別の文書へ構造ごと複製された | 8 | PR #53 | 未着手 |
 | `contract/value-outside-source-of-truth` | 正本に置くと決めた値が、正本を参照できない場所にも必要になる | 5 | PR #55 | 未着手 |
 | `contract/design-data-duplicated` | デザインの値が正本以外へ複製された | 13 | PR #56 | 未着手 |
-| `writing/inaccurate-rationale` | 説明文が書いている理由付けが、実装の挙動と食い違う | 16 | PR #58 | 未着手 |
+| `writing/inaccurate-rationale` | 説明文が書いている理由付けが、実装の挙動と食い違う | 17 | PR #60 | 未着手 |
 | `inspection/invalid-case-untested` | 検査そのものに invalid ケースのテストが無い | 5 | PR #57 | 未着手 |
 | `code/test-cannot-detect-regression` | テストが、その名前が示す回帰をフィクスチャの都合で検出できない | 4 | PR #55 | 未着手 |
 | `inspection/rule-coverage-partial` | 判定対象の列挙に穴があり、基準を割った組み合わせを見逃す | 11 | PR #57 | 一部（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43）。`enumeration-tail` の軸で事例を要求するが、網羅性の証明ではない |
 | `phase/completion-criterion-not-verified-e2e` | Issue の完了条件が、単体テストのみで統合パスを通さず検証されている | 9 | PR #57 | 未着手 |
-| `writing/contradictory-instruction` | 同じ状況に対する指示が文書間で食い違う | 9 | PR #58 | 未着手 |
+| `writing/contradictory-instruction` | 同じ状況に対する指示が文書間で食い違う | 10 | PR #60 | 未着手 |
 | `writing/dangling-quote-reference` | 文書内の引用符付き参照が、書き換え後のどの語句・項目にも対応しなくなった | 8 | PR #58 | 未着手 |
 | `writing/test-title-ambiguous` | テストタイトルが、そのテストの固定する不変条件を示していない | 8 | PR #56 | 未着手 |
 | `code/dead-check-entry` | より強い条件に覆われ、単独では決して落ちない検査項目がある | 3 | PR #47 | 未着手 |
@@ -63,7 +63,7 @@
 |---|---|---|---|---|---|
 | `contract/design-data-duplicated` | 設計契約 | デザインの値が正本以外へ複製された | 13 | PR #13 | PR #56 |
 | `contract/value-outside-source-of-truth` | 設計契約 | 正本に置くと決めた値が、正本を参照できない場所にも必要になる | 5 | PR #13 | PR #55 |
-| `contract/source-of-truth-ambiguous` | 設計契約 | 「正本」がどのファイルを指すか一意でない | 8 | PR #13 | PR #58 |
+| `contract/source-of-truth-ambiguous` | 設計契約 | 「正本」がどのファイルを指すか一意でない | 9 | PR #13 | PR #60 |
 | `contract/contract-structure-duplicated` | 設計契約 | 正本の中身の一覧が、別の文書へ構造ごと複製された | 8 | PR #13 | PR #53 |
 | `inspection/rule-scope-inconsistent` | 検査 | 同じルールIDの守備範囲が文書間で食い違う | 6 | PR #13 | PR #55 |
 | `inspection/rule-id-mapping-incomplete` | 検査 | ルールIDと実装の対応検査が一部の系統しか覆っていない | 3 | PR #13 | PR #57 |
@@ -71,7 +71,7 @@
 | `inspection/measure-viewport-unspecified` | 検査 | measure の測定条件が未規定で結果が再現しない | 1 | PR #13 | PR #13 |
 | `code/gitignore-hides-tracked-artifacts` | コード品質 | .gitignore が、追跡する方針の成果物を無言で除外する | 1 | PR #13 | PR #13 |
 | `writing/ambiguous-criterion` | 日本語 | 判断基準が曖昧で、契約として実行できない | 11 | PR #13 | PR #58 |
-| `writing/term-inconsistency` | 日本語 | 同じものが複数の呼び名を持ち、外延も揺れる | 14 | PR #13 | PR #57 |
+| `writing/term-inconsistency` | 日本語 | 同じものが複数の呼び名を持ち、外延も揺れる | 15 | PR #13 | PR #60 |
 | `writing/notation-inconsistency` | 日本語 | 表記の不統一 | 8 | PR #13 | PR #58 |
 | `phase/out-of-scope-addition` | フェーズ | フェーズのスコープ外、または DR に接続しないものが混入した | 8 | PR #13 | PR #57 |
 | `decisions/undocumented-decision` | 決定記録 | DR に無い判断が、PR説明やIssueにだけ書かれている | 15 | PR #13 | PR #57 |
@@ -79,10 +79,10 @@
 | `code/review-loop-double-counts-log` | コード品質 | 同一 PR の再レビューが指摘ログを二重に計上する | 1 | PR #17 | PR #17 |
 | `code/review-artifact-handling-undefined` | コード品質 | レビュー成果物をコミットするかどうかが未定義 | 1 | PR #17 | PR #17 |
 | `code/undefined-command-input` | コード品質 | 手順のコマンドが要求する入力の用意が未定義 | 1 | PR #17 | PR #17 |
-| `writing/contradictory-instruction` | 日本語 | 同じ状況に対する指示が文書間で食い違う | 9 | PR #17 | PR #58 |
+| `writing/contradictory-instruction` | 日本語 | 同じ状況に対する指示が文書間で食い違う | 10 | PR #17 | PR #60 |
 | `decisions/dr-recording-bypass` | 決定記録 | DR の代わりに PR 本文へ書くことを手順が公認している | 1 | PR #17 | PR #17 |
 | `decisions/consequence-not-followed` | 決定記録 | 既存 DR の帰結が、それを通る手順に反映されていない | 11 | PR #17 | PR #58 |
-| `decisions/dr-restates-canonical-value` | 決定記録 | DR が正本の値を本文に書き写した | 10 | PR #17 | PR #58 |
+| `decisions/dr-restates-canonical-value` | 決定記録 | DR が正本の値を本文に書き写した | 11 | PR #17 | PR #60 |
 | `decisions/index-section-mismatch` | 決定記録 | DR の索引登録が、内容と合わない節に置かれた | 3 | PR #17 | PR #56 |
 | `code/rereview-overwrites-prior-review` | コード品質 | 再レビューが前周のレビュー記録を上書きする | 1 | PR #17 | PR #17 |
 | `code/review-history-row-update-undefined` | コード品質 | レビュー履歴の行の更新方法が書式定義と食い違う | 1 | PR #17 | PR #17 |
@@ -106,7 +106,7 @@
 | `decisions/wrong-dr-citation` | 決定記録 | 誤った DR 番号を根拠として引用している | 4 | PR #24 | PR #56 |
 | `decisions/implementation-labeled-as-canonical` | 決定記録 | DR が実装コードを「正本」として指定している | 2 | PR #24 | PR #51 |
 | `code/test-duplicates-prior-assertion` | コード品質 | 追加したテストが直前のテストと完全に重複し、検出力を持たない | 4 | PR #20 | PR #57 |
-| `writing/inaccurate-rationale` | 日本語 | 説明文が書いている理由付けが、実装の挙動と食い違う | 16 | PR #23 | PR #58 |
+| `writing/inaccurate-rationale` | 日本語 | 説明文が書いている理由付けが、実装の挙動と食い違う | 17 | PR #23 | PR #60 |
 | `code/shadow-detection-misses-class-expression` | コード品質 | シャドーイング検出が class 式の代入パターンを見逃す | 1 | PR #24 | PR #24 |
 | `code/duplicate-hex-parsing-in-contrast-ratio` | コード品質 | 同じ変換ロジックが複数箇所に重複し、片方だけ直すと同期が崩れる | 1 | PR #25 | PR #25 |
 | `phase/completion-criterion-not-verified-e2e` | フェーズ | Issue の完了条件が、単体テストのみで統合パスを通さず検証されている | 9 | PR #25 | PR #57 |
@@ -129,7 +129,7 @@
 | `phase/runtime-capability-foreclosed` | フェーズ | 実装の型が、そのフェーズで持つと決めたランタイム機能を使えなくする | 1 | PR #56 | PR #56 |
 | `code/duplicate-css-class-check` | コード品質 | CSS のクラス対応検査が、既存の同種検査のほぼ逐語的な複製になっている | 1 | PR #56 | PR #56 |
 | `code/list-key-collides-on-duplicate-items` | コード品質 | 一覧の key を値そのものにしており、同じ値が並ぶと衝突する | 1 | PR #56 | PR #56 |
-| `contract/stale-contract-comment` | 設計契約 | 契約側の文書が「実装はまだ無い」と述べたまま、実装の追加で古くなった | 1 | PR #56 | PR #56 |
+| `contract/stale-contract-comment` | 設計契約 | 文書の記述が、実装・インタフェースの変更に追従せず古いまま残った | 2 | PR #56 | PR #60 |
 | `contract/contract-constraint-unenforced` | 設計契約 | 契約が定めた制約（個数の上限等）を実装も検査も担保していない | 1 | PR #56 | PR #56 |
 | `writing/misplaced-correction` | 日本語 | 文書内の訂正が、上書きする元の記述から離れた場所に置かれ、どちらも残る | 1 | PR #56 | PR #56 |
 | `code/parse-error-message-lacks-source-path` | コード品質 | 構文エラーのメッセージが実ファイルパスの代わりに内部プレースホルダを含む | 1 | PR #39 | PR #39 |
@@ -183,15 +183,22 @@
 | `inspection/retry-loop-unbounded-on-self-declared-failure` | 検査 | 自己申告の失敗でやり直せる回数に上限が無く、強制退出の条件へ到達しない | 1 | PR #58 | PR #58 |
 | `contract/source-of-truth-claim-duplicated-in-document` | 設計契約 | 正本の所在を示す宣言が、同じ文書の2箇所に独立して書かれている | 1 | PR #58 | PR #58 |
 | `inspection/convergence-ignores-review-coverage` | 検査 | 収束の判定が、その周に実際に結果を返した観点の網羅性を問わない | 1 | PR #58 | PR #58 |
-| `code/template-example-omits-required-row` | コード品質 | 書式の例が、直前の指示が必須とする行を欠いている | 1 | PR #58 | PR #58 |
-| `contract/convergence-criterion-crosses-undeclared-boundary` | 設計契約 | 判定条件が、その Skill が正式に受け取っていない他方の内部状態に依存している | 1 | PR #58 | PR #58 |
+| `code/template-example-omits-required-row` | コード品質 | 書式の例が、直前の指示が必須とする行を欠いている | 2 | PR #58 | PR #60 |
+| `contract/convergence-criterion-crosses-undeclared-boundary` | 設計契約 | 判定条件が、その Skill が正式に受け取っていない他方の内部状態に依存している | 2 | PR #58 | PR #60 |
 | `decisions/decision-section-scope-creep` | 決定記録 | 決定の見出しに現れない話題が、その決定の本文に積み上がっている | 1 | PR #58 | PR #58 |
 | `code/duplicate-instruction-across-steps` | コード品質 | 同じ実行時の指示が複数の手順に重複し、片方だけが他 Skill の手順番号を名指ししている | 1 | PR #58 | PR #58 |
+| `code/relative-link-wrong-depth` | コード品質 | 相対リンクの階層が合わず、実在しないパスを指している | 1 | PR #60 | PR #60 |
+| `decisions/partial-supersession-not-in-status` | 決定記録 | 決定の一部が置き換わったのに、旧 DR の状態欄がそれを示していない | 1 | PR #60 | PR #60 |
+| `contract/format-requirement-duplicated-outside-format-file` | 設計契約 | 書式の必須規定と理由が、書式の正本の外へ書き写された | 1 | PR #60 | PR #60 |
+| `writing/scope-claim-mismatches-content` | 日本語 | 冒頭の範囲宣言が、その文書が実際に決めている内容より狭い | 1 | PR #60 | PR #60 |
+| `code/branch-unreachable-from-sole-caller` | コード品質 | 唯一の呼び出し元の固定した振る舞いにより、条件分岐が評価されなくなった | 1 | PR #60 | PR #60 |
+| `decisions/alternatives-cover-only-one-decision` | 決定記録 | 却下案が一部の決定しか覆わず、他の決定に代案の記録が無い | 1 | PR #60 | PR #60 |
 
 ## レビュー履歴
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
+| #60 | 2026-09-22 | 1 | 10 | 3 | [pr-60.md](./reviews/pr-60.md) |
 | #58 | 2026-09-22 | 5 | 31 | 11 | [pr-58.md](./reviews/pr-58.md) |
 | #57 | 2026-09-21 | 0 | 15 | 12 | [pr-57.md](./reviews/pr-57.md) |
 | #56 | 2026-09-21 | 2 | 14 | 14 | [pr-56.md](./reviews/pr-56.md) |
