@@ -3,15 +3,21 @@
  *
  *   node scripts/check-decisions.mjs
  *
- * 見るのは**参照が指す先が実在し、番号と一致しているか**であって、決定の中身では
- * ない。中身の是非は人が読む。実行口は pnpm check に一本化する（DR-0028）。
+ * 見るのは**参照が指す先が実在するか、番号と一致しているか、冒頭欄が書式を満たすか**
+ * であって、決定の中身ではない。中身の是非は人が読む。実行口は pnpm check に
+ * 一本化する（DR-0028）。
+ *
+ * **リンクの実在は、走査対象の中の相対 `.md` リンクすべてを見る**（DR へのリンクに
+ * 限らない）。番号の一致だけが DR 固有の判定だ。
  *
  * この検査が捕まえるのは、レビューで繰り返し出た次の壊れ方だ。
  *
- * - `decisions/wrong-dr-citation` — 誤った DR 番号を根拠として引用した
- * - `decisions/citation-points-to-wrong-file` — 引用したファイル・節が実在しない
- * - `decisions/index-section-mismatch` — 索引の登録が内容と合わない
+ * - `decisions/wrong-dr-citation` — **存在しない番号**の引用まで。実在する誤番号は見ない
+ * - `decisions/citation-points-to-wrong-file` — **ファイルの実在**まで。引用先の節が
+ *   その内容を持つかは見ない
+ * - `decisions/index-section-mismatch` — **網羅と昇順**まで。節の分類が内容と合うかは見ない
  * - `code/relative-link-wrong-depth` — 相対リンクの階層が合わず、実在しないパスを指す
+ *   （これは全部捕まえられる）
  *
  * どれも「読めば分かるが、読まなければ緑のまま通る」形をしている。PR #60 では
  * 書式ファイルの DR リンク2本が1階層浅く、必須項目の根拠へ辿れない状態のまま
@@ -40,13 +46,22 @@ const DECISIONS_DIR = 'docs/decisions'
 const INDEX_FILE = 'README.md'
 
 /**
- * 走査する場所。DR 参照は文書のどこにでも書かれるので、リポジトリ内の Markdown を
- * 広く見る。
+ * 走査する場所。**ここに挙げた根の下だけを見る包含リスト**で、除外の宣言ではない。
+ * DR 参照を書ける場所をすべて挙げること。
  *
  * `docs/reviews/` は走査しない。レビュー記録は過去の指摘をそのまま引用するために
  * 古い番号・古いパスを含むのが正常で、かつ書き換えない履歴だからだ
  * （`check-canonical-duplication.mjs` が同じ理由で外しているのに揃える）。
- * `node_modules` / `dist` は生成物。
+ * `node_modules` / `dist` は生成物。`experiments/**\/runs/` は Run の記録で、
+ * こちらも書き換えない履歴。
+ *
+ * **`experiments/` を入れているのは、相対リンクの階層が分かれている唯一の場所
+ * だからだ**——`harness-intro/*.md` は2階層、`runs/README.md` は3階層で `docs/` へ
+ * 戻る。PR #60 で実害が出た `code/relative-link-wrong-depth` が最も起きやすい。
+ *
+ * `check-canonical-duplication.mjs` の `SCAN_ROOTS` とは別の一覧で、見る対象が違う
+ * （あちらは値の複製、こちらは参照の実在）。**違いは意図的で、ここが両者の関係を
+ * 書く唯一の場所**にする。
  */
 export const SCAN_ROOTS = [
   { path: 'README.md', kind: 'file' },
@@ -55,6 +70,8 @@ export const SCAN_ROOTS = [
   { path: '.claude/skills', kind: 'dir', exclude: [] },
   { path: 'skills', kind: 'dir', exclude: [] },
   { path: 'scripts', kind: 'dir', exclude: [] },
+  { path: 'design', kind: 'dir', exclude: [] },
+  { path: 'experiments', kind: 'dir', exclude: ['experiments/**/runs/', 'experiments/**/starter/'] },
   { path: 'packages', kind: 'dir', exclude: ['packages/**/node_modules/', 'packages/**/dist/'] },
 ]
 
@@ -80,12 +97,22 @@ const REQUIRED_FIELDS = ['状態', '日付', '関連']
 const DATE_FORMAT = /^\d{4}-\d{2}-\d{2}$/
 
 /**
- * `**正本**:` 行に書いてよくないパス。DR が決めた規則をそのまま実装したコードを
- * 正本にすると、コードを書き換えた時点で DR ではなくコードが正しいことになり、
- * 実装が DR に従っているかを検査する足場が消える（`docs/decisions/README.md`
- * 「新しい決定を追加するとき」の3）。在り処を示したいときは `**実装**:` を使う。
+ * パスとみなす拡張子。**スラッシュを含まない候補**（`package.json` /
+ * `eslint.config.js`）をファイルと判定するために使う。
  *
- * 判定は拡張子で行う。`.mjs` / `.ts` / `.tsx` / `.js` / `.jsx` は実装コードとみなす。
+ * 拡張子の形（`/\.\w+$/`）だけで判定すると、`color.accent` や `scripts.check` の
+ * ような**契約データのキーパス**をファイルと誤認する（冒頭欄はそれらも書く）。
+ * だから列挙する。ここに無い拡張子のルート直下ファイルは、パスとして扱われない——
+ * 見逃す方向の穴だが、偽陽性で緑が信用できなくなるよりはよい。スラッシュを含む
+ * 候補は拡張子を問わずパスとみなすので、この一覧が効くのはルート直下だけだ。
+ */
+const FILE_EXTENSIONS = ['.md', '.json', '.mjs', '.cjs', '.ts', '.mts', '.tsx', '.js', '.jsx', '.css', '.html', '.yaml', '.yml']
+
+/**
+ * `**正本**:` 行に挙げてよくないファイルの拡張子。規則とその理由は
+ * `docs/decisions/README.md`「新しい決定を追加するとき」の3 が持つ。判定を拡張子に
+ * 取ったのは DR-0054 決定2 で、**どの拡張子かはここが持つ**（判定の調整であって
+ * 決定ではない）。
  */
 const IMPLEMENTATION_EXTENSIONS = ['.mjs', '.ts', '.tsx', '.js', '.jsx']
 
@@ -102,23 +129,32 @@ const read = (relativePath) => readFileSync(resolve(relativePath), 'utf8')
  *
  * 行数を保つため、中身は空行に置き換える（報告する行番号がずれない）。
  *
+ * **閉じられていないフェンスも返す。** 閉じ忘れがあると以降の行がすべて空になり、
+ * そのファイルの参照もリンクも検査されないまま緑になる——行を捨てる判断をした以上、
+ * 捨てた範囲が意図どおりであることは検査側が保証する必要がある（PR #61 の blocker）。
+ *
  * @param {string} source
- * @returns {string}
+ * @returns {{ stripped: string, unclosedFrom: number | undefined }}
  */
 export function stripCodeBlocks(source) {
   const lines = source.split('\n')
   let inFence = false
+  /** @type {number | undefined} 閉じられていないフェンスが開いた行（1始まり） */
+  let openedAt
 
-  return lines
-    .map((line) => {
-      if (/^\s*```/.test(line)) {
+  const stripped = lines
+    .map((line, index) => {
+      if (/^\s*(```|~~~)/.test(line)) {
         inFence = !inFence
+        openedAt = inFence ? index + 1 : undefined
         return ''
       }
 
       return inFence ? '' : line.replace(/`[^`]*`/g, (match) => ' '.repeat(match.length))
     })
     .join('\n')
+
+  return { stripped, unclosedFrom: openedAt }
 }
 
 /**
@@ -163,12 +199,18 @@ export function listScannedFiles() {
  * @param {string} pattern
  * @returns {boolean}
  */
-function matchesExclude(path, pattern) {
+export function matchesExclude(path, pattern) {
   if (!pattern.includes('*')) {
     return path.startsWith(pattern)
   }
 
-  const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').split('**').join('.*')
+  // `a/**/b` は `a/b` にも当たる（glob の通例）。`**/` を `(.*\/)?` に展開する。
+  const escaped = pattern
+    .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
+    .split('**/')
+    .join('(.*/)?')
+    .split('**')
+    .join('.*')
   return new RegExp(`^${escaped}`).test(path)
 }
 
@@ -205,9 +247,9 @@ export function checkReferencesExist({ numbers, sources }) {
   const failures = []
 
   for (const [file, content] of sources) {
-    const source = stripCodeBlocks(content)
+    const { stripped } = stripCodeBlocks(content)
 
-    source.split('\n').forEach((line, index) => {
+    stripped.split('\n').forEach((line, index) => {
       for (const match of line.matchAll(DR_REFERENCE)) {
         if (!numbers.has(match[1])) {
           failures.push(`${file}:${index + 1} — DR-${match[1]} は存在しない`)
@@ -234,10 +276,10 @@ export function checkLinksResolve({ sources, exists = defaultExists }) {
   const failures = []
 
   for (const [file, content] of sources) {
-    const source = stripCodeBlocks(content)
+    const { stripped } = stripCodeBlocks(content)
     const baseDir = dirname(file)
 
-    source.split('\n').forEach((line, index) => {
+    stripped.split('\n').forEach((line, index) => {
       for (const match of line.matchAll(MARKDOWN_LINK)) {
         const [, text, target] = match
 
@@ -248,7 +290,7 @@ export function checkLinksResolve({ sources, exists = defaultExists }) {
         const resolved = normalize(join(baseDir, target.split('#')[0]))
 
         if (!exists(resolved)) {
-          failures.push(`${file}:${index + 1} — リンク先が実在しない: ${target}`)
+          failures.push(`${file}:${index + 1} — リンク先が実在しない: ${target}（解決先: ${resolved}）`)
           continue
         }
 
@@ -275,7 +317,7 @@ export function checkIndexCovers({ decisions, index, exists = defaultExists }) {
   /** @type {string[]} */
   const failures = []
   const indexPath = `${DECISIONS_DIR}/${INDEX_FILE}`
-  const source = stripCodeBlocks(index ?? read(indexPath))
+  const { stripped: source } = stripCodeBlocks(index ?? read(indexPath))
 
   /** @type {Map<string, string>} 索引に載っている番号 → リンク先 */
   const listed = new Map()
@@ -408,6 +450,9 @@ export function checkFrontMatter({ decisions, numbers, sources, exists = default
           continue
         }
 
+        // ディレクトリ（末尾スラッシュ）は拡張子を持たないので、この判定に掛からない。
+        // `src/runtime/` のような指定が実装コードを指していても落とさない——中身の
+        // 何を正本と呼んでいるかは読まないと分からないため、人の目に残す（DR-0054 決定2）。
         if (field === '正本' && IMPLEMENTATION_EXTENSIONS.some((extension) => path.endsWith(extension))) {
           failures.push(`${file}:${entry.line} — **正本** に実装コードを挙げている: ${path}（在り処を示すなら **実装** を使う）`)
         }
@@ -419,9 +464,21 @@ export function checkFrontMatter({ decisions, numbers, sources, exists = default
 }
 
 /**
- * 冒頭欄の値からパスを取り出す。バッククォートで囲まれた `design/tokens.json` の形と、
- * 素の `docs/decisions/0024-...md` の形の両方を拾う。丸括弧の中の補足
- * （`（手順5・手順7）` など）はパスではない。
+ * 冒頭欄の値からパスを取り出す。**バッククォートで囲まれたものだけ**を見る——
+ * このリポジトリの冒頭欄はすべてその形で書かれており、素の文字列まで拾うと
+ * 「手順5」のような補足がパスに見える。
+ *
+ * パスと認めるのは次の2つ。
+ *
+ * - 拡張子を持つもの（`package.json` / `DESIGN.md` / `src/runtime/hash.ts`）
+ * - 末尾がスラッシュのもの（`design/layouts/` / `src/components/`）
+ *
+ * **スラッシュを必須にしない。** ルート直下のファイル（`package.json` /
+ * `eslint.config.js`）を取りこぼすと、そこへ実装コードを書いた冒頭欄が
+ * 検査を素通りする（PR #61 の blocker。既存の冒頭欄23件が無検査だった）。
+ *
+ * 逆に、関数名や定数名（`checkStarterMatchesRoot` / `STATIC_LEAK_PATTERNS`）は
+ * 拡張子もスラッシュも持たないので拾わない。
  *
  * @param {string} value
  * @returns {string[]}
@@ -433,12 +490,45 @@ export function extractPaths(value) {
   for (const match of value.matchAll(/`([^`]+)`/g)) {
     const candidate = match[1].trim()
 
-    if (/^[\w.@-]+(\/[\w.@-]+)+$/.test(candidate)) {
+    if (!/^[\w.@-]+(\/[\w.@-]+)*\/?$/.test(candidate)) {
+      continue
+    }
+
+    const isDirectory = candidate.endsWith('/')
+    const hasKnownExtension = FILE_EXTENSIONS.some((extension) => candidate.endsWith(extension))
+
+    if (isDirectory || candidate.includes('/') || hasKnownExtension) {
       paths.push(candidate)
     }
   }
 
   return paths
+}
+
+/**
+ * コードフェンスが閉じているかを検査する。
+ *
+ * 閉じ忘れがあると `stripCodeBlocks` が以降の行をすべて捨てるので、そのファイルの
+ * 参照・リンクは一つも見られないまま緑になる。**検査が黙って効かなくなる形**なので、
+ * 落とす（[DR-0054](../docs/decisions/0054-decision-reference-checked-by-machine.md)
+ * 決定5）。
+ *
+ * @param {{ sources: Map<string, string> }} context
+ * @returns {string[]}
+ */
+export function checkFencesClosed({ sources }) {
+  /** @type {string[]} */
+  const failures = []
+
+  for (const [file, content] of sources) {
+    const { unclosedFrom } = stripCodeBlocks(content)
+
+    if (unclosedFrom !== undefined) {
+      failures.push(`${file}:${unclosedFrom} — コードフェンスが閉じていない（以降の行は検査されない）`)
+    }
+  }
+
+  return failures
 }
 
 /**
@@ -453,6 +543,7 @@ export function runChecks() {
   const context = { decisions, numbers, sources }
 
   return [
+    { label: 'コードフェンスが閉じている', failures: checkFencesClosed(context) },
     { label: '参照した DR がすべて実在する', failures: checkReferencesExist(context) },
     { label: 'DR へのリンクが実在し、番号と一致する', failures: checkLinksResolve(context) },
     { label: '索引が全 DR を漏れなく登録し、節の中が昇順である', failures: checkIndexCovers(context) },

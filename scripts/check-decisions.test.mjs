@@ -12,6 +12,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  checkFencesClosed,
   checkFrontMatter,
   checkIndexCovers,
   checkLinksResolve,
@@ -19,6 +20,7 @@ import {
   extractPaths,
   listDecisions,
   listScannedFiles,
+  matchesExclude,
   runChecks,
   stripCodeBlocks,
 } from './check-decisions.mjs'
@@ -47,6 +49,15 @@ describe('runChecks（いまのリポジトリ）', () => {
 
     expect(files.some((file) => file.startsWith('.claude/skills/'))).toBe(true)
     expect(files.some((file) => file.startsWith('docs/decisions/'))).toBe(true)
+    expect(files.some((file) => file.startsWith('scripts/'))).toBe(true)
+  })
+
+  it('走査対象に experiments を含む（相対リンクの階層が分かれる唯一の場所）', () => {
+    expect(listScannedFiles().some((file) => file.startsWith('experiments/'))).toBe(true)
+  })
+
+  it('走査対象から experiments の Run 記録を外す（書き換えない履歴）', () => {
+    expect(listScannedFiles().some((file) => file.includes('/runs/'))).toBe(false)
   })
 
   it('DR を番号の重複なく列挙する', () => {
@@ -251,7 +262,7 @@ describe('checkFrontMatter', () => {
 describe('stripCodeBlocks', () => {
   it('コードブロックの中身を落とし、行数を保つ', () => {
     const source = ['本文の DR-0001', '```markdown', '例の中の DR-9999', '```', '本文の DR-0002'].join('\n')
-    const stripped = stripCodeBlocks(source)
+    const { stripped } = stripCodeBlocks(source)
 
     expect(stripped.split('\n')).toHaveLength(5)
     expect(stripped).toContain('DR-0001')
@@ -260,11 +271,11 @@ describe('stripCodeBlocks', () => {
   })
 
   it('インラインコードの中身も落とす（書式の説明に現れる番号は参照ではない）', () => {
-    expect(stripCodeBlocks('`DR-9999` のように書く')).not.toContain('DR-9999')
+    expect(stripCodeBlocks('`DR-9999` のように書く').stripped).not.toContain('DR-9999')
   })
 
   it('コードブロックの外のリンクは残す', () => {
-    expect(stripCodeBlocks('[DR-0024](./0024-x.md) を見よ')).toContain('DR-0024')
+    expect(stripCodeBlocks('[DR-0024](./0024-x.md) を見よ').stripped).toContain('DR-0024')
   })
 })
 
@@ -277,8 +288,112 @@ describe('extractPaths', () => {
     expect(extractPaths('`a/b.md`, `c/d.mjs`（注記）')).toEqual(['a/b.md', 'c/d.mjs'])
   })
 
-  it('パスでないコード片は拾わない（関数名・節の名前）', () => {
+  it('パスでないコード片は拾わない（関数名・定数名）', () => {
     expect(extractPaths('`checkStarterMatchesRoot` が比較する')).toEqual([])
     expect(extractPaths('`STATIC_LEAK_PATTERNS`')).toEqual([])
+  })
+})
+
+describe('checkFencesClosed', () => {
+  it('閉じていないフェンスがあると落ちる', () => {
+    const sources = new Map([['docs/x.md', ['# x', '', '```markdown', '例'].join('\n')]])
+    const failures = checkFencesClosed({ sources })
+
+    expect(failures).toHaveLength(1)
+    expect(failures[0]).toContain('docs/x.md:3')
+    expect(failures[0]).toContain('以降の行は検査されない')
+  })
+
+  it('閉じていれば落ちない', () => {
+    const sources = new Map([['docs/x.md', ['```', '例', '```'].join('\n')]])
+
+    expect(checkFencesClosed({ sources })).toEqual([])
+  })
+
+  it('`~~~` のフェンスも見る', () => {
+    const sources = new Map([['docs/x.md', ['~~~', '例'].join('\n')]])
+
+    expect(checkFencesClosed({ sources })).toHaveLength(1)
+  })
+})
+
+describe('閉じ忘れが他の検査を無効化しないこと', () => {
+  it('フェンスを閉じ忘れたファイルでは、参照の検査が何も見なくなる（だから別に落とす）', () => {
+    const sources = new Map([['docs/x.md', ['```', 'DR-9999 に従う'].join('\n')]])
+
+    // 参照の検査はフェンスの中を見ないので、この入力では何も返さない。
+    expect(checkReferencesExist({ numbers: new Set(['0024']), sources })).toEqual([])
+    // その穴を checkFencesClosed が埋める。
+    expect(checkFencesClosed({ sources })).toHaveLength(1)
+  })
+})
+
+describe('ミューテーションで生き残った経路', () => {
+  const exists = existsIn(['docs/decisions/0001-a.md'])
+
+  it('索引のリンク先が実在しないと落ちる', () => {
+    const decisions = [{ number: '0001', file: 'docs/decisions/0001-a.md' }]
+    const index = ['### 節', '| [0001](./0001-missing.md) | A |'].join('\n')
+    const failures = checkIndexCovers({ decisions, index, exists })
+
+    expect(failures.some((failure) => failure.includes('索引のリンク先が実在しない'))).toBe(true)
+  })
+
+  it('**実装** に挙げたパスが実在しないと落ちる（**正本** と同じ制約を持つ）', () => {
+    const decisions = [{ number: '0002', file: 'docs/decisions/0002-b.md' }]
+    const numbers = new Set(['0002'])
+    const sources = new Map([
+      ['docs/decisions/0002-b.md', ['- **状態**: 承認済み', '- **日付**: 2026-09-22', '- **関連**: なし', '- **実装**: `scripts/missing.mjs`', '', '## 文脈'].join('\n')],
+    ])
+    const failures = checkFrontMatter({ decisions, numbers, sources, exists: existsIn([]) })
+
+    expect(failures.some((failure) => failure.includes('**実装** に挙げたパスが実在しない'))).toBe(true)
+  })
+
+  it('**状態** が無いと落ちる', () => {
+    const decisions = [{ number: '0002', file: 'docs/decisions/0002-b.md' }]
+    const numbers = new Set(['0002'])
+    const sources = new Map([
+      ['docs/decisions/0002-b.md', ['- **日付**: 2026-09-22', '- **関連**: なし', '', '## 文脈'].join('\n')],
+    ])
+    const failures = checkFrontMatter({ decisions, numbers, sources, exists: existsIn([]) })
+
+    expect(failures.some((failure) => failure.includes('**状態** が無い'))).toBe(true)
+  })
+})
+
+describe('matchesExclude', () => {
+  it('前方一致で除外する', () => {
+    expect(matchesExclude('docs/reviews/pr-1.md', 'docs/reviews/')).toBe(true)
+    expect(matchesExclude('docs/decisions/0001-a.md', 'docs/reviews/')).toBe(false)
+  })
+
+  it('`**/` が途中のセグメントに当たる', () => {
+    expect(matchesExclude('packages/a/node_modules/x/README.md', 'packages/**/node_modules/')).toBe(true)
+  })
+
+  it('`**/` はセグメント0個にも当たる（glob の通例）', () => {
+    expect(matchesExclude('packages/node_modules/x/README.md', 'packages/**/node_modules/')).toBe(true)
+  })
+
+  it('当たらないものは除外しない', () => {
+    expect(matchesExclude('packages/README.md', 'packages/**/node_modules/')).toBe(false)
+  })
+})
+
+describe('extractPaths（ルート直下とディレクトリ）', () => {
+  it('ルート直下のファイルを拾う（スラッシュを含まない）', () => {
+    expect(extractPaths('`package.json`')).toEqual(['package.json'])
+    expect(extractPaths('`eslint.config.js`')).toEqual(['eslint.config.js'])
+  })
+
+  it('末尾スラッシュのディレクトリを拾う', () => {
+    expect(extractPaths('`design/layouts/`')).toEqual(['design/layouts/'])
+  })
+
+  it('契約データのキーパスは拾わない（既知の拡張子でない）', () => {
+    expect(extractPaths('`color.accent`')).toEqual([])
+    expect(extractPaths('`scripts.check`')).toEqual([])
+    expect(extractPaths('`build.rollupOptions.input`')).toEqual([])
   })
 })
