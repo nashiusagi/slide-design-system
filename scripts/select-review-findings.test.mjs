@@ -129,10 +129,22 @@ describe('splitPerspectiveField', () => {
     expect(splitPerspectiveField('検査ルールの実効性、コード品質')).toEqual(['検査ルールの実効性', 'コード品質'])
   })
 
-  it('注記を剥がさずに返す（剥がすと正本の観点名が壊れるため、照合側で正規化する）', () => {
+  it('末尾の注記を外してから区切る（注記の中の区切り文字で割れない）', () => {
+    // 実データ（docs/reviews/pr-25.md）にある形。注記が読点を含むため、先に区切ると
+    // 閉じ括弧だけの断片が観点名として残っていた。
+    expect(
+      splitPerspectiveField('検査ルールの実効性、決定記録（DR-0011 の帰結が要求する検査が無い、という角度から）'),
+    ).toEqual(['検査ルールの実効性', '決定記録'])
+  })
+
+  it('末尾の注記だけを外し、観点名の途中にある括弧は残す', () => {
     expect(splitPerspectiveField('決定記録（DR）との整合（2観点から独立に指摘）')).toEqual([
-      '決定記録（DR）との整合（2観点から独立に指摘）',
+      '決定記録（DR）との整合',
     ])
+  })
+
+  it('注記が無ければ、観点名をそのまま返す', () => {
+    expect(splitPerspectiveField('決定記録（DR）との整合')).toEqual(['決定記録（DR）との整合'])
   })
 })
 
@@ -217,18 +229,31 @@ describe('実在のレビュー記録', () => {
     expect(parseFindings(real('pr-60.md')).length).toBe(20)
   })
 
-  it('括弧を含む観点名から挙がった指摘が、実記録でもその観点へ渡る', () => {
+  it('括弧を含む観点名が、安全弁ではなく欄の解決として決定記録の観点へ渡る', () => {
     // 観点表の `決定記録（DR）との整合` は名前自体に括弧を含む。注記だけを剥がす実装は
-    // この観点を永久に解決できず、複数観点から挙がった指摘を落としていた。
+    // この観点を永久に解決できなかった。
+    //
+    // **到達だけを見ても、この回帰は検出できない。** 欄が解決できないと安全弁（決定4）が
+    // 全観点へ渡すので、壊れた実装でも同じ観点へ届いてしまう。変わるのは根拠だけだ。
+    // だから `basis` を固定する。
     const markdown = real('pr-61.md')
-    const fromDecisions = parseFindings(markdown).filter((finding) =>
-      finding.perspectives.some((/** @type {string} */ name) => normalizePerspectiveName(name).startsWith('決定記録')),
+    const prefixMap = loadPrefixMap()
+    const lookup = buildLookup(loadPerspectiveMap())
+    const allTargets = [...new Set(loadPerspectiveMap().values())]
+    const fromDecisions = parseFindings(markdown).filter(
+      (finding) =>
+        finding.severity !== 'blocker' &&
+        finding.perspectives.every(
+          (/** @type {string} */ name) => (lookup.get(name) ?? lookup.get(normalizePerspectiveName(name))) !== undefined,
+        ) &&
+        finding.perspectives.some((/** @type {string} */ name) => normalizePerspectiveName(name).startsWith('決定記録')),
     )
-    const passed = selectForPerspective(markdown, 'agents/decisions.md').selected.map((f) => f.categoryId)
 
     expect(fromDecisions.length).toBeGreaterThan(0)
     for (const finding of fromDecisions) {
-      expect(passed).toContain(finding.categoryId)
+      const { targets, basis } = targetsFor(finding, prefixMap, lookup, allTargets)
+      expect(targets).toContain('agents/decisions.md')
+      expect(basis).toMatch(/^field/)
     }
   })
 
@@ -364,6 +389,30 @@ describe('summarize', () => {
     const entry = summarize(markdown, MAPS).perPerspective.find((e) => e.perspective === 'agents/contract.md')
 
     expect(entry?.dropped).toEqual([{ categoryId: 'writing/a', severity: 'should' }])
+  })
+
+  it('取りこぼしのある記録では fallback と unparsed を立てる（--report の終了コードを決める値）', () => {
+    // main() の `--report` は selectForPerspective ではなくこちらの値を見て
+    // exitCode 1 を返す。兄弟の値だけを固定すると、この経路が素通りする。
+    const result = summarize(review('### 所感\n\n#### `writing/a` — x'), MAPS)
+
+    expect(result.unparsed).toBe(1)
+    expect(result.fallback).toBe(true)
+  })
+
+  it('取りこぼしが無ければ fallback を立てない', () => {
+    const result = summarize(review('## should\n\n### `writing/a` — x\n\n本文'), MAPS)
+
+    expect(result.unparsed).toBe(0)
+    expect(result.fallback).toBe(false)
+  })
+
+  it('解決できなかった観点名を、指摘とあわせて列挙する（選別が効かなかったことを残す）', () => {
+    const markdown = review('## should\n\n### `writing/a` — x\n\n- **指摘した観点**: 知らない観点\n')
+
+    expect(summarize(markdown, MAPS).unresolvedPerspectives).toEqual([
+      { categoryId: 'writing/a', names: ['知らない観点'] },
+    ])
   })
 
   it('記録には観点名で書けるよう、指示ファイル名と観点名の両方を返す', () => {

@@ -21,7 +21,7 @@
  *
  *   - `blocker` の指摘
  *   - 欄の観点名を1つでも解決できなかった指摘
- *   - 接頭辞も解決できなかった指摘
+ *   - 欄も接頭辞も解決できなかった指摘
  *
  * さらに、**カテゴリID形の見出しを1つでも指摘として取り込めなかったファイルは、
  * 選別せず全文を渡す**（`fallback`）。書式は揺れる。取りこぼしたぶんは `findingCount`
@@ -52,6 +52,8 @@ const FINDING_TITLE = /^`?([a-z][a-z0-9-]*)\/([a-z0-9-]+)`?/
 const PERSPECTIVE_FIELD = /^- \*\*指摘した観点\*\*:\s*(.+)$/
 /** `指摘した観点` 欄の区切り。実データは `/` と `、` の両方を使う。 */
 const PERSPECTIVE_SEPARATOR = /[/、,]/
+/** 欄の末尾に付く注記。`（2観点から独立に挙がった）` のように行末で閉じるものだけ。 */
+const TRAILING_ANNOTATION = /[（(][^）)]*[）)]\s*$/
 
 /**
  * `references/finding-format.md` の重要度表から、重要度の語彙を読む。
@@ -180,13 +182,21 @@ export function buildLookup(perspectiveMap) {
 }
 
 /**
- * `指摘した観点` 欄の値を観点名の配列へ分解する。注記は剥がさない（照合側で正規化する）。
+ * `指摘した観点` 欄の値を観点名の配列へ分解する。
+ *
+ * **末尾の注記を先に外してから区切る。** 注記は区切り文字（`、` や `/`）を含むことが
+ * あり、先に区切ると注記が割れて、閉じ括弧だけの断片が観点名として残る。
+ *
+ * 外すのは行末で閉じる括弧だけだ。観点名そのものが括弧を含むことがあり
+ * （`決定記録（DR）との整合`）、途中の括弧まで外すと正本の名前が壊れる。名前の中の
+ * 括弧は照合側で正規化する（`normalizePerspectiveName`）。
  *
  * @param {string} value
  * @returns {string[]}
  */
 export function splitPerspectiveField(value) {
   return value
+    .replace(TRAILING_ANNOTATION, '')
     .split(PERSPECTIVE_SEPARATOR)
     .map((part) => part.trim())
     .filter((part) => part.length > 0)
@@ -349,7 +359,7 @@ export function targetsFor(finding, prefixMap, lookup, allTargets) {
 
   // 欄に書かれた観点名を1つでも解決できなければ、渡し先を確定させない。接頭辞だけで
   // 決めると、解決できなかった観点へ渡らないまま「決まった」ことになり、複数観点から
-  // 挙がったという信号が静かに消える（DR-0055 決定3）。
+  // 挙がったという信号が静かに消える（DR-0055 決定4）。
   if (unresolvedNames > 0) {
     return { targets: [...allTargets], basis: 'unresolved-perspective' }
   }
@@ -470,10 +480,23 @@ export function summarize(markdown, maps) {
     }
   })
 
+  // 解決できなかった観点名を持つ指摘は、安全弁（決定4）で全観点へ渡る。**渡るので
+  // 取りこぼしではないが、その指摘については選別が効いていない。** 記録に残らないと、
+  // 効かなかったことに誰も気づかないまま削減率だけが下がる。
+  const unresolvedPerspectives = findings
+    .map((finding) => ({
+      categoryId: finding.categoryId,
+      names: finding.perspectives.filter(
+        (name) => (resolved.lookup.get(name) ?? resolved.lookup.get(normalizePerspectiveName(name))) === undefined,
+      ),
+    }))
+    .filter((entry) => entry.names.length > 0)
+
   return {
     findingCount: findings.length,
     unparsed,
     fallback: unparsed > 0,
+    unresolvedPerspectives,
     perspectiveCount: resolved.allTargets.length,
     beforeSelection: markdown.length * resolved.allTargets.length,
     afterSelection: perPerspective.reduce((sum, entry) => sum + entry.selectedSize, 0),
@@ -538,6 +561,16 @@ function main() {
             : entry.dropped.map((finding) => `${finding.categoryId}（${finding.severity}）`).join(' / ')
         }`,
       )
+    }
+
+    if (result.unresolvedPerspectives.length > 0) {
+      console.log(
+        `\n注意: ${result.unresolvedPerspectives.length} 件の指摘で、\`指摘した観点\` 欄の観点名を解決できなかった。\n` +
+          '      これらは安全弁（DR-0055 決定4）で全観点へ渡るので落ちてはいないが、選別は効いていない。',
+      )
+      for (const entry of result.unresolvedPerspectives) {
+        console.log(`      ${entry.categoryId}: ${entry.names.map((name) => `「${name}」`).join(' / ')}`)
+      }
     }
 
     if (result.fallback) {
