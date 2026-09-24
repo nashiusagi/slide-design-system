@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-24（PR #66 レビュー 2周目）
+最終更新: 2026-09-24（PR #66 レビュー 3周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -43,7 +43,7 @@
 | `phase/completion-criterion-not-verified-e2e` | Issue の完了条件が、単体テストのみで統合パスを通さず検証されている | 10 | PR #66 | 未着手 |
 | `writing/contradictory-instruction` | 同じ状況に対する指示が文書間で食い違う | 11 | PR #66 | 未着手 |
 | `writing/dangling-quote-reference` | 文書内の引用符付き参照が、書き換え後のどの語句・項目にも対応しなくなった | 8 | PR #58 | 未着手 |
-| `writing/test-title-ambiguous` | テストタイトルが、そのテストの固定する不変条件を示していない | 9 | PR #61 | 未着手 |
+| `writing/test-title-ambiguous` | テストタイトルが、そのテストの固定する不変条件を示していない | 10 | PR #66 | 未着手 |
 | `code/dead-check-entry` | より強い条件に覆われ、単独では決して落ちない検査項目がある | 3 | PR #47 | 未着手 |
 | `contract/workflow-constant-duplicated` | 他が持つ取り決め（パス・上限値）が書き写された | 4 | PR #56 | 未着手 |
 | `decisions/citation-overclaims-source-scope` | 引用した DR・資料の実際の記述範囲より広い主張をしている | 7 | PR #58 | 未着手 |
@@ -103,7 +103,7 @@
 | `code/dead-check-entry` | コード品質 | より強い条件に覆われ、単独では決して落ちない検査項目がある | 3 | PR #20 | PR #47 |
 | `writing/do-dont-asymmetry` | 日本語 | 北極星の比喩の暴走を止める Don't が無い | 1 | PR #21 | PR #21 |
 | `code/redundant-type-only-devdependency` | コード品質 | 型を同梱するパッケージに、別系統の型パッケージを重ねて入れた | 1 | PR #23 | PR #23 |
-| `writing/test-title-ambiguous` | 日本語 | テストタイトルが、そのテストの固定する不変条件を示していない | 9 | PR #23 | PR #61 |
+| `writing/test-title-ambiguous` | 日本語 | テストタイトルが、そのテストの固定する不変条件を示していない | 10 | PR #23 | PR #66 |
 | `code/sibling-field-test-gap` | コード品質 | 同じ制約を個別に持つ複数フィールドのうち、一部にしか回帰テストが無い | 4 | PR #23 | PR #66 |
 | `inspection/rule-has-bypass` | 検査 | 検査ルールに抜け道があり、書き方を変えると素通りする | 20 | PR #13 | PR #66 |
 | `decisions/wrong-dr-citation` | 決定記録 | 誤った DR 番号を根拠として引用している | 6 | PR #24 | PR #66 |
@@ -212,12 +212,13 @@
 | `decisions/alternatives-cover-only-one-decision` | 決定記録 | 却下案が一部の決定しか覆っていない | 1 | PR #66 | PR #66 |
 | `inspection/perspective-separator-splits-annotation` | 検査 | 区切り文字での分割が、注記の中の同じ文字でも割れて観点名が壊れる | 1 | PR #66 | PR #66 |
 | `inspection/fallback-false-positive-on-dropped-headings` | 検査 | 退避の発動条件が広すぎ、正常な記述でも機能が丸ごと無効になる | 1 | PR #66 | PR #66 |
+| `code/diagnostic-misattributes-cause` | コード品質 | 診断が、実際とは違う原因を報告し、本来の対象と見分けが付かなくなる | 1 | PR #66 | PR #66 |
 
 ## レビュー履歴
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #66 | 2026-09-24 | 3 | 17 | 7 | [pr-66.md](./reviews/pr-66.md) |
+| #66 | 2026-09-24 | 3 | 20 | 8 | [pr-66.md](./reviews/pr-66.md) |
 | #61 | 2026-09-24 | 8 | 26 | 11 | [pr-61.md](./reviews/pr-61.md) |
 | #60 | 2026-09-23 | 1 | 16 | 3 | [pr-60.md](./reviews/pr-60.md) |
 | #58 | 2026-09-22 | 5 | 31 | 11 | [pr-58.md](./reviews/pr-58.md) |
