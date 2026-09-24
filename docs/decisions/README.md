@@ -92,6 +92,7 @@
 | [0052](./0052-review-loop-third-exit.md) | レビューループの抜け方に「確認未了」を足す |
 | [0053](./0053-review-coverage-recorded.md) | その周に立った観点は、走らせた側が記録として残す |
 | [0055](./0055-prior-review-selected-per-perspective.md) | 前周のレビューは全文を配らず、観点ごとに選別して渡す |
+| [0057](./0057-self-check-before-ready.md) | Ready 化の前に自分の差分を読み返し、検証可能な材料を残す |
 
 ### メタ
 
