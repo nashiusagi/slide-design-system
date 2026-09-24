@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-24（PR #61 レビュー 4周目）
+最終更新: 2026-09-24（PR #61 レビュー 5周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -21,7 +21,7 @@
 | カテゴリID | 要約 | 累計 | 最終指摘 | 状態 |
 |---|---|---|---|---|
 | `writing/ambiguous-criterion` | 判断基準が曖昧で、契約として実行できない | 11 | PR #58 | 未着手 |
-| `writing/term-inconsistency` | 同じものが複数の呼び名を持ち、外延も揺れる | 15 | PR #60 | 未着手 |
+| `writing/term-inconsistency` | 同じものが複数の呼び名を持ち、外延も揺れる | 16 | PR #61 | 未着手 |
 | `writing/notation-inconsistency` | 表記の不統一（DR 参照がリンクになっていない等） | 8 | PR #58 | 未着手 |
 | `phase/out-of-scope-addition` | フェーズのスコープ外、または DR に接続しないものが混入した | 8 | PR #57 | 未着手 |
 | `decisions/undocumented-decision` | DR に無い判断が、PR説明やIssueにだけ書かれている | 16 | PR #61 | 未着手 |
@@ -73,7 +73,7 @@
 | `inspection/measure-viewport-unspecified` | 検査 | measure の測定条件が未規定で結果が再現しない | 1 | PR #13 | PR #13 |
 | `code/gitignore-hides-tracked-artifacts` | コード品質 | .gitignore が、追跡する方針の成果物を無言で除外する | 1 | PR #13 | PR #13 |
 | `writing/ambiguous-criterion` | 日本語 | 判断基準が曖昧で、契約として実行できない | 11 | PR #13 | PR #58 |
-| `writing/term-inconsistency` | 日本語 | 同じものが複数の呼び名を持ち、外延も揺れる | 15 | PR #13 | PR #60 |
+| `writing/term-inconsistency` | 日本語 | 同じものが複数の呼び名を持ち、外延も揺れる | 16 | PR #13 | PR #61 |
 | `writing/notation-inconsistency` | 日本語 | 表記の不統一 | 8 | PR #13 | PR #58 |
 | `phase/out-of-scope-addition` | フェーズ | フェーズのスコープ外、または DR に接続しないものが混入した | 8 | PR #13 | PR #57 |
 | `decisions/undocumented-decision` | 決定記録 | DR に無い判断が、PR説明やIssueにだけ書かれている | 16 | PR #13 | PR #61 |
@@ -210,7 +210,7 @@
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #61 | 2026-09-24 | 7 | 23 | 10 | [pr-61.md](./reviews/pr-61.md) |
+| #61 | 2026-09-24 | 8 | 26 | 11 | [pr-61.md](./reviews/pr-61.md) |
 | #60 | 2026-09-23 | 1 | 16 | 3 | [pr-60.md](./reviews/pr-60.md) |
 | #58 | 2026-09-22 | 5 | 31 | 11 | [pr-58.md](./reviews/pr-58.md) |
 | #57 | 2026-09-21 | 0 | 15 | 12 | [pr-57.md](./reviews/pr-57.md) |
