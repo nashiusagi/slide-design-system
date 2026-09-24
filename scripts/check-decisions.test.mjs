@@ -344,6 +344,24 @@ describe('checkFencesClosed', () => {
 
     expect(checkFencesClosed({ sources })).toHaveLength(1)
   })
+
+  it('4個のフェンスで開閉したら閉じている（入れ子のコード例を落とさない）', () => {
+    const sources = new Map([['docs/x.md', ['````markdown', '```js', 'const x = 1', '```', '````'].join('\n')]])
+
+    expect(checkFencesClosed({ sources })).toEqual([])
+  })
+
+  it('4個で開いて中に3個の行があっても閉じない（長さを見ないと見逃す）', () => {
+    const sources = new Map([['docs/x.md', ['````markdown', '```', '例'].join('\n')]])
+
+    expect(checkFencesClosed({ sources })).toHaveLength(1)
+  })
+
+  it('開きより長い閉じは閉じる（CommonMark の規則）', () => {
+    const sources = new Map([['docs/x.md', ['```', '例', '````'].join('\n')]])
+
+    expect(checkFencesClosed({ sources })).toEqual([])
+  })
 })
 
 describe('フェンスの記号を混ぜても中身が漏れないこと', () => {

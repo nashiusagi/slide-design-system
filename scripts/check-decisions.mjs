@@ -73,8 +73,9 @@ const INDEX_FILE = 'README.md'
  * 書く唯一の場所**にする。食い違っている4箇所の理由は次のとおり。
  *
  * - `scripts` / `packages` — あちらは README だけ、こちらはディレクトリ全体。
- *   あちらが見るのは設計データの値の複製で、それが書かれうるのは人が読む README。
- *   こちらが見るのは参照で、`.md` ならどこに書かれていてもリンクが壊れうる
+ *   **あちらが README に絞った理由は、あちらの docstring にも DR-0046 にも書かれて
+ *   いない。** ここで推測を書くと、それが唯一の記録として固定される。こちらが全体を
+ *   見る理由だけ書く——参照は `.md` ならどこに書かれていてもリンクが壊れうる
  * - `src/docs` — あちらにしか無い。`.ts` / `.tsx` / `.css` を対象にしており、
  *   こちらは `.md` に閉じるので入れても1件も拾わない
  * - `design` — こちらにしか無い。あちらにとっては正本そのもので、走査すると
@@ -150,10 +151,18 @@ const read = (relativePath) => readFileSync(resolve(relativePath), 'utf8')
  * そのファイルの参照もリンクも検査されないまま緑になる——行を捨てる判断をした以上、
  * 捨てた範囲が意図どおりであることは検査側が保証する必要がある（PR #61 の blocker）。
  *
- * **開いた記号を覚え、同じ記号でしか閉じない。** 真偽値のトグルにすると2つ抜ける。
- * ``` で開いたフェンスの中に `~~~` が本文として現れるとそこで閉じたことになり、
- * 閉じ忘れを見逃す。中に ```js のような情報文字列つきの行があっても同じだ。
- * 閉じる側に情報文字列は書けない（CommonMark）ので、記号だけの行を閉じと見なす。
+ * **開いた記号とその長さを覚え、CommonMark の規則で閉じる。** 閉じるのは、同じ記号が
+ * 開いた長さ以上続き、その後ろが空白だけの行に限る。ここを緩めると両方向に壊れる。
+ *
+ * - 真偽値のトグルにすると、``` の中の `~~~` や ```js で閉じたことになり、閉じ忘れを
+ *   見逃す（PR #61 2周目の blocker）
+ * - 記号の種類だけを見て長さを見ないと、4個以上のバッククォートで開いたフェンスが
+ *   中の3個の行で閉じたことになり、やはり閉じ忘れを見逃す。逆に長さの一致だけを
+ *   求めると、`````` で正しく開閉したフェンスまで「閉じていない」と落とす
+ *   （PR #61 3周目の blocker）
+ *
+ * 4個以上のフェンスは、コード例を入れ子で見せるときの標準の書き方だ。書式ファイルが
+ * これを使えるようにしておく。
  *
  * @param {string} source
  * @returns {{ stripped: string, unclosedFrom: number | undefined }}
@@ -168,7 +177,7 @@ export function stripCodeBlocks(source) {
   const stripped = lines
     .map((line, index) => {
       if (fence === undefined) {
-        const opening = line.match(/^\s*(```|~~~)/)
+        const opening = line.match(/^\s*(`{3,}|~{3,})/)
 
         if (opening) {
           fence = opening[1]
@@ -179,7 +188,7 @@ export function stripCodeBlocks(source) {
         return line.replace(/`[^`]*`/g, (match) => ' '.repeat(match.length))
       }
 
-      if (new RegExp(`^\\s*${fence}\\s*$`).test(line)) {
+      if (new RegExp(`^\\s*${fence[0]}{${fence.length},}\\s*$`).test(line)) {
         fence = undefined
         openedAt = undefined
       }
