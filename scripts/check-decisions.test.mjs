@@ -362,6 +362,45 @@ describe('checkFencesClosed', () => {
 
     expect(checkFencesClosed({ sources })).toEqual([])
   })
+
+  it('3字下げまではフェンスとして開く', () => {
+    const sources = new Map([['docs/x.md', ['   ```', '例'].join('\n')]])
+
+    expect(checkFencesClosed({ sources })).toHaveLength(1)
+  })
+
+  it('4字下げはフェンスではない（CommonMark ではコードブロック）', () => {
+    const sources = new Map([['docs/x.md', ['    ```', '例'].join('\n')]])
+
+    expect(checkFencesClosed({ sources })).toEqual([])
+  })
+
+  it('4字下げの行は閉じにもならない（閉じ側にも同じ上限がある）', () => {
+    const sources = new Map([['docs/x.md', ['```', '例', '    ```'].join('\n')]])
+
+    expect(checkFencesClosed({ sources })).toHaveLength(1)
+  })
+})
+
+describe('4字下げの偽フェンスが本文を飲み込まないこと', () => {
+  it('偽フェンスと本物のフェンスに挟まれた地の文が、参照とリンクの検査に届く', () => {
+    const source = [
+      '引用:',
+      '    ``` 例のつもりで書いた行',
+      '',
+      '存在しない DR-9001 への言及がある。',
+      '[壊れたリンク](./nope.md) もある。',
+      '',
+      '```js',
+      'const real = 1',
+      '```',
+    ].join('\n')
+    const sources = new Map([['docs/x.md', source]])
+
+    expect(checkFencesClosed({ sources })).toEqual([])
+    expect(checkReferencesExist({ numbers: new Set(['0024']), sources })).toHaveLength(1)
+    expect(checkLinksResolve({ sources, exists: () => false })).toHaveLength(1)
+  })
 })
 
 describe('フェンスの記号を混ぜても中身が漏れないこと', () => {
