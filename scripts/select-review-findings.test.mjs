@@ -146,6 +146,20 @@ describe('splitPerspectiveField', () => {
   it('注記が無ければ、観点名をそのまま返す', () => {
     expect(splitPerspectiveField('決定記録（DR）との整合')).toEqual(['決定記録（DR）との整合'])
   })
+
+  it('末尾に注記が複数並んでいれば、まとめて外す', () => {
+    expect(splitPerspectiveField('検査ルールの実効性（Aの観点から、Bの観点から）（2周目に追加）')).toEqual([
+      '検査ルールの実効性',
+    ])
+  })
+
+  it('注記の後に観点名が続く形は外せず、断片が残る（#67 まで残る既知の限界）', () => {
+    // 正規表現で末尾を見るやり方の限界。断片は解決できないので安全弁で全観点へ渡り、
+    // 選別が効かなかったことは unresolvedPerspectives に出る。実データ（pr-55.md）にある形。
+    expect(splitPerspectiveField('フェーズスコープ、検査ルールの実効性（あちらは `x/y` として挙げた）、設計契約')).toEqual(
+      ['フェーズスコープ', '検査ルールの実効性（あちらは `x', 'y` として挙げた）', '設計契約'],
+    )
+  })
 })
 
 describe('parseFindings', () => {
@@ -229,13 +243,17 @@ describe('実在のレビュー記録', () => {
     expect(parseFindings(real('pr-60.md')).length).toBe(20)
   })
 
-  it('括弧を含む観点名が、安全弁ではなく欄の解決として決定記録の観点へ渡る', () => {
-    // 観点表の `決定記録（DR）との整合` は名前自体に括弧を含む。注記だけを剥がす実装は
-    // この観点を永久に解決できなかった。
+  it('短縮表記の観点名が、安全弁ではなく欄の解決として決定記録の観点へ渡る', () => {
+    // 実記録の `指摘した観点` 欄はすべて短縮表記（`決定記録との整合`）で書かれている。
+    // 正本の名前は `決定記録（DR）との整合` で括弧を含むので、**正本側も正規化しないと
+    // この短縮表記は一致しない**。1周目はそこが壊れていた。
     //
     // **到達だけを見ても、この回帰は検出できない。** 欄が解決できないと安全弁（決定4）が
     // 全観点へ渡すので、壊れた実装でも同じ観点へ届いてしまう。変わるのは根拠だけだ。
     // だから `basis` を固定する。
+    //
+    // 括弧付きの表記そのものを入力に与える検証は、実記録に例が無いので合成データで行う
+    // （`normalizePerspectiveName / buildLookup` の describe）。
     const markdown = real('pr-61.md')
     const prefixMap = loadPrefixMap()
     const lookup = buildLookup(loadPerspectiveMap())
@@ -413,6 +431,14 @@ describe('summarize', () => {
     expect(summarize(markdown, MAPS).unresolvedPerspectives).toEqual([
       { categoryId: 'writing/a', names: ['知らない観点'] },
     ])
+  })
+
+  it('全観点へ渡す重要度の指摘は、解決できなかった観点名として数えない', () => {
+    // blocker は欄の解決を試す前に渡し先が決まる。欄が読めるかは選別の実効性と関係が
+    // 無いので、混ぜると本当に効いていないものが埋もれる。
+    const markdown = review('## blocker\n\n### `writing/a` — x\n\n- **指摘した観点**: 知らない観点\n')
+
+    expect(summarize(markdown, MAPS).unresolvedPerspectives).toEqual([])
   })
 
   it('記録には観点名で書けるよう、指示ファイル名と観点名の両方を返す', () => {
