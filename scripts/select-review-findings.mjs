@@ -8,16 +8,24 @@
  * 周を重ねるほど記録は伸び、それを観点の数だけ配るので、読ませる量が単調に増える。
  * ここは「その観点に関係する指摘だけ」を切り出して、配る量を減らす。
  *
- * 判定はしない。指摘が既に持っている2つの情報だけを読む。
+ * 判定はしない。指摘が既に持っている2つの情報を読む。
  *
- *   1. `指摘した観点` 欄（`references/review-file-format.md`）— どの観点から挙がったか。
- *      複数観点から挙がった指摘はそのすべてが書かれる
- *   2. カテゴリIDの接頭辞（`references/finding-format.md`）— 1 が無い・読めないときの土台
+ *   1. `指摘した観点` 欄（`references/review-file-format.md`）— どの観点から挙がったか
+ *   2. カテゴリIDの接頭辞（`references/finding-format.md`）
  *
- * **どちらも読めない指摘は全観点へ渡す。** 渡しすぎは前の状態に戻るだけだが、
- * 渡し損ねると同じ指摘が再生産され、周が伸びて削減分を食い潰す。迷ったら渡す。
+ * **2つは和集合を取る。どちらか一方を優先して切り落とさない**（DR-0055 決定3）。
+ * 欄だけを見ると、欄が省かれた指摘（実データに存在する）が接頭辞の手掛かりを失う。
+ * 接頭辞だけを見ると、複数観点から挙がったことが消える。
  *
- * `blocker` は判定によらず全観点へ渡す。最も重い指摘を仕分けで落とす形にしない。
+ * **渡し損ねを黙って起こさない。** 次の3つはいずれも全観点へ渡す。
+ *
+ *   - `blocker` の指摘
+ *   - 欄の観点名を1つでも解決できなかった指摘
+ *   - 接頭辞も解決できなかった指摘
+ *
+ * さらに、**カテゴリID形の見出しを1つでも指摘として取り込めなかったファイルは、
+ * 選別せず全文を渡す**（`fallback`）。書式は揺れる。取りこぼしたぶんは `findingCount`
+ * にすら入らないので、指摘単位の退避路より手前で消える。ファイル単位の退避路が要る。
  */
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -26,12 +34,54 @@ import { dirname, join, resolve } from 'node:path'
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const SKILL_DIR = join(REPO_ROOT, '.claude/skills/pr-review')
 
-/** 見出しから重要度を読む。`## blocker（2周目）` のように周が付くことがある。 */
-const SEVERITY_HEADING = /^## (blocker|should|consider)(?:（.*）)?\s*$/
-/** 指摘の見出し。カテゴリIDは backtick で囲まれ、`（同上）` のような注記が続くことがある。 */
-const FINDING_HEADING = /^### `([a-z][a-z0-9-]*)\/([a-z0-9-]+)`/
+/**
+ * 全観点へ渡す重要度。`finding-format.md` の重要度表で最も重い値。
+ *
+ * 語彙そのものは表から読む（`loadSeverities`）が、この1語だけは実装の分岐なので
+ * ここに置く。表の行の並びを「重い順」と解釈して先頭を取る形にすると、表に順序の
+ * 意味があることが表のどこにも書かれないまま実装だけが依存する。正本側にも同じ
+ * 断りを置いてある。
+ */
+const ALWAYS_BROADCAST = 'blocker'
+
+/** 見出し行。`#` の数（深さ）と中身を取る。 */
+const HEADING = /^(#{1,6})\s+(.*)$/
+/** カテゴリID形の見出し。backtick の有無は問わない（古い記録は付けていない）。 */
+const FINDING_TITLE = /^`?([a-z][a-z0-9-]*)\/([a-z0-9-]+)`?/
 /** `- **指摘した観点**: 日本語ドキュメント / 設計契約との整合（2観点から独立に挙がった）` */
 const PERSPECTIVE_FIELD = /^- \*\*指摘した観点\*\*:\s*(.+)$/
+/** `指摘した観点` 欄の区切り。実データは `/` と `、` の両方を使う。 */
+const PERSPECTIVE_SEPARATOR = /[/、,]/
+
+/**
+ * `references/finding-format.md` の重要度表から、重要度の語彙を読む。
+ *
+ * 実装へ書き写さないのは、語が増減・改称されたときに片方だけが古くなるため。
+ * 認識できない重要度の節は、その下の指摘ごと静かに消える形で壊れる。
+ *
+ * @param {string} [source] 省略時は正本を読む
+ * @returns {string[]}
+ */
+export function loadSeverities(source) {
+  const text = source ?? readFileSync(join(SKILL_DIR, 'references/finding-format.md'), 'utf8')
+  const section = /\n## 重要度\n([\s\S]*?)(?=\n## |$)/.exec(text)
+
+  if (section === null) {
+    throw new Error('references/finding-format.md に「## 重要度」の節が無い。正本の構成が変わった可能性がある。')
+  }
+
+  const severities = [...section[1].matchAll(/^\|\s*`([a-z][a-z0-9-]*)`\s*\|/gm)].map((row) => row[1])
+
+  if (severities.length === 0) {
+    throw new Error('references/finding-format.md の重要度表を読めない。表の書式が変わった可能性がある。')
+  }
+
+  if (!severities.includes(ALWAYS_BROADCAST)) {
+    throw new Error(`重要度表に '${ALWAYS_BROADCAST}' が無い。全観点へ渡す重要度が決められない。`)
+  }
+
+  return severities
+}
 
 /**
  * `references/finding-format.md` の表から、接頭辞と指示ファイルの対応を読む。
@@ -89,18 +139,56 @@ export function loadPerspectiveMap(source) {
 }
 
 /**
- * `指摘した観点` 欄の値を観点名の配列へ分解する。
+ * 観点名を照合用の形へ正規化する。
  *
- * 書式は `/` 区切りで、末尾に `（2観点から独立に挙がった）` のような注記が付くことが
- * ある。注記は要素ごとに剥がす——注記が最後の要素に食い込んで書かれるため。
+ * 括弧の中身を落とす。`指摘した観点` 欄の注記（`（2観点から独立に挙がった）`）と、
+ * **観点名そのものに含まれる括弧**（`決定記録（DR）との整合`）の両方が落ちる。
+ * 両側を同じ規則で正規化すれば、注記付きでも短い表記でも同じ鍵に寄る。
+ *
+ * 片側だけを剥がすと、正本の名前が照合できなくなる（実際にそう壊れた）。
+ *
+ * @param {string} name
+ */
+export function normalizePerspectiveName(name) {
+  return name.replace(/[（(][^）)]*[）)]/g, '').trim()
+}
+
+/**
+ * 観点名 -> 指示ファイル の対応を、正規化した鍵で引けるようにする。
+ *
+ * @param {Map<string, string>} perspectiveMap
+ * @returns {Map<string, string>}
+ */
+export function buildLookup(perspectiveMap) {
+  /** @type {Map<string, string>} */
+  const lookup = new Map()
+
+  for (const [name, file] of perspectiveMap) {
+    lookup.set(name, file)
+
+    const normalized = normalizePerspectiveName(name)
+    const existing = lookup.get(normalized)
+
+    if (existing !== undefined && existing !== file) {
+      throw new Error(`観点名 '${name}' の正規化結果 '${normalized}' が別の観点と衝突する。観点表を確かめること。`)
+    }
+
+    lookup.set(normalized, file)
+  }
+
+  return lookup
+}
+
+/**
+ * `指摘した観点` 欄の値を観点名の配列へ分解する。注記は剥がさない（照合側で正規化する）。
  *
  * @param {string} value
  * @returns {string[]}
  */
 export function splitPerspectiveField(value) {
   return value
-    .split('/')
-    .map((part) => part.replace(/（[^）]*）/g, '').trim())
+    .split(PERSPECTIVE_SEPARATOR)
+    .map((part) => part.trim())
     .filter((part) => part.length > 0)
 }
 
@@ -117,18 +205,28 @@ export function splitPerspectiveField(value) {
 /**
  * レビュー記録を指摘単位へ分解する。
  *
- * 重要度は直前の `## blocker` / `## should` / `## consider` 見出しから引き継ぐ。
- * `## 落とした指摘` 以降のように重要度の節を抜けた領域では、指摘の本体は現れない。
+ * 見出しの深さを固定しない。実データは2つの書き方に割れている。
+ *
+ *   `## blocker`          > `` ### `id` ``      （初回、および `## blocker（2周目）`）
+ *   `## 2周目` > `### should` > `` #### `id` `` （2周目以降の大半）
+ *
+ * 重要度の節は「重要度語だけの見出し」で始まり、それと同じ深さ以上の見出しで終わる。
+ * 指摘はその節より深い見出しになる。深さを決め打ちにすると、片方の書き方の指摘が
+ * 丸ごと消える（実際にそう壊れた）。
  *
  * @param {string} markdown `docs/reviews/pr-<N>.md` の中身
+ * @param {string[]} [severities] 省略時は正本から読む
  * @returns {Finding[]}
  */
-export function parseFindings(markdown) {
-  const lines = markdown.split('\n')
+export function parseFindings(markdown, severities) {
+  const vocabulary = severities ?? loadSeverities()
+  const severityHeading = new RegExp(`^(${vocabulary.join('|')})(?:[（(].*[）)])?$`)
+
   /** @type {Finding[]} */
   const findings = []
   /** @type {string | null} */
   let severity = null
+  let severityDepth = 0
   /** @type {Finding | null} */
   let current = null
 
@@ -140,34 +238,47 @@ export function parseFindings(markdown) {
     }
   }
 
-  for (const line of lines) {
-    const severityHeading = SEVERITY_HEADING.exec(line)
+  for (const line of markdown.split('\n')) {
+    const heading = HEADING.exec(line)
 
-    if (severityHeading !== null) {
-      flush()
-      severity = severityHeading[1]
-      continue
-    }
+    if (heading !== null) {
+      const depth = heading[1].length
+      const title = heading[2].trim()
 
-    // 重要度以外の `## ` 見出し（`## 落とした指摘`、`## <N>周目` など）に入ったら、
-    // そこから先の `### ` は指摘の本体ではない。
-    if (line.startsWith('## ')) {
-      flush()
-      severity = null
-      continue
-    }
+      const matchedSeverity = severityHeading.exec(title)
 
-    const findingHeading = FINDING_HEADING.exec(line)
-
-    if (findingHeading !== null && severity !== null) {
-      flush()
-      current = {
-        categoryId: `${findingHeading[1]}/${findingHeading[2]}`,
-        prefix: findingHeading[1],
-        severity,
-        perspectives: [],
-        text: `${line}\n`,
+      if (matchedSeverity !== null) {
+        flush()
+        severity = matchedSeverity[1]
+        severityDepth = depth
+        continue
       }
+
+      const findingTitle = FINDING_TITLE.exec(title)
+
+      if (findingTitle !== null && severity !== null && depth > severityDepth) {
+        flush()
+        current = {
+          categoryId: `${findingTitle[1]}/${findingTitle[2]}`,
+          prefix: findingTitle[1],
+          severity,
+          perspectives: [],
+          text: `${line}\n`,
+        }
+        continue
+      }
+
+      // 重要度の節と同じ深さ以上の、重要度でない見出し（`## 2周目`、`## 落とした指摘`）。
+      // ここで節を抜ける。
+      if (severity !== null && depth <= severityDepth) {
+        flush()
+        severity = null
+      }
+
+      if (current !== null) {
+        current.text += `${line}\n`
+      }
+
       continue
     }
 
@@ -188,87 +299,171 @@ export function parseFindings(markdown) {
 }
 
 /**
+ * ファイル中のカテゴリID形の見出しのうち、指摘として取り込めなかった数を数える。
+ *
+ * 0 でなければ、その記録は想定していない書き方を含む。選別せず全文を渡す判断に使う。
+ *
+ * @param {string} markdown
+ * @param {Finding[]} findings
+ */
+export function countUnparsedHeadings(markdown, findings) {
+  let total = 0
+
+  for (const line of markdown.split('\n')) {
+    const heading = HEADING.exec(line)
+    if (heading !== null && FINDING_TITLE.test(heading[2].trim())) {
+      total += 1
+    }
+  }
+
+  return Math.max(0, total - findings.length)
+}
+
+/**
  * 1件の指摘を、どの指示ファイル（観点）へ渡すかを決める。
  *
  * @param {Finding} finding
  * @param {Map<string, string>} prefixMap
- * @param {Map<string, string>} perspectiveMap
+ * @param {Map<string, string>} lookup 正規化した観点名でも引ける対応
  * @param {string[]} allTargets
  * @returns {{ targets: string[], basis: string }}
  */
-export function targetsFor(finding, prefixMap, perspectiveMap, allTargets) {
-  if (finding.severity === 'blocker') {
-    return { targets: [...allTargets], basis: 'blocker' }
+export function targetsFor(finding, prefixMap, lookup, allTargets) {
+  if (finding.severity === ALWAYS_BROADCAST) {
+    return { targets: [...allTargets], basis: 'broadcast' }
   }
 
-  // `指摘した観点` 欄が読めたぶんを優先する。複数観点から挙がった指摘はここに全部載る。
   /** @type {string[]} */
-  const fromField = finding.perspectives.flatMap((name) => {
-    const target = perspectiveMap.get(name)
-    return target === undefined ? [] : [target]
-  })
+  const fromField = []
+  let unresolvedNames = 0
+
+  for (const name of finding.perspectives) {
+    const target = lookup.get(name) ?? lookup.get(normalizePerspectiveName(name))
+
+    if (target === undefined) {
+      unresolvedNames += 1
+    } else {
+      fromField.push(target)
+    }
+  }
+
+  // 欄に書かれた観点名を1つでも解決できなければ、渡し先を確定させない。接頭辞だけで
+  // 決めると、解決できなかった観点へ渡らないまま「決まった」ことになり、複数観点から
+  // 挙がったという信号が静かに消える（DR-0055 決定3）。
+  if (unresolvedNames > 0) {
+    return { targets: [...allTargets], basis: 'unresolved-perspective' }
+  }
 
   const fromPrefix = prefixMap.get(finding.prefix)
-  const targets = [...new Set([...fromField, ...(fromPrefix === undefined ? [] : [fromPrefix])])]
+  const known = fromPrefix !== undefined && allTargets.includes(fromPrefix)
+  const targets = [...new Set([...fromField, ...(known ? [fromPrefix] : [])])].filter((target) =>
+    allTargets.includes(target),
+  )
 
   if (targets.length === 0) {
-    // 欄も接頭辞も読めない。渡し損ねて再生産させるより、前の状態（全員へ渡す）に倒す。
     return { targets: [...allTargets], basis: 'unresolved' }
   }
 
   return {
     targets,
-    basis: fromField.length > 0 ? (fromPrefix === undefined ? 'field' : 'field+prefix') : 'prefix',
+    basis: fromField.length > 0 ? (known ? 'field+prefix' : 'field') : 'prefix',
+  }
+}
+
+/**
+ * 接頭辞表と観点表が食い違っていないかを確かめる。
+ *
+ * 2つの表は別ファイルの正本なので、片方だけが変わる形（観点の統廃合、指示ファイルの
+ * 改名）が起こりうる。そのとき黙って「その接頭辞の指摘が誰にも渡らない」状態になる
+ * のを防ぐ。
+ *
+ * @param {Map<string, string>} prefixMap
+ * @param {Map<string, string>} perspectiveMap
+ */
+export function assertMapsAgree(prefixMap, perspectiveMap) {
+  const targets = new Set(perspectiveMap.values())
+  const orphans = [...prefixMap].filter(([, file]) => !targets.has(file))
+
+  if (orphans.length > 0) {
+    throw new Error(
+      `接頭辞表が、観点表に無い指示ファイルを指している: ${orphans
+        .map(([prefix, file]) => `${prefix} -> ${file}`)
+        .join(' / ')}。どちらかの正本が古い。`,
+    )
+  }
+}
+
+/**
+ * @param {{ prefixMap?: Map<string, string>, perspectiveMap?: Map<string, string>, severities?: string[] }} [maps]
+ */
+function resolveMaps(maps = {}) {
+  const prefixMap = maps.prefixMap ?? loadPrefixMap()
+  const perspectiveMap = maps.perspectiveMap ?? loadPerspectiveMap()
+  const severities = maps.severities ?? loadSeverities()
+
+  assertMapsAgree(prefixMap, perspectiveMap)
+
+  return {
+    prefixMap,
+    perspectiveMap,
+    severities,
+    lookup: buildLookup(perspectiveMap),
+    allTargets: [...new Set(perspectiveMap.values())],
   }
 }
 
 /**
  * ある観点へ渡す指摘と、渡さなかった指摘に分ける。
  *
+ * `fallback` が真なら、取りこぼしがあったので選別してはいけない。呼ぶ側は全文を渡す。
+ *
  * @param {string} markdown レビュー記録の中身
  * @param {string} perspectiveFile 渡す先の指示ファイル（`agents/*.md`）
- * @param {{ prefixMap?: Map<string, string>, perspectiveMap?: Map<string, string> }} [maps]
+ * @param {Parameters<typeof resolveMaps>[0]} [maps]
  */
-export function selectForPerspective(markdown, perspectiveFile, maps = {}) {
-  const prefixMap = maps.prefixMap ?? loadPrefixMap()
-  const perspectiveMap = maps.perspectiveMap ?? loadPerspectiveMap()
-  const allTargets = [...new Set(perspectiveMap.values())]
+export function selectForPerspective(markdown, perspectiveFile, maps) {
+  const { prefixMap, lookup, allTargets, severities } = resolveMaps(maps)
 
   if (!allTargets.includes(perspectiveFile)) {
     throw new Error(`観点 '${perspectiveFile}' は観点表に無い。指定できるのは: ${allTargets.join(' / ')}`)
   }
 
-  const findings = parseFindings(markdown)
+  const findings = parseFindings(markdown, severities)
+  const unparsed = countUnparsedHeadings(markdown, findings)
   /** @type {(Finding & { basis: string })[]} */
   const selected = []
   /** @type {(Finding & { basis: string })[]} */
   const dropped = []
 
   for (const finding of findings) {
-    const { targets, basis } = targetsFor(finding, prefixMap, perspectiveMap, allTargets)
+    const { targets, basis } = targetsFor(finding, prefixMap, lookup, allTargets)
     ;(targets.includes(perspectiveFile) ? selected : dropped).push({ ...finding, basis })
   }
 
-  return { selected, dropped, findingCount: findings.length }
+  return { selected, dropped, findingCount: findings.length, unparsed, fallback: unparsed > 0 }
 }
 
 /**
- * 観点ごとの選別結果をまとめる。削減量の実測と、渡さなかった指摘の記録に使う。
+ * 観点ごとの選別結果をまとめる。渡した量の実測と、渡さなかった指摘の記録に使う。
+ *
+ * `beforeSelection` は「選別前に渡していた量」＝記録の全文 × 観点数。選別後との比較で
+ * 母数を揃えるため、指摘本文の合計ではなくファイル全体を取る。
  *
  * @param {string} markdown
- * @param {{ prefixMap?: Map<string, string>, perspectiveMap?: Map<string, string> }} [maps]
+ * @param {Parameters<typeof resolveMaps>[0]} [maps]
  */
-export function summarize(markdown, maps = {}) {
-  const prefixMap = maps.prefixMap ?? loadPrefixMap()
-  const perspectiveMap = maps.perspectiveMap ?? loadPerspectiveMap()
-  const allTargets = [...new Set(perspectiveMap.values())]
-  const findings = parseFindings(markdown)
-  const fullSize = findings.reduce((sum, finding) => sum + finding.text.length, 0)
+export function summarize(markdown, maps) {
+  const resolved = resolveMaps(maps)
+  const findings = parseFindings(markdown, resolved.severities)
+  const unparsed = countUnparsedHeadings(markdown, findings)
+  /** @type {Map<string, string>} 指示ファイル -> 観点名（記録には観点名で書くため） */
+  const names = new Map([...resolved.perspectiveMap].map(([name, file]) => [file, name]))
 
-  const perPerspective = allTargets.map((target) => {
-    const { selected, dropped } = selectForPerspective(markdown, target, { prefixMap, perspectiveMap })
+  const perPerspective = resolved.allTargets.map((target) => {
+    const { selected, dropped } = selectForPerspective(markdown, target, maps)
     return {
       perspective: target,
+      perspectiveName: names.get(target) ?? target,
       selectedCount: selected.length,
       selectedSize: selected.reduce((sum, finding) => sum + finding.text.length, 0),
       dropped: dropped.map((finding) => ({ categoryId: finding.categoryId, severity: finding.severity })),
@@ -277,9 +472,11 @@ export function summarize(markdown, maps = {}) {
 
   return {
     findingCount: findings.length,
-    perspectiveCount: allTargets.length,
-    before: fullSize * allTargets.length,
-    after: perPerspective.reduce((sum, entry) => sum + entry.selectedSize, 0),
+    unparsed,
+    fallback: unparsed > 0,
+    perspectiveCount: resolved.allTargets.length,
+    beforeSelection: markdown.length * resolved.allTargets.length,
+    afterSelection: perPerspective.reduce((sum, entry) => sum + entry.selectedSize, 0),
     perPerspective,
   }
 }
@@ -316,14 +513,37 @@ function main() {
 
   if (report) {
     const result = summarize(markdown)
-    const ratio = result.before === 0 ? 0 : Math.round((1 - result.after / result.before) * 100)
 
+    if (result.fallback) {
+      console.log(
+        `NG  取りこぼし ${result.unparsed} 件。カテゴリID形の見出しのうち、指摘として読めないものがある。\n` +
+          '    この記録は選別せず全文を渡すこと。書式を確かめること。\n',
+      )
+    }
+
+    const ratio = result.beforeSelection === 0 ? 0 : Math.round((1 - result.afterSelection / result.beforeSelection) * 100)
     console.log(`指摘 ${result.findingCount} 件 / 観点 ${result.perspectiveCount}`)
-    console.log(`全文を配ると ${result.before.toLocaleString()} 文字、選別すると ${result.after.toLocaleString()} 文字（削減 ${ratio}%）\n`)
+    console.log(
+      `選別前に渡していた量（記録の全文 × 観点数） ${result.beforeSelection.toLocaleString()} 文字、` +
+        `選別すると ${result.afterSelection.toLocaleString()} 文字（削減 ${ratio}%）\n`,
+    )
 
     for (const entry of result.perPerspective) {
-      console.log(`  ${entry.perspective.padEnd(22)} ${String(entry.selectedCount).padStart(3)} 件 ${String(entry.selectedSize).padStart(7)} 文字`)
+      console.log(`  ${entry.perspectiveName}`)
+      console.log(`    渡す: ${entry.selectedCount} 件 / ${entry.selectedSize.toLocaleString()} 文字`)
+      console.log(
+        `    渡さない: ${
+          entry.dropped.length === 0
+            ? 'なし'
+            : entry.dropped.map((finding) => `${finding.categoryId}（${finding.severity}）`).join(' / ')
+        }`,
+      )
     }
+
+    if (result.fallback) {
+      process.exitCode = 1
+    }
+
     return
   }
 
@@ -331,7 +551,14 @@ function main() {
     throw new Error('--perspective=<agents/*.md> が要る')
   }
 
-  const { selected } = selectForPerspective(markdown, perspective)
+  const { selected, fallback, unparsed } = selectForPerspective(markdown, perspective)
+
+  if (fallback) {
+    console.error(`警告: 取りこぼし ${unparsed} 件。選別せず全文を出力する。`)
+    console.log(markdown)
+    return
+  }
+
   console.log(selected.map((finding) => finding.text).join('\n\n'))
 }
 
