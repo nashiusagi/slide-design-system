@@ -73,6 +73,7 @@
 | [0038](./0038-defer-measure-in-check.md) | `pnpm measure` は、App が設計契約を消費するまで `pnpm check` へ組み込まない |
 | [0044](./0044-bypass-fixtures-required.md) | 検査ルールには bypass フィクスチャを伴わせ、守備範囲を契約で宣言する |
 | [0046](./0046-prose-checked-for-canonical-duplication.md) | 正本の複製は散文まで機械検査の対象にする |
+| [0054](./0054-decision-reference-checked-by-machine.md) | DR の参照・索引・冒頭欄は機械で検査し、帰結の反映は人が読む |
 
 ### 実験と運用
 

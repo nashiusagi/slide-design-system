@@ -3,7 +3,7 @@
 - **状態**: 承認済み
 - **日付**: 2026-09-10
 - **関連**: [DR-0023](./0023-public-repo-with-audit.md)
-- **正本**: `scripts/audit-public-data.mjs`（`STATIC_LEAK_PATTERNS` の実際のパターン一覧）
+- **実装**: `scripts/audit-public-data.mjs`（`STATIC_LEAK_PATTERNS` の実際のパターン一覧）
 
 ## 文脈
 
@@ -49,5 +49,5 @@
 ## 帰結
 
 - 新しいベンダーの形式を足す、閾値を変えるといった変更は、この DR の「決定」を更新して行う
-- パターンの実体（正規表現そのもの）はこの DR に複製しない。`scripts/audit-public-data.mjs` の `STATIC_LEAK_PATTERNS` を正本とする
+- パターンの実体（正規表現そのもの）はこの DR に複製しない。実体の在り処は `scripts/audit-public-data.mjs` の `STATIC_LEAK_PATTERNS`（冒頭欄の **実装**）
 - 誤検知（実際には秘密情報でない文字列がパターンに一致する）が実運用で頻発した場合は、閾値の調整または対象パターンの絞り込みを検討する

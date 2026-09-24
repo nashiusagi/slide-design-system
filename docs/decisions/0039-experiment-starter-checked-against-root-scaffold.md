@@ -3,7 +3,7 @@
 - **状態**: 承認済み
 - **日付**: 2026-09-09
 - **関連**: [DR-0021](./0021-starter-contains-runtime-only.md), [DR-0027](./0027-build-scaffold-workspace-and-test-stack.md), [DR-0020](./0020-scripts-do-not-invoke-ai.md)
-- **正本**: `scripts/prepare-workspace.mjs`（`checkStarterMatchesRoot` が比較するファイルの一覧）
+- **実装**: `scripts/prepare-workspace.mjs`（`checkStarterMatchesRoot` が比較するファイルの一覧）
 
 ## 文脈
 
