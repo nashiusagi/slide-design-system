@@ -380,6 +380,38 @@ describe('checkFencesClosed', () => {
 
     expect(checkFencesClosed({ sources })).toHaveLength(1)
   })
+
+  it('情報文字列にバッククォートがあるとフェンスとして開かない', () => {
+    const sources = new Map([['docs/x.md', ['``` `env` は環境変数のプレースホルダ', '例'].join('\n')]])
+
+    expect(checkFencesClosed({ sources })).toEqual([])
+  })
+
+  it('`~~~` の情報文字列にはバッククォートを置ける（制約はバッククォートのフェンスだけ）', () => {
+    const sources = new Map([['docs/x.md', ['~~~ `env` の話', '例'].join('\n')]])
+
+    expect(checkFencesClosed({ sources })).toHaveLength(1)
+  })
+})
+
+describe('情報文字列つきの偽フェンスが本文を飲み込まないこと', () => {
+  it('後方の本物のフェンスの開き行を閉じと誤認せず、間の地の文が検査に届く', () => {
+    const source = [
+      '``` `env` は環境変数のプレースホルダ',
+      '',
+      '存在しない DR-9001 への言及がある。',
+      '[壊れたリンク](./nope.md) もある。',
+      '',
+      '```js',
+      'const real = 1',
+      '```',
+    ].join('\n')
+    const sources = new Map([['docs/x.md', source]])
+
+    expect(checkFencesClosed({ sources })).toEqual([])
+    expect(checkReferencesExist({ numbers: new Set(['0024']), sources })).toHaveLength(1)
+    expect(checkLinksResolve({ sources, exists: () => false })).toHaveLength(1)
+  })
 })
 
 describe('4字下げの偽フェンスが本文を飲み込まないこと', () => {
