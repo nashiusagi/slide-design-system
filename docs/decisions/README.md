@@ -91,6 +91,7 @@
 | [0040](./0040-audit-secret-pattern-selection.md) | audit の API キー・token 検査は、主要ベンダーの既知形式 + 汎用の変数代入パターンに限る |
 | [0052](./0052-review-loop-third-exit.md) | レビューループの抜け方に「確認未了」を足す |
 | [0053](./0053-review-coverage-recorded.md) | その周に立った観点は、走らせた側が記録として残す |
+| [0055](./0055-prior-review-selected-per-perspective.md) | 前周のレビューは全文を配らず、観点ごとに選別して渡す |
 
 ### メタ
 

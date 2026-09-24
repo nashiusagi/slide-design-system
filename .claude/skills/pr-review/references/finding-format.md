@@ -41,9 +41,18 @@
 
 既知に無い問題なら新しいIDを作る。形は `<観点>/<問題の要約>`。
 
-観点のプレフィックスは次を使う。
+観点のプレフィックスは次を使う。右列は、その接頭辞を使う観点の指示ファイル（`SKILL.md` 手順4 の観点表が、観点名とこのファイルを対応づける）。
 
-`contract` / `inspection` / `decisions` / `phase` / `writing` / `code`
+| 接頭辞 | 指示ファイル |
+|---|---|
+| `contract` | `agents/contract.md` |
+| `inspection` | `agents/inspection.md` |
+| `decisions` | `agents/decisions.md` |
+| `phase` | `agents/phase.md` |
+| `writing` | `agents/writing.md` |
+| `code` | `agents/code-quality.md` |
+
+**観点名をこの表へ書き写さない。** 観点名の正本は `SKILL.md` 手順4 の観点表で、ここは接頭辞と指示ファイルの対応だけを持つ。両方が観点名を持つと、呼び方を変えたときに片方だけが古くなる。`code` の接頭辞が `code-quality.md` に対応するように、接頭辞とファイル名は一致するとは限らないので、この対応は機械が読む唯一の場所になる（`scripts/select-review-findings.mjs`）。
 
 例:
 
