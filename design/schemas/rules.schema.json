@@ -2,9 +2,9 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/nashiusagi/slide-design-system/design/schemas/rules.schema.json",
   "title": "design/rules.json",
-  "$comment": "検査ルールの契約を検証するスキーマ（DR-0009 / DR-0011）。rules 配列がルールIDと method（lint / measure / review）の対応の正本になる。閾値（contrast / minFontSize / noRawScale）は各ルールの実装がここを読みに来る値で、DR 本文には複製しない（DR-0008 / DR-0012）。",
+  "$comment": "検査ルールの契約を検証するスキーマ（DR-0009 / DR-0011 / DR-0056）。rules 配列がルールIDと method（lint / measure / review / content）の対応の正本になる。閾値（contrast / minFontSize / noRawScale）は各ルールの実装がここを読みに来る値で、DR 本文には複製しない（DR-0008 / DR-0012）。",
   "type": "object",
-  "required": ["rules", "contrast", "minFontSize", "noRawScale", "noOverflow"],
+  "required": ["rules", "contrast", "minFontSize", "noRawScale", "noOverflow", "keyMessageConveyed", "layoutFit"],
   "additionalProperties": false,
   "properties": {
     "$schema": { "type": "string" },
@@ -18,10 +18,10 @@
         "required": ["id", "method", "severity", "description"],
         "allOf": [
           {
-            "$comment": "review は人が判断し、自動判定を持たない（DR-0011）。機械で実行する bypass フィクスチャを要求しても走らせる入口が無いため、宣言そのものを求めない（DR-0044）。制約の本体は下の properties にある。",
+            "$comment": "review（人が判断する）と content（外部 API を使い pnpm check へ入れない、DR-0056）は、pnpm check の中で機械に走らせる入口を持たない。bypass フィクスチャを要求しても実行できないため、宣言そのものを求めない（DR-0044）。制約の本体は下の properties にある。",
             "if": {
               "required": ["method"],
-              "properties": { "method": { "not": { "const": "review" } } }
+              "properties": { "method": { "not": { "enum": ["review", "content"] } } }
             },
             "then": {
               "required": ["bypassAxes", "scopeExclusions"],
@@ -33,8 +33,8 @@
           "id": { "type": "string", "pattern": "^[a-z]+(-[a-z]+)*$" },
           "method": {
             "type": "string",
-            "enum": ["lint", "measure", "review"],
-            "description": "検査の実行手段。lint は ESLint、measure は Playwright での実測、review は人（DR-0011）。"
+            "enum": ["lint", "measure", "review", "content"],
+            "description": "検査の実行手段。lint は ESLint、measure は Playwright での実測、review は人（DR-0011）、content は表示文字を契約と突き合わせる判定（DR-0056）。"
           },
           "severity": {
             "type": "string",
@@ -121,6 +121,41 @@
       "properties": {
         "$comment": { "type": "string" },
         "toleranceInPx": { "type": "number", "minimum": 0 }
+      }
+    },
+    "keyMessageConveyed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["conveyanceMin", "reviewConfidence"],
+      "description": "key-message-conveyed ルール（content）の閾値。scripts/score-slide-content.mjs が読む（DR-0056 決定3）。",
+      "properties": {
+        "$comment": { "type": "string" },
+        "conveyanceMin": {
+          "type": "number",
+          "minimum": 0,
+          "description": "合格線。判定は0から3の4段階で、確率加重された値が返る。"
+        },
+        "reviewConfidence": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "description": "これを下回る確信度の判定は、合否によらず人が見る対象として印を付ける。"
+        }
+      }
+    },
+    "layoutFit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reviewConfidence"],
+      "description": "layout-fit ルール（content）の閾値。scripts/score-slide-content.mjs が読む（DR-0056 決定3）。",
+      "properties": {
+        "$comment": { "type": "string" },
+        "reviewConfidence": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "description": "これを下回る確信度の判定は、合否によらず人が見る対象として印を付ける。"
+        }
       }
     },
     "noRawScale": {

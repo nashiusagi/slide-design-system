@@ -20,15 +20,15 @@
  *
  * 出力は `measurements.json`（--out で変更可）。
  */
-import { createServer } from 'node:http'
-import { readFile, writeFile } from 'node:fs/promises'
+import { writeFile } from 'node:fs/promises'
 import { readFileSync } from 'node:fs'
-import { extname, isAbsolute, join } from 'node:path'
+import { isAbsolute } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import { chromium } from 'playwright'
 
 import { contrastRatioFromRgb, parseCssRgb } from './lib/color.mjs'
+import { originOf, startStaticServer } from './lib/static-server.mjs'
 import { IMPLEMENTED_MEASURE_RULE_IDS } from './lib/measure-rules.mjs'
 
 /**
@@ -44,44 +44,6 @@ const resolve = (path) => (isAbsolute(path) ? path : fileURLToPath(new URL(`../$
 const readJson = (relativePath) => JSON.parse(readFileSync(resolve(relativePath), 'utf8'))
 
 /** @type {Record<string, string>} */
-const MIME_TYPES = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.mjs': 'text/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.svg': 'image/svg+xml',
-  '.json': 'application/json; charset=utf-8',
-}
-
-/**
- * `dist/` を配信する最小限の静的サーバ。
- *
- * vite build の出力は `<script type="module">` を使う（DR-0022）。ES Modules は
- * `file://` からの読み込みをブラウザが拒否するため、http で配信する必要がある。
- *
- * @param {string} distDir
- * @returns {Promise<import('node:http').Server>}
- */
-function startStaticServer(distDir) {
-  const server = createServer(async (req, res) => {
-    const pathname = decodeURIComponent((req.url ?? '/').split('?')[0].split('#')[0])
-    const filePath = join(distDir, pathname === '/' ? '/index.html' : pathname)
-
-    try {
-      const body = await readFile(filePath)
-      res.writeHead(200, { 'Content-Type': MIME_TYPES[extname(filePath)] ?? 'application/octet-stream' })
-      res.end(body)
-    } catch {
-      res.writeHead(404)
-      res.end()
-    }
-  })
-
-  return new Promise((resolvePromise, rejectPromise) => {
-    server.on('error', rejectPromise)
-    server.listen(0, () => resolvePromise(server))
-  })
-}
 
 /**
  * 現在位置の URL hash。`src/runtime/hash.ts` の `formatHash` と同じ書式（DR-0029）。
@@ -519,13 +481,7 @@ async function measureDist({ dist, distDir }) {
   }
 
   const server = await startStaticServer(distDir)
-  const address = server.address()
-
-  if (address === null || typeof address === 'string') {
-    throw new Error('静的サーバのポートを取得できない。')
-  }
-
-  const origin = `http://127.0.0.1:${address.port}`
+  const origin = originOf(server)
   const browser = await chromium.launch()
 
   try {

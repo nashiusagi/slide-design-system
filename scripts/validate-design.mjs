@@ -19,7 +19,7 @@ import Ajv2020 from 'ajv/dist/2020.js'
 import postcss from 'postcss'
 import selectorParser from 'postcss-selector-parser'
 
-import { fixturePathFor, loadBypassFixtures } from './lib/bypass-fixtures.mjs'
+import { METHODS_WITHOUT_FIXTURES, fixturePathFor, loadBypassFixtures } from './lib/bypass-fixtures.mjs'
 import { contrastRatio, isInSrgbGamut } from './lib/color.mjs'
 import { parseDeck } from './lib/deck.mjs'
 import { IMPLEMENTED_MEASURE_RULE_IDS } from './lib/measure-rules.mjs'
@@ -411,9 +411,9 @@ function hasSubject(one, method) {
 export function checkBypassFixtureCoverage(rules, loaded, skippedRuleIds) {
   const skipped = new Set(skippedRuleIds)
 
-  // review は人が判断し、自動判定を持たない（DR-0011）。機械で実行する事例を
-  // 要求しても走らせる入口が無く、宣言だけの飾りになる。
-  return rules.filter((rule) => rule.method !== 'review').flatMap((rule) => {
+  // 機械に走らせる入口を持たない method は、事例を要求しても実行できない。
+  // どの method がそれに当たるかは bypass-fixtures.mjs が持つ。
+  return rules.filter((rule) => !METHODS_WITHOUT_FIXTURES.includes(rule.method)).flatMap((rule) => {
     const entry = loaded.get(rule.id)
     const path = fixturePathFor(rule)
 

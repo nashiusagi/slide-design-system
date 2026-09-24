@@ -38,16 +38,28 @@ export const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..
  */
 
 /**
+ * bypass フィクスチャを要求しない method。
+ *
+ * どちらも **`pnpm check` の中で機械に走らせる入口を持たない**。事例を要求しても
+ * 実行できず、宣言だけの飾りになる（DR-0044）。
+ *
+ *   - `review` — 人が判断し、自動判定を持たない（DR-0011）
+ *   - `content` — 外部 API を使い、`pnpm check` へ入れない（DR-0056 決定4）
+ *
+ * ここを正本にする。判定を各所へ書き写すと、method が増えたときに片方だけが古くなる。
+ */
+export const METHODS_WITHOUT_FIXTURES = ['review', 'content']
+
+/**
  * ルールの bypass フィクスチャの、リポジトリルートからの相対パス。
  *
- * `review` は人が判断し自動判定を持たない（DR-0011）ため、フィクスチャを持たない。
- * 置き場所も無いので null を返す。
+ * `METHODS_WITHOUT_FIXTURES` の method は置き場所も無いので null を返す。
  *
  * @param {{ id: string, method: string }} rule
  * @returns {string | null}
  */
 export function fixturePathFor(rule) {
-  if (rule.method === 'review') {
+  if (METHODS_WITHOUT_FIXTURES.includes(rule.method)) {
     return null
   }
 

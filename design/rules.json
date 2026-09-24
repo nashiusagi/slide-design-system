@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/rules.schema.json",
-  "$comment": "検査ルールの正本（DR-0009 / DR-0011）。ここに無いIDは検査として存在しない。lint の実装は packages/eslint-plugin-slide、measure の実装は scripts/measure-slides.mjs（#8。no-overflow / min-font-size / contrast まで。deck-body-fidelity は未実装）。lint 側・measure 側とも、ルールIDと実装の1対1対応は pnpm design:check が検査する（scripts/validate-design.mjs の checkLintRuleCoverage / checkMeasureRuleCoverage）。measure 側は deck-body-fidelity を『既知の未実装』としてその検査の許容リストに明示しており、実装され次第そこから外す。各ルールの bypassAxes / scopeExclusions は、そのルールが塞いだと言える書き方の種類と、意図的に見ない領域の正本（DR-0044）。宣言した項目ごとに bypass フィクスチャの事例が要り、揃っていなければ pnpm design:check が落ちる。",
+  "$comment": "検査ルールの正本（DR-0009 / DR-0011）。ここに無いIDは検査として存在しない。lint の実装は packages/eslint-plugin-slide、content の実装は scripts/score-slide-content.mjs（DR-0056。pnpm check には入れない）、measure の実装は scripts/measure-slides.mjs（#8。no-overflow / min-font-size / contrast まで。deck-body-fidelity は未実装）。lint 側・measure 側とも、ルールIDと実装の1対1対応は pnpm design:check が検査する（scripts/validate-design.mjs の checkLintRuleCoverage / checkMeasureRuleCoverage）。measure 側は deck-body-fidelity を『既知の未実装』としてその検査の許容リストに明示しており、実装され次第そこから外す。各ルールの bypassAxes / scopeExclusions は、そのルールが塞いだと言える書き方の種類と、意図的に見ない領域の正本（DR-0044）。宣言した項目ごとに bypass フィクスチャの事例が要り、揃っていなければ pnpm design:check が落ちる。",
   "rules": [
     {
       "id": "no-raw-color",
@@ -101,6 +101,18 @@
       "description": "deck 契約に body があるとき、レンダリング後の DOM テキストが素材を欠落・改変していない（DR-0011 / DR-0017）。未実装（#8 のスコープは no-overflow / min-font-size / contrast まで）。",
       "bypassAxes": ["value-composition"],
       "scopeExclusions": []
+    },
+    {
+      "id": "key-message-conveyed",
+      "method": "content",
+      "severity": "error",
+      "description": "スライドに表示されている文字が、その deck 契約の keyMessage を、そのレイアウトの役割の範囲で伝えている。判定は keyMessageConveyed.conveyanceMin を合格線とする4段階で、何を『伝える』かは design/layouts/<layout>.json の role が決める（DR-0056）。実装は scripts/score-slide-content.mjs。pnpm check には入れない。"
+    },
+    {
+      "id": "layout-fit",
+      "method": "content",
+      "severity": "error",
+      "description": "スライドの内容に対して、宣言されたレイアウトが design/layouts/*.json の whenToUse / whenNotToUse に照らして適切である。判定には宣言済みのレイアウトを渡さず、内容だけから選ばせたものと突き合わせる（DR-0056）。実装は scripts/score-slide-content.mjs。pnpm check には入れない。"
     }
   ],
   "contrast": {
@@ -120,6 +132,15 @@
   "noOverflow": {
     "$comment": "no-overflow の許容誤差（DR-0011 帰結）。ビューポートをキャンバスと同寸・スケール倍率1.0に固定しても、サブピクセル単位のフォントメトリクスの丸め差は環境（OS のフォントレンダラ、Chromium のマイナーバージョン）で生じうる。判定をキャンバス寸法ちょうどにすると、はみ出していないレイアウトが環境差だけで落ちる。閾値を超えるはみ出しは誤差では説明が付かないため、この値は小さく保つ。",
     "toleranceInPx": 0.5
+  },
+  "keyMessageConveyed": {
+    "$comment": "key-message-conveyed の閾値（DR-0056 決定3）。判定は0（役割が求めることを何も果たしていない）から3（過不足なく果たしている）の4段階で、確率加重された値が返る。conveyanceMin を 2 に置くのは、2 が『おおむね果たせているが一部が欠けているか焦点がぼけている』にあたり、そこを下回ると『読み手が自分で補う必要がある』側へ入るため。reviewConfidence は、確率分布が割れている判定を合否によらず人へ回す線で、0.5 は隣り合う2段階へほぼ均等に割れた状態にあたる。**どちらもサンプルが少ない段階の暫定値で、根拠は上の理屈だけである。** 実測の分布を見て決め直す。",
+    "conveyanceMin": 2,
+    "reviewConfidence": 0.5
+  },
+  "layoutFit": {
+    "$comment": "layout-fit の閾値（DR-0056 決定3）。key-message-conveyed と別に持つのは、確信度の意味が違うからだ。あちらは順序のある4段階の分布の集中度、こちらは並列な選択肢の分布の集中度で、同じ 0.5 が同じ割れ方を指さない。値が偶然同じでも、片方を動かす理由がもう片方に及ぶとは限らない。**暫定値である。** 実測の分布を見て決め直す。",
+    "reviewConfidence": 0.5
   },
   "noRawScale": {
     "$comment": "no-raw-scale が例外的に許す長さリテラル。0 は単位に関わらず無害、100% は親要素基準で契約外の値を持ち込まない、1px はヘアライン境界線の慣習的な最小値（DR-0011 帰結）。",

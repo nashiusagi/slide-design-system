@@ -28,6 +28,7 @@ pnpm dev              # 開発サーバ
 pnpm build            # dist/index.html（スライド）+ dist/docs.html（デザインカタログ）+ dist/assets/ を出力
 pnpm theme:generate   # design/tokens.json から design/theme.css を生成
 pnpm measure          # dist/ を実測し measurements.json を出力（要 pnpm build。DR-0011）
+pnpm score:content    # 表示文字が keyMessage を伝えているかを判定（要 pnpm build と API キー。DR-0056）
 pnpm check            # 検査からビルドまでを一括で通す（段の並びは package.json の scripts.check）
 ```
 
@@ -43,6 +44,8 @@ pnpm check            # 検査からビルドまでを一括で通す（段の�
 検査の実行口は `pnpm check` に一本化する。契約に基づく検査は、この並びの中へ足していく。契約自体の検証は先頭の `design:check` / `theme:check` 段へ、lint は `lint` 段へ、measure はビルド出力に対して実測するため `build` より後段へ置く。
 
 **現時点では `pnpm measure` を `pnpm check` へ組み込んでいない。** `src/App.tsx` はまだ `design/theme.css` / `design/layout.css` を読み込んでおらず、実測すると既存のプレースホルダ表示（ブラウザ既定のフォントサイズ・余白）が no-overflow / min-font-size に落ちる。App が設計契約を実際に消費するようになった時点で `check` の build 後段へ足す。根拠は [DR-0038](./docs/decisions/0038-defer-measure-in-check.md)。
+
+**`pnpm score:content` も `pnpm check` へ組み込んでいない。** こちらは外部 API（TypeSafe）を使うため、ネットワークと API キーを `check` の必須依存にしない。キーが無ければこのコマンド自身が落ちる——無言で飛ばす経路は作らない。判定ロジックのテストは `pnpm test`（つまり `check` の中）で走り、そちらは API を叩かない。根拠は [DR-0056](./docs/decisions/0056-slide-content-scored-against-contract.md)。
 
 **「実測」はビルド出力をブラウザ上で測ること（measure 系）を指す。** トークンの数値から計算して求めるコントラストや色相差は「算出値」と呼び、区別する。算出値はビルドを要さないので先頭の段に置く。
 
