@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-24（PR #61 レビュー 2周目）
+最終更新: 2026-09-24（PR #61 レビュー 3周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -203,12 +203,14 @@
 | `writing/failure-message-lacks-resolved-path` | 日本語 | 失敗メッセージが、機械が解決した結果を捨てて生の入力だけを出す | 1 | PR #61 | PR #61 |
 | `decisions/consequence-omits-decision` | 決定記録 | 決定のひとつに対応する帰結が無く、他の決定との書き分けが非対称 | 1 | PR #61 | PR #61 |
 | `decisions/dr-contradicts-own-decision` | 決定記録 | DR の却下案・帰結が、同じ DR の決定と正面から矛盾する | 1 | PR #61 | PR #61 |
+| `writing/attributed-rationale-not-at-source` | 日本語 | 「根拠は◯◯にある」と書いた先に、その根拠が無い | 1 | PR #61 | PR #61 |
+| `phase/scope-rationale-contradicts-issue-text` | フェーズ | スコープ外と却下した根拠が、Issue 本文の記述と食い違う | 1 | PR #61 | PR #61 |
 
 ## レビュー履歴
 
 | PR | 日付 | blocker | should | consider | レビュー |
 |---|---|---|---|---|---|
-| #61 | 2026-09-24 | 5 | 17 | 9 | [pr-61.md](./reviews/pr-61.md) |
+| #61 | 2026-09-24 | 6 | 21 | 10 | [pr-61.md](./reviews/pr-61.md) |
 | #60 | 2026-09-23 | 1 | 16 | 3 | [pr-60.md](./reviews/pr-60.md) |
 | #58 | 2026-09-22 | 5 | 31 | 11 | [pr-58.md](./reviews/pr-58.md) |
 | #57 | 2026-09-21 | 0 | 15 | 12 | [pr-57.md](./reviews/pr-57.md) |
