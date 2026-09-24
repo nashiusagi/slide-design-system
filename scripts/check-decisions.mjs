@@ -46,14 +46,23 @@ const DECISIONS_DIR = 'docs/decisions'
 const INDEX_FILE = 'README.md'
 
 /**
- * 走査する場所。**ここに挙げた根の下だけを見る包含リスト**で、除外の宣言ではない。
- * DR 参照を書ける場所をすべて挙げること。
+ * 走査する場所。**ここに挙げた根の下の `.md` だけを見る包含リスト**で、除外の宣言
+ * ではない。`.md` 以外は、根に挙がっていても見ない。
+ *
+ * **`.md` に限るのは、「これは例だ」と印を付ける手段が Markdown にしか無いから
+ * だ**（DR-0054 決定1）。コードやデータの中の `DR-NNNN` は、コメントの本物の引用と
+ * テストの偽番号（`scripts/check-decisions.test.mjs` の `DR-9999`）が同じ形で並ぶ。
+ * Markdown のコードフェンスに相当する印が無く、区別するには別の取り決めが要る。
+ * その結果、`scripts/*.mjs` と `design/**\/*.json` にある DR 参照は検査されない。
+ * **ここを広げるかどうかは別の Issue の仕事**で、この検査は `.md` に閉じる。
  *
  * `docs/reviews/` は走査しない。レビュー記録は過去の指摘をそのまま引用するために
  * 古い番号・古いパスを含むのが正常で、かつ書き換えない履歴だからだ
  * （`check-canonical-duplication.mjs` が同じ理由で外しているのに揃える）。
  * `node_modules` / `dist` は生成物。`experiments/**\/runs/` は Run の記録で、
- * こちらも書き換えない履歴。
+ * こちらも書き換えない履歴。`experiments/**\/starter/` は AI へ渡す足場の雛形で、
+ * 実験のたびに複製される（DR-0039 が扱う）——雛形の中の参照は複製先ではなく
+ * 雛形の側で見るべきものだが、いまは `.md` が置かれていないので外してある。
  *
  * **`experiments/` を入れているのは、相対リンクの階層が分かれている唯一の場所
  * だからだ**——`harness-intro/*.md` は2階層、`runs/README.md` は3階層で `docs/` へ
@@ -61,7 +70,15 @@ const INDEX_FILE = 'README.md'
  *
  * `check-canonical-duplication.mjs` の `SCAN_ROOTS` とは別の一覧で、見る対象が違う
  * （あちらは値の複製、こちらは参照の実在）。**違いは意図的で、ここが両者の関係を
- * 書く唯一の場所**にする。
+ * 書く唯一の場所**にする。食い違っている4箇所の理由は次のとおり。
+ *
+ * - `scripts` / `packages` — あちらは README だけ、こちらはディレクトリ全体。
+ *   あちらが見るのは設計データの値の複製で、それが書かれうるのは人が読む README。
+ *   こちらが見るのは参照で、`.md` ならどこに書かれていてもリンクが壊れうる
+ * - `src/docs` — あちらにしか無い。`.ts` / `.tsx` / `.css` を対象にしており、
+ *   こちらは `.md` に閉じるので入れても1件も拾わない
+ * - `design` — こちらにしか無い。あちらにとっては正本そのもので、走査すると
+ *   自己言及になる（あちらの docstring がそう書いている）
  */
 export const SCAN_ROOTS = [
   { path: 'README.md', kind: 'file' },
@@ -114,7 +131,7 @@ const FILE_EXTENSIONS = ['.md', '.json', '.mjs', '.cjs', '.ts', '.mts', '.tsx', 
  * 取ったのは DR-0054 決定2 で、**どの拡張子かはここが持つ**（判定の調整であって
  * 決定ではない）。
  */
-const IMPLEMENTATION_EXTENSIONS = ['.mjs', '.ts', '.tsx', '.js', '.jsx']
+const IMPLEMENTATION_EXTENSIONS = ['.mjs', '.cjs', '.ts', '.mts', '.tsx', '.js', '.jsx']
 
 /** @param {string} relativePath */
 const resolve = (relativePath) => join(REPO_ROOT, relativePath)
@@ -133,24 +150,41 @@ const read = (relativePath) => readFileSync(resolve(relativePath), 'utf8')
  * そのファイルの参照もリンクも検査されないまま緑になる——行を捨てる判断をした以上、
  * 捨てた範囲が意図どおりであることは検査側が保証する必要がある（PR #61 の blocker）。
  *
+ * **開いた記号を覚え、同じ記号でしか閉じない。** 真偽値のトグルにすると2つ抜ける。
+ * ``` で開いたフェンスの中に `~~~` が本文として現れるとそこで閉じたことになり、
+ * 閉じ忘れを見逃す。中に ```js のような情報文字列つきの行があっても同じだ。
+ * 閉じる側に情報文字列は書けない（CommonMark）ので、記号だけの行を閉じと見なす。
+ *
  * @param {string} source
  * @returns {{ stripped: string, unclosedFrom: number | undefined }}
  */
 export function stripCodeBlocks(source) {
   const lines = source.split('\n')
-  let inFence = false
+  /** @type {string | undefined} 開いているフェンスの記号。閉じているときは undefined */
+  let fence
   /** @type {number | undefined} 閉じられていないフェンスが開いた行（1始まり） */
   let openedAt
 
   const stripped = lines
     .map((line, index) => {
-      if (/^\s*(```|~~~)/.test(line)) {
-        inFence = !inFence
-        openedAt = inFence ? index + 1 : undefined
-        return ''
+      if (fence === undefined) {
+        const opening = line.match(/^\s*(```|~~~)/)
+
+        if (opening) {
+          fence = opening[1]
+          openedAt = index + 1
+          return ''
+        }
+
+        return line.replace(/`[^`]*`/g, (match) => ' '.repeat(match.length))
       }
 
-      return inFence ? '' : line.replace(/`[^`]*`/g, (match) => ' '.repeat(match.length))
+      if (new RegExp(`^\\s*${fence}\\s*$`).test(line)) {
+        fence = undefined
+        openedAt = undefined
+      }
+
+      return ''
     })
     .join('\n')
 
@@ -262,11 +296,12 @@ export function checkReferencesExist({ numbers, sources }) {
 }
 
 /**
- * DR へのリンクが、その番号のファイルを実際に指しているかを検査する。
+ * 相対リンクが実在するかを検査する。**DR へのリンクに限らない**（DR-0054 決定1）。
  *
- * 見るのは2つ。リンク先が実在すること、そしてリンクテキストの `DR-NNNN` と
- * リンク先のファイル名の番号が一致すること。PR #60 で実害が出たのは前者で、
- * `../../../` と `../../../../` の取り違えが緑のまま通っていた。
+ * 見るのは2つ。走査対象の中のすべての相対 `.md` リンクについてリンク先が実在する
+ * こと、そしてリンクテキストが `DR-NNNN` ならリンク先のファイル名の番号と一致する
+ * こと。後者だけが DR 固有だ。PR #60 で実害が出たのは前者で、`../../../` と
+ * `../../../../` の取り違えが緑のまま通っていた。
  *
  * @param {{ sources: Map<string, string>, exists?: (path: string) => boolean }} context
  * @returns {string[]}
@@ -511,7 +546,7 @@ export function extractPaths(value) {
  * 閉じ忘れがあると `stripCodeBlocks` が以降の行をすべて捨てるので、そのファイルの
  * 参照・リンクは一つも見られないまま緑になる。**検査が黙って効かなくなる形**なので、
  * 落とす（[DR-0054](../docs/decisions/0054-decision-reference-checked-by-machine.md)
- * 決定5）。
+ * 決定3）。
  *
  * @param {{ sources: Map<string, string> }} context
  * @returns {string[]}
@@ -545,7 +580,7 @@ export function runChecks() {
   return [
     { label: 'コードフェンスが閉じている', failures: checkFencesClosed(context) },
     { label: '参照した DR がすべて実在する', failures: checkReferencesExist(context) },
-    { label: 'DR へのリンクが実在し、番号と一致する', failures: checkLinksResolve(context) },
+    { label: '相対リンクが実在し、DR リンクは番号と一致する', failures: checkLinksResolve(context) },
     { label: '索引が全 DR を漏れなく登録し、節の中が昇順である', failures: checkIndexCovers(context) },
     { label: 'DR の冒頭欄が揃い、挙げた参照が実在する', failures: checkFrontMatter(context) },
   ]

@@ -34,7 +34,7 @@ import {
 const existsIn = (paths) => (path) => new Set(paths).has(path)
 
 describe('runChecks（いまのリポジトリ）', () => {
-  it('4つの検査すべてに対して緑である', () => {
+  it('5つの検査すべてに対して緑である', () => {
     for (const { label, failures } of runChecks()) {
       expect(failures, `${label}: ${failures.join(' / ')}`).toEqual([])
     }
@@ -58,6 +58,14 @@ describe('runChecks（いまのリポジトリ）', () => {
 
   it('走査対象から experiments の Run 記録を外す（書き換えない履歴）', () => {
     expect(listScannedFiles().some((file) => file.includes('/runs/'))).toBe(false)
+  })
+
+  it('走査対象に design を含む（deck の文書が DR を引く）', () => {
+    expect(listScannedFiles().some((file) => file.startsWith('design/'))).toBe(true)
+  })
+
+  it('走査対象は `.md` に閉じる（コードやデータの DR 参照は見ない）', () => {
+    expect(listScannedFiles().every((file) => file.endsWith('.md'))).toBe(true)
   })
 
   it('DR を番号の重複なく列挙する', () => {
@@ -246,6 +254,15 @@ describe('checkFrontMatter', () => {
     expect(failures.some((failure) => failure.includes('**正本** に実装コードを挙げている'))).toBe(true)
   })
 
+  it('正本に挙げた実装コードは `.cjs` / `.mts` でも落ちる（拡張子の列挙漏れを塞ぐ）', () => {
+    for (const path of ['scripts/x.cjs', 'scripts/x.mts']) {
+      const sources = front(['- **状態**: 承認済み', '- **日付**: 2026-09-22', '- **関連**: なし', `- **正本**: \`${path}\``])
+      const failures = checkFrontMatter({ decisions, numbers, sources, exists: existsIn([path]) })
+
+      expect(failures.some((failure) => failure.includes('**正本** に実装コードを挙げている')), path).toBe(true)
+    }
+  })
+
   it('同じパスを **実装** に挙げるなら落ちない', () => {
     const sources = front(['- **状態**: 承認済み', '- **日付**: 2026-09-22', '- **関連**: なし', '- **実装**: `scripts/x.mjs`'])
 
@@ -314,6 +331,27 @@ describe('checkFencesClosed', () => {
     const sources = new Map([['docs/x.md', ['~~~', '例'].join('\n')]])
 
     expect(checkFencesClosed({ sources })).toHaveLength(1)
+  })
+
+  it('``` の中の `~~~` では閉じない（記号を混ぜて閉じ忘れを隠せない）', () => {
+    const sources = new Map([['docs/x.md', ['```markdown', '~~~', '例'].join('\n')]])
+
+    expect(checkFencesClosed({ sources })).toHaveLength(1)
+  })
+
+  it('``` の中の ```js では閉じない（閉じる側に情報文字列は書けない）', () => {
+    const sources = new Map([['docs/x.md', ['```markdown', '```js', '例'].join('\n')]])
+
+    expect(checkFencesClosed({ sources })).toHaveLength(1)
+  })
+})
+
+describe('フェンスの記号を混ぜても中身が漏れないこと', () => {
+  it('``` の中の `~~~` の後ろにある偽の番号を、参照の検査が拾わない', () => {
+    const source = ['本文 DR-0024', '```markdown', '~~~', '例の中の DR-9999', '```'].join('\n')
+    const sources = new Map([['docs/x.md', source]])
+
+    expect(checkReferencesExist({ numbers: new Set(['0024']), sources })).toEqual([])
   })
 })
 
