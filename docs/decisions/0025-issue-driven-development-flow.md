@@ -1,8 +1,8 @@
 # DR-0025: Issue 起点の開発フローを Agent Skill として固定する
 
-- **状態**: 承認済み（レビューループの抜け条件は [DR-0052](./0052-review-loop-third-exit.md) が置き換えた）
+- **状態**: 承認済み（レビューループの抜け条件は [DR-0052](./0052-review-loop-third-exit.md) が置き換えた。Ready 化の直前に読み返す段は [DR-0057](./0057-self-check-before-ready.md) が足した）
 - **日付**: 2026-09-06
-- **関連**: [DR-0013](./0013-agent-skill-and-resolver.md), [DR-0021](./0021-starter-contains-runtime-only.md), [DR-0024](./0024-decision-records-not-adr.md), [DR-0052](./0052-review-loop-third-exit.md)
+- **関連**: [DR-0013](./0013-agent-skill-and-resolver.md), [DR-0021](./0021-starter-contains-runtime-only.md), [DR-0024](./0024-decision-records-not-adr.md), [DR-0052](./0052-review-loop-third-exit.md), [DR-0057](./0057-self-check-before-ready.md)
 - **正本**: `.claude/skills/issue-workflow/SKILL.md`（レビューループの上限周回数）／`.claude/skills/pr-review/SKILL.md`（再レビュー時の対象・観点の絞り込み条件と、指摘ログの計上判定）
 
 ## 文脈
@@ -19,7 +19,7 @@ Issue 起点の開発フローを Agent Skill（`.claude/skills/issue-workflow/`
 
 **ブランチ名は `feature/<Issue番号>_<内容>` とする。** 内容は Issue タイトルから起こした短い英小文字スラグ。
 
-**PR は Draft で先に立て、実装が済んだ時点で Ready にする。** 空コミットを push して着手と同時に PR を作る。Ready 化がレビューの開始線になる。
+**PR は Draft で先に立て、実装が済んだ時点で Ready にする。** 空コミットを push して着手と同時に PR を作る。Ready 化がレビューの開始線になる。**その直前に自分の差分を読み返す段を [DR-0057](./0057-self-check-before-ready.md) が足した**——機械で判定できない多発カテゴリを、レビューへ出す前に潰すため。
 
 **レビューは上限を決めて打ち切る。** `pr-review` を呼び、指摘を反映し、また呼ぶ。指摘ゼロのレビューを1周通れば収束、上限を終えてもなお残るか `should` を見送ると判断したら打ち切りとする。直した結果として未対応がゼロになった状態は収束ではない。その修正自体がまだ誰にも見られていないからだ。周回数の値は `.claude/skills/issue-workflow/SKILL.md` の手順5を正本とし、この DR には複製しない（[DR-0024](./0024-decision-records-not-adr.md)）。打ち切った場合は残指摘を PR にコメントし、完了報告は出さない。**この抜け条件は [DR-0052](./0052-review-loop-third-exit.md) が置き換えた**——抜け方は3つになり、上限を終えて未対応がゼロのときは「確認未了」として打ち切りと区別する。上限を設けること自体と、そう決めた理由（下記）はそのまま有効である。
 
@@ -71,6 +71,7 @@ Skill の置き場所が 1 箇所で済む。
 ## 帰結
 
 - ブランチ命名・Draft 先行・上限を設けること・再レビューの扱い・マージ不可を変えるときは、この DR を置き換える。`.claude/skills/issue-workflow/SKILL.md` を書き換えるだけで済ませない。**抜け条件だけは [DR-0052](./0052-review-loop-third-exit.md) へ移った**ので、そちらを置き換える
+- **Ready 化の直前に差分を読み返す段は [DR-0057](./0057-self-check-before-ready.md) が足した。** その段を変える・外すときは、この DR ではなく DR-0057 を置き換える
 - ただし**上限の周回数そのものは値であり、正本は `.claude/skills/issue-workflow/SKILL.md`** にある。値を変えるだけならこの DR は置き換えない。置き換えが要るのは「上限を設ける」という決定自体を覆すときだ
 - 再レビューの扱いは `pr-review` 側にも受け口が要る。呼ぶ側だけに書いても実効性を持たない
 - Run 成果物を含む変更を扱うときは [DR-0023](./0023-public-repo-with-audit.md) の sanitize / audit を通す。手順への組み込みは、対応するスクリプトが実装された時点で行う
