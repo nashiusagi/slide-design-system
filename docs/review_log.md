@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-25（PR #75 レビュー 1周目）
+最終更新: 2026-09-25（PR #75 レビュー 2周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -71,7 +71,7 @@ git show <PR #72 のマージコミットの親>:docs/review_log.md
 | `code/test-duplicates-prior-assertion` | 追加したテストが既存ケースと同じ経路しか通らず、検出力を持たない | 4 | PR #57 | 未着手 |
 | `code/test-misses-core-path` | 実装が分岐を持つのに、テストが片側しか踏まない | 4 | PR #66 | 未着手 |
 | `decisions/cited-tally-not-reproducible` | 根拠として挙げた集計の数え方が一意に読めない | 4 | PR #72 | 未着手 |
-| `contract/format-requirement-duplicated-outside-format-file` | 書式の要求が、書式の正本の外へ散文で複製された | 3 | PR #72 | 未着手 |
+| `contract/format-requirement-duplicated-outside-format-file` | 書式の要求が、書式の正本の外へ散文で複製された | 4 | PR #75 | 未着手 |
 
 ## 全カテゴリ
 
@@ -205,7 +205,7 @@ git show <PR #72 のマージコミットの親>:docs/review_log.md
 | `code/duplicate-instruction-across-steps` | コード品質 | 同じ実行時の指示が複数の手順に重複し、片方だけが他 Skill の手順番号を名指ししている | 1 | PR #58 | PR #58 |
 | `code/relative-link-wrong-depth` | コード品質 | 相対リンクの階層が合わず、実在しないパスを指している | 1 | PR #60 | PR #60 |
 | `decisions/partial-supersession-not-in-status` | 決定記録 | 決定の一部が置き換わったのに、旧 DR の状態欄がそれを示していない | 1 | PR #60 | PR #60 |
-| `contract/format-requirement-duplicated-outside-format-file` | 設計契約 | 書式の必須規定と理由が、書式の正本の外へ書き写された | 3 | PR #60 | PR #72 |
+| `contract/format-requirement-duplicated-outside-format-file` | 設計契約 | 書式の必須規定と理由が、書式の正本の外へ書き写された | 4 | PR #60 | PR #75 |
 | `writing/scope-claim-mismatches-content` | 日本語 | 冒頭の範囲宣言が、その文書が実際に決めている内容より狭い | 2 | PR #60 | PR #61 |
 | `code/branch-unreachable-from-sole-caller` | コード品質 | 唯一の呼び出し元の固定した振る舞いにより、条件分岐が評価されなくなった | 1 | PR #60 | PR #60 |
 | `decisions/alternatives-cover-only-one-decision` | 決定記録 | 却下案が一部の決定しか覆わず、他の決定に代案の記録が無い | 2 | PR #60 | PR #72 |
@@ -237,7 +237,7 @@ git show <PR #72 のマージコミットの親>:docs/review_log.md
 
 | PR | 日付 | blocker | should | consider | レビュー | セルフチェック |
 |---|---|---|---|---|---|---|
-| #75 | 2026-09-25 | 0 | 6 | 4 | [pr-75.md](./reviews/pr-75.md) | 済 |
+| #75 | 2026-09-25 | 0 | 7 | 4 | [pr-75.md](./reviews/pr-75.md) | 済 |
 | #72 | 2026-09-25 | 2 | 24 | 6 | [pr-72.md](./reviews/pr-72.md) | 済 |
 | #66 | 2026-09-24 | 3 | 20 | 8 | [pr-66.md](./reviews/pr-66.md) | — |
 | #61 | 2026-09-24 | 8 | 26 | 11 | [pr-61.md](./reviews/pr-61.md) | — |
