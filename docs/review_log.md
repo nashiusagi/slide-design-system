@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-25（PR #72 レビュー 1周目）
+最終更新: 2026-09-25（PR #72 レビュー 2周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -62,7 +62,7 @@
 | `code/sibling-field-test-gap` | 同じ制約を個別に持つ複数対象のうち、一部にしか回帰テストが無い | 4 | PR #66 | 未着手 |
 | `code/test-duplicates-prior-assertion` | 追加したテストが既存ケースと同じ経路しか通らず、検出力を持たない | 4 | PR #57 | 未着手 |
 | `code/test-misses-core-path` | 実装が分岐を持つのに、テストが片側しか踏まない | 4 | PR #66 | 未着手 |
-| `decisions/cited-tally-not-reproducible` | 根拠として挙げた集計の数え方が一意に読めない | 3 | PR #66 | 未着手 |
+| `decisions/cited-tally-not-reproducible` | 根拠として挙げた集計の数え方が一意に読めない | 4 | PR #72 | 未着手 |
 | `contract/format-requirement-duplicated-outside-format-file` | 書式の要求が、書式の正本の外へ散文で複製された | 3 | PR #72 | 未着手 |
 
 ## 全カテゴリ
@@ -159,7 +159,7 @@
 | `inspection/false-positive-forces-allowlist` | 検査 | 誤検出が例外登録を招き、その例外がそのファイルの検査を丸ごと黙らせる | 1 | PR #52 | PR #52 |
 | `code/pattern-matches-across-code-span-boundary` | コード品質 | 照合パターンがコードスパンの境界を跨いで一致する | 1 | PR #52 | PR #52 |
 | `phase/scope-statement-weakened` | フェーズ | 重複を避ける書き換えで、フェーズ境界の宣言が自己言及になった | 1 | PR #52 | PR #52 |
-| `decisions/cited-tally-not-reproducible` | 決定記録 | 根拠として挙げた集計の数え方が一意に読めない | 3 | PR #52 | PR #66 |
+| `decisions/cited-tally-not-reproducible` | 決定記録 | 根拠として挙げた集計の数え方が一意に読めない | 4 | PR #52 | PR #72 |
 | `code/enumeration-line-pattern-too-broad` | コード品質 | 行の種類を判定するパターンが広すぎ、無関係な地の文を拾う | 1 | PR #52 | PR #52 |
 
 | `inspection/bypass-case-trivially-satisfiable` | 検査 | 通ることを固定する事例に下限が無く、中身が空でも宣言を「埋めた」ことになる | 1 | PR #47 | PR #47 |
@@ -200,7 +200,7 @@
 | `contract/format-requirement-duplicated-outside-format-file` | 設計契約 | 書式の必須規定と理由が、書式の正本の外へ書き写された | 3 | PR #60 | PR #72 |
 | `writing/scope-claim-mismatches-content` | 日本語 | 冒頭の範囲宣言が、その文書が実際に決めている内容より狭い | 2 | PR #60 | PR #61 |
 | `code/branch-unreachable-from-sole-caller` | コード品質 | 唯一の呼び出し元の固定した振る舞いにより、条件分岐が評価されなくなった | 1 | PR #60 | PR #60 |
-| `decisions/alternatives-cover-only-one-decision` | 決定記録 | 却下案が一部の決定しか覆わず、他の決定に代案の記録が無い | 1 | PR #60 | PR #60 |
+| `decisions/alternatives-cover-only-one-decision` | 決定記録 | 却下案が一部の決定しか覆わず、他の決定に代案の記録が無い | 2 | PR #60 | PR #72 |
 | `code/unclosed-fence-swallows-trailing-prose` | コード品質 | コードフェンスが閉じておらず、以降の地の文をブロックへ呑み込む | 1 | PR #60 | PR #60 |
 | `inspection/coverage-list-delimiter-ambiguous` | 検査 | 一覧の区切りが決まっておらず、要素が列の外へ逃げられる | 1 | PR #60 | PR #60 |
 | `code/unclosed-fence-disables-remaining-checks` | コード品質 | 閉じていないコードフェンスにより、検査がファイルの残りを見なくなる | 1 | PR #61 | PR #61 |
@@ -214,19 +214,20 @@
 | `inspection/canonical-value-unmatchable` | 検査 | 正本の値そのものが、正規化処理で照合不能になる | 1 | PR #66 | PR #66 |
 | `contract/recorded-value-not-what-was-passed` | 設計契約 | 記録する値を、記録時点で変化した対象から測り直している | 1 | PR #66 | PR #66 |
 | `decisions/dr-missing-required-section` | 決定記録 | DR が README の定める節構成を満たしていない | 1 | PR #66 | PR #66 |
-| `decisions/alternatives-cover-only-one-decision` | 決定記録 | 却下案が一部の決定しか覆っていない | 1 | PR #66 | PR #66 |
+| `decisions/alternatives-cover-only-one-decision` | 決定記録 | 却下案が一部の決定しか覆っていない | 2 | PR #66 | PR #72 |
 | `inspection/perspective-separator-splits-annotation` | 検査 | 区切り文字での分割が、注記の中の同じ文字でも割れて観点名が壊れる | 1 | PR #66 | PR #66 |
 | `inspection/fallback-false-positive-on-dropped-headings` | 検査 | 退避の発動条件が広すぎ、正常な記述でも機能が丸ごと無効になる | 1 | PR #66 | PR #66 |
 | `code/diagnostic-misattributes-cause` | コード品質 | 診断が、実際とは違う原因を報告し、本来の対象と見分けが付かなくなる | 1 | PR #66 | PR #66 |
 | `inspection/rule-never-executed` | 検査 | 検査の成果物を読む工程が無く、残るのが形式だけの申告になる | 1 | PR #72 | PR #72 |
 | `contract/status-value-not-in-format-spec` | 設計契約 | 状態欄などに使う新しい値が、書式の正本の値一覧に登録されていない | 1 | PR #72 | PR #72 |
 | `decisions/exception-not-recorded-in-overridden-dr` | 決定記録 | 旧 DR を一部覆したのに、旧 DR の帰結・関連欄へ痕跡が無い | 1 | PR #72 | PR #72 |
+| `contract/format-structure-diverges-from-spec` | 設計契約 | 実ファイルの構造が、書式の正本のテンプレートと食い違う | 1 | PR #72 | PR #72 |
 
 ## レビュー履歴
 
 | PR | 日付 | blocker | should | consider | レビュー | セルフチェック |
 |---|---|---|---|---|---|---|
-| #72 | 2026-09-25 | 1 | 14 | 4 | [pr-72.md](./reviews/pr-72.md) | 済 |
+| #72 | 2026-09-25 | 2 | 20 | 5 | [pr-72.md](./reviews/pr-72.md) | 済 |
 | #66 | 2026-09-24 | 3 | 20 | 8 | [pr-66.md](./reviews/pr-66.md) | — |
 | #61 | 2026-09-24 | 8 | 26 | 11 | [pr-61.md](./reviews/pr-61.md) | — |
 | #60 | 2026-09-23 | 1 | 16 | 3 | [pr-60.md](./reviews/pr-60.md) | — |
