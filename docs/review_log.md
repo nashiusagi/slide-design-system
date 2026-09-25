@@ -18,15 +18,17 @@
 いずれもドキュメント・運用の問題で、`design/rules.json`（スライド生成物の検査）へそのまま載る性質ではない。
 機械化するならリポジトリ側の検査になる。判断は人が行う。
 
-**「セルフチェックで扱う」は機械検査への昇格ではない。** 意味を読まないと判定できないため、Ready 化の前に人（実装した側）が読み返す段で潰す（[DR-0057](./decisions/0057-self-check-before-ready.md)）。効いたかどうかは、この段を通った PR が5本たまった時点で1 PR あたりの計上回数を測り直して判断する。導入時点の基準は 28 PR / 対象8カテゴリ累計95回 = 1 PR あたり 3.4 回。
+**「セルフチェックで扱う」は機械検査への昇格ではない。** 意味を読まないと判定できないため、Ready 化の前に人（実装した側）が読み返す段で潰す（[DR-0057](./decisions/0057-self-check-before-ready.md)）。どのカテゴリがどの項目で潰されるかの対応は `.claude/skills/issue-workflow/references/self-check.md` の表が持つ。値の意味は `.claude/skills/pr-review/references/review-log-format.md` の「状態の値」が持つ。
+
+**導入時点の基準値（この段の効果を測る物差し）。** レビュー履歴表の行数 **28**、状態欄が「セルフチェックで扱う」の8カテゴリの累計の合計 **95**、1 PR あたり **3.4** 回。測り直す時期と母数の取り方は DR-0057 決定6 が持つ。
 
 | カテゴリID | 要約 | 累計 | 最終指摘 | 状態 |
 |---|---|---|---|---|
-| `writing/ambiguous-criterion` | 判断基準が曖昧で、契約として実行できない | 13 | PR #72 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)。「追加した基準が同じ判定に到達するか」の節。**機械検査への昇格ではない** — pnpm check は落とさない） |
+| `writing/ambiguous-criterion` | 判断基準が曖昧で、契約として実行できない | 13 | PR #72 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
 | `writing/term-inconsistency` | 同じものが複数の呼び名を持ち、外延も揺れる | 18 | PR #72 | 未着手 |
 | `writing/notation-inconsistency` | 表記の不統一（DR 参照がリンクになっていない等） | 9 | PR #66 | 未着手 |
-| `phase/out-of-scope-addition` | フェーズのスコープ外、または DR に接続しないものが混入した | 8 | PR #57 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)。「Issue のスコープとの接続」の節。**機械検査への昇格ではない** — pnpm check は落とさない） |
-| `decisions/undocumented-decision` | DR に無い判断が、PR説明やIssueにだけ書かれている | 18 | PR #72 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)。「実装中に下した判断の一覧と行き先」の節。**機械検査への昇格ではない** — pnpm check は落とさない） |
+| `phase/out-of-scope-addition` | フェーズのスコープ外、または DR に接続しないものが混入した | 8 | PR #57 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
+| `decisions/undocumented-decision` | DR に無い判断が、PR説明やIssueにだけ書かれている | 18 | PR #72 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
 | `decisions/dr-restates-canonical-value` | DR が正本の値を本文に書き写した | 13 | PR #72 | 未着手 |
 | `contract/source-of-truth-ambiguous` | 「正本」がどのファイルを指すか一意でない | 10 | PR #66 | 未着手 |
 | `inspection/rule-id-mapping-incomplete` | ルールIDと実装の対応検査が一部の method しか覆っていない | 3 | PR #57 | 未着手 |
@@ -38,19 +40,19 @@
 | `contract/contract-structure-duplicated` | 正本の中身の一覧が、別の文書へ構造ごと複製された | 10 | PR #72 | 未着手 |
 | `contract/value-outside-source-of-truth` | 正本に置くと決めた値が、正本を参照できない場所にも必要になる | 6 | PR #66 | 未着手 |
 | `contract/design-data-duplicated` | デザインの値が正本以外へ複製された | 13 | PR #56 | 未着手 |
-| `writing/inaccurate-rationale` | 説明文が書いている理由付けが、実装の挙動と食い違う | 20 | PR #72 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)。「説明文と実装の読み合わせ」の節。**機械検査への昇格ではない** — pnpm check は落とさない） |
+| `writing/inaccurate-rationale` | 説明文が書いている理由付けが、実装の挙動と食い違う | 20 | PR #72 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
 | `inspection/invalid-case-untested` | 検査そのものに invalid ケースのテストが無い | 6 | PR #61 | 未着手 |
 | `code/test-cannot-detect-regression` | テストが、その名前が示す回帰をフィクスチャの都合で検出できない | 5 | PR #66 | 未着手 |
 | `inspection/rule-coverage-partial` | 判定対象の列挙に穴があり、基準を割った組み合わせを見逃す | 13 | PR #72 | 一部（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43）。`enumeration-tail` の軸で事例を要求するが、網羅性の証明ではない |
-| `phase/completion-criterion-not-verified-e2e` | Issue の完了条件が、単体テストのみで統合パスを通さず検証されている | 10 | PR #66 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)。「完了条件を統合パスで確かめたか」の節。**機械検査への昇格ではない** — pnpm check は落とさない） |
-| `writing/contradictory-instruction` | 同じ状況に対する指示が文書間で食い違う | 12 | PR #72 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)。「説明文と実装の読み合わせ」の節。**機械検査への昇格ではない** — pnpm check は落とさない） |
+| `phase/completion-criterion-not-verified-e2e` | Issue の完了条件が、単体テストのみで統合パスを通さず検証されている | 10 | PR #66 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
+| `writing/contradictory-instruction` | 同じ状況に対する指示が文書間で食い違う | 12 | PR #72 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
 | `writing/dangling-quote-reference` | 文書内の引用符付き参照が、書き換え後のどの語句・項目にも対応しなくなった | 9 | PR #72 | 未着手 |
-| `writing/test-title-ambiguous` | テストタイトルが、そのテストの固定する不変条件を示していない | 10 | PR #66 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)。「テストタイトルと不変条件の対応」の節。**機械検査への昇格ではない** — pnpm check は落とさない） |
+| `writing/test-title-ambiguous` | テストタイトルが、そのテストの固定する不変条件を示していない | 10 | PR #66 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
 | `code/dead-check-entry` | より強い条件に覆われ、単独では決して落ちない検査項目がある | 3 | PR #47 | 未着手 |
 | `contract/workflow-constant-duplicated` | 他が持つ取り決め（パス・上限値）が書き写された | 4 | PR #56 | 未着手 |
 | `decisions/citation-overclaims-source-scope` | 引用した DR・資料の実際の記述範囲より広い主張をしている | 8 | PR #72 | 未着手 |
 | `writing/subjectless-predicate` | 文の主語が省略され、何の話かが読み取りにくい | 4 | PR #66 | 未着手 |
-| `writing/incomplete-pr-description` | PR 本文が着手時のままで、完成度と残りが読み取れない | 8 | PR #66 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)。「PR 本文が着手時のままでないか」の節。**機械検査への昇格ではない** — pnpm check は落とさない） |
+| `writing/incomplete-pr-description` | PR 本文が着手時のままで、完成度と残りが読み取れない | 8 | PR #66 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
 | `decisions/wrong-dr-citation` | 誤った DR 番号・決定番号を根拠として引用している | 6 | PR #66 | 一部（`decisions:check` が番号の実在とリンクの一致を見る。決定番号の誤りは人が読む。[DR-0054](./decisions/0054-decision-reference-checked-by-machine.md)） |
 | `decisions/one-sided-coupling` | 連動する2箇所のうち片方にしか結線が書かれておらず、逆向きに辿れない | 6 | PR #58 | 見送り（一方向の依存は正常な形。落とすべきは置き換えの関係だけで、状態欄の規則が扱う。[DR-0054](./decisions/0054-decision-reference-checked-by-machine.md)） |
 | `decisions/citation-points-to-wrong-file` | 正本・検査として引用したファイル・節が、実際にはその内容を持たない | 4 | PR #58 | 一部（`decisions:check` がリンク先の実在と番号の一致を見る。引用先の節がその内容を持つかは人が読む。[DR-0054](./decisions/0054-decision-reference-checked-by-machine.md)） |
@@ -222,34 +224,34 @@
 
 ## レビュー履歴
 
-| PR | 日付 | blocker | should | consider | レビュー |
-|---|---|---|---|---|---|
-| #72 | 2026-09-25 | 1 | 14 | 4 | [pr-72.md](./reviews/pr-72.md) |
-| #66 | 2026-09-24 | 3 | 20 | 8 | [pr-66.md](./reviews/pr-66.md) |
-| #61 | 2026-09-24 | 8 | 26 | 11 | [pr-61.md](./reviews/pr-61.md) |
-| #60 | 2026-09-23 | 1 | 16 | 3 | [pr-60.md](./reviews/pr-60.md) |
-| #58 | 2026-09-22 | 5 | 31 | 11 | [pr-58.md](./reviews/pr-58.md) |
-| #57 | 2026-09-21 | 0 | 15 | 12 | [pr-57.md](./reviews/pr-57.md) |
-| #56 | 2026-09-21 | 2 | 14 | 14 | [pr-56.md](./reviews/pr-56.md) |
-| #55 | 2026-09-21 | 0 | 13 | 12 | [pr-55.md](./reviews/pr-55.md) |
-| #53 | 2026-09-21 | 0 | 12 | 7 | [pr-53.md](./reviews/pr-53.md) |
-| #52 | 2026-09-20 | 0 | 23 | 15 | [pr-52.md](./reviews/pr-52.md) |
-| #51 | 2026-09-12 | 1 | 15 | 7 | [pr-51.md](./reviews/pr-51.md) |
-| #47 | 2026-09-12 | 2 | 12 | 8 | [pr-47.md](./reviews/pr-47.md) |
-| #41 | 2026-09-11 | 1 | 7 | 1 | [pr-41.md](./reviews/pr-41.md) |
-| #40 | 2026-09-11 | 0 | 10 | 8 | [pr-40.md](./reviews/pr-40.md) |
-| #39 | 2026-09-10 | 0 | 3 | 7 | [pr-39.md](./reviews/pr-39.md) |
-| #31 | 2026-09-10 | 0 | 3 | 1 | [pr-31.md](./reviews/pr-31.md) |
-| #30 | 2026-09-10 | 0 | 2 | 4 | [pr-30.md](./reviews/pr-30.md) |
-| #28 | 2026-09-10 | 0 | 17 | 4 | [pr-28.md](./reviews/pr-28.md) |
-| #27 | 2026-09-09 | 0 | 10 | 0 | [pr-27.md](./reviews/pr-27.md) |
-| #26 | 2026-09-09 | 0 | 16 | 5 | [pr-26.md](./reviews/pr-26.md) |
-| #25 | 2026-09-09 | 2 | 2 | 3 | [pr-25.md](./reviews/pr-25.md) |
-| #24 | 2026-09-09 | 2 | 11 | 5 | [pr-24.md](./reviews/pr-24.md) |
-| #23 | 2026-09-08 | 0 | 6 | 4 | [pr-23.md](./reviews/pr-23.md) |
-| #21 | 2026-09-08 | 0 | 10 | 1 | [pr-21.md](./reviews/pr-21.md) |
-| #20 | 2026-09-08 | 1 | 12 | 8 | [pr-20.md](./reviews/pr-20.md) |
-| #19 | 2026-09-07 | 1 | 15 | 7 | [pr-19.md](./reviews/pr-19.md) |
-| #18 | 2026-09-07 | 0 | 9 | 9 | [pr-18.md](./reviews/pr-18.md) |
-| #17 | 2026-09-06 | 0 | 18 | 10 | [pr-17.md](./reviews/pr-17.md) |
-| #13 | 2026-09-06 | 1 | 8 | 6 | [pr-13.md](./reviews/pr-13.md) |
+| PR | 日付 | blocker | should | consider | レビュー | セルフチェック |
+|---|---|---|---|---|---|---|
+| #72 | 2026-09-25 | 1 | 14 | 4 | [pr-72.md](./reviews/pr-72.md) | 済 |
+| #66 | 2026-09-24 | 3 | 20 | 8 | [pr-66.md](./reviews/pr-66.md) | — |
+| #61 | 2026-09-24 | 8 | 26 | 11 | [pr-61.md](./reviews/pr-61.md) | — |
+| #60 | 2026-09-23 | 1 | 16 | 3 | [pr-60.md](./reviews/pr-60.md) | — |
+| #58 | 2026-09-22 | 5 | 31 | 11 | [pr-58.md](./reviews/pr-58.md) | — |
+| #57 | 2026-09-21 | 0 | 15 | 12 | [pr-57.md](./reviews/pr-57.md) | — |
+| #56 | 2026-09-21 | 2 | 14 | 14 | [pr-56.md](./reviews/pr-56.md) | — |
+| #55 | 2026-09-21 | 0 | 13 | 12 | [pr-55.md](./reviews/pr-55.md) | — |
+| #53 | 2026-09-21 | 0 | 12 | 7 | [pr-53.md](./reviews/pr-53.md) | — |
+| #52 | 2026-09-20 | 0 | 23 | 15 | [pr-52.md](./reviews/pr-52.md) | — |
+| #51 | 2026-09-12 | 1 | 15 | 7 | [pr-51.md](./reviews/pr-51.md) | — |
+| #47 | 2026-09-12 | 2 | 12 | 8 | [pr-47.md](./reviews/pr-47.md) | — |
+| #41 | 2026-09-11 | 1 | 7 | 1 | [pr-41.md](./reviews/pr-41.md) | — |
+| #40 | 2026-09-11 | 0 | 10 | 8 | [pr-40.md](./reviews/pr-40.md) | — |
+| #39 | 2026-09-10 | 0 | 3 | 7 | [pr-39.md](./reviews/pr-39.md) | — |
+| #31 | 2026-09-10 | 0 | 3 | 1 | [pr-31.md](./reviews/pr-31.md) | — |
+| #30 | 2026-09-10 | 0 | 2 | 4 | [pr-30.md](./reviews/pr-30.md) | — |
+| #28 | 2026-09-10 | 0 | 17 | 4 | [pr-28.md](./reviews/pr-28.md) | — |
+| #27 | 2026-09-09 | 0 | 10 | 0 | [pr-27.md](./reviews/pr-27.md) | — |
+| #26 | 2026-09-09 | 0 | 16 | 5 | [pr-26.md](./reviews/pr-26.md) | — |
+| #25 | 2026-09-09 | 2 | 2 | 3 | [pr-25.md](./reviews/pr-25.md) | — |
+| #24 | 2026-09-09 | 2 | 11 | 5 | [pr-24.md](./reviews/pr-24.md) | — |
+| #23 | 2026-09-08 | 0 | 6 | 4 | [pr-23.md](./reviews/pr-23.md) | — |
+| #21 | 2026-09-08 | 0 | 10 | 1 | [pr-21.md](./reviews/pr-21.md) | — |
+| #20 | 2026-09-08 | 1 | 12 | 8 | [pr-20.md](./reviews/pr-20.md) | — |
+| #19 | 2026-09-07 | 1 | 15 | 7 | [pr-19.md](./reviews/pr-19.md) | — |
+| #18 | 2026-09-07 | 0 | 9 | 9 | [pr-18.md](./reviews/pr-18.md) | — |
+| #17 | 2026-09-06 | 0 | 18 | 10 | [pr-17.md](./reviews/pr-17.md) | — |
+| #13 | 2026-09-06 | 1 | 8 | 6 | [pr-13.md](./reviews/pr-13.md) | — |
