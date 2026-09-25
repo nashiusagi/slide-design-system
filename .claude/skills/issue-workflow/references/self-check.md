@@ -107,4 +107,4 @@ gh api repos/{owner}/{repo}/issues/<PR番号>/comments --jq '.[] | {created_at, 
 
 `updated_at` が `created_at` と異なるコメントは、その `updated_at` も Ready 化イベントより前であることを確かめる。
 
-通さずに Ready にしたこと自体は止めない。ただし**通していない PR は、効果を測る母数（[DR-0057](../../../../docs/decisions/0057-self-check-before-ready.md) 決定6）に入らない。**
+通さずに Ready にしたこと自体は止めない。ただし**通していない PR は、効果を測る母数（[DR-0057](../../../../docs/decisions/0057-self-check-before-ready.md) 決定7）に入らない。**

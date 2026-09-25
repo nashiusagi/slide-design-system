@@ -49,7 +49,7 @@
    - 合致しない → 新しい行を追加（累計 1、初出と最終指摘は今回のPR番号）
 3. 累計が 3 以上になったカテゴリを「ルール化候補」の表へ移す（全カテゴリの表からは消さない。両方に載る）
 4. レビュー履歴へ今回の行を足す（新しいものが上）。**同じ PR の行が既にあれば足さず、その行を更新する。** 件数はその PR のそれまでの全周を合算した値にする（置き換えない。累計を減らさないため）
-   - **セルフチェック列**は、その PR が Ready 化前の読み返しを通ったかを `済` / `—` で書く。判定の仕方は [`issue-workflow/references/self-check.md`](../../issue-workflow/references/self-check.md) の「この段を通した PR の数え方」が持つ。**この列は効果測定の母数（[DR-0057](../../../../docs/decisions/0057-self-check-before-ready.md) 決定6）を記録する唯一の場所なので、空欄にしない**
+   - **セルフチェック列**は、その PR が Ready 化前の読み返しを通ったかを `済` / `—` で書く。判定の仕方は [`issue-workflow/references/self-check.md`](../../issue-workflow/references/self-check.md) の「この段を通した PR の数え方」が持つ。**この列は効果測定の母数（[DR-0057](../../../../docs/decisions/0057-self-check-before-ready.md) 決定7）を記録する唯一の場所なので、空欄にしない**
 5. 最終更新日を更新する
 
 ## 状態の値
