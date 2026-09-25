@@ -18,9 +18,17 @@
 いずれもドキュメント・運用の問題で、`design/rules.json`（スライド生成物の検査）へそのまま載る性質ではない。
 機械化するならリポジトリ側の検査になる。判断は人が行う。
 
-**「セルフチェックで扱う」は機械検査への昇格ではない。** 意味を読まないと判定できないため、Ready 化の前に人（実装した側）が読み返す段で潰す（[DR-0057](./decisions/0057-self-check-before-ready.md)）。どのカテゴリがどの項目で潰されるかの対応は `.claude/skills/issue-workflow/references/self-check.md` の表が持つ。値の意味は `.claude/skills/pr-review/references/review-log-format.md` の「状態の値」が持つ。
+**「セルフチェックで扱う」の意味は、`.claude/skills/pr-review/references/review-log-format.md` の「状態の値」が持つ**（[DR-0057](./decisions/0057-self-check-before-ready.md)）。どのカテゴリがどの項目で潰されるかの対応は `.claude/skills/issue-workflow/references/self-check.md` の表が持つ。
 
-**導入時点の基準値（この段の効果を測る物差し）。** レビュー履歴表の行数 **28**、状態欄が「セルフチェックで扱う」の8カテゴリの累計の合計 **95**、1 PR あたり **3.4** 回。測り直す時期と母数の取り方は DR-0057 決定6 が持つ。
+**導入時点の基準値（この段の効果を測る物差し）。1 PR あたり 3.4 回。**
+
+これは [PR #72](https://github.com/nashiusagi/slide-design-system/pull/72) のマージ**前**に測ったスナップショットで、**この表を今数えても再現しない**——PR #72 自身の指摘が累計へ入っているからだ。測り直すときは、その時点のファイルから数える。
+
+```bash
+git show <PR #72 のマージコミットの親>:docs/review_log.md
+```
+
+測り直す時期と母数の取り方は DR-0057 決定6 が持つ。
 
 | カテゴリID | 要約 | 累計 | 最終指摘 | 状態 |
 |---|---|---|---|---|

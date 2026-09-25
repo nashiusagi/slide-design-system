@@ -21,7 +21,7 @@ description: このリポジトリの Pull Request を、6つの観点（設計�
 
 **機械へ昇格できないカテゴリのうち、[#46](https://github.com/nashiusagi/slide-design-system/issues/46) が挙げた8つは、`issue-workflow` が Ready 化の前に読み返す段でも扱う**（[DR-0057](../../../docs/decisions/0057-self-check-before-ready.md)）。どれがその8つかは `issue-workflow/references/self-check.md` の対応表が持つ。**それらの観点をここから外してはいない。二重に見る**（理由は DR-0057 決定5）。あちらが潰せていれば、ここへ届く指摘が減る。それが狙いで、見る範囲を狭めることは狙いではない。
 
-**残りのカテゴリは、どちらでも扱われていない。** `docs/review_log.md` で「未着手」のまま累計が伸びているものがある。あの段が引き受けたのは8つだけだ。
+**`docs/review_log.md` で「未着手」のまま累計が伸びているカテゴリは、どちらでも扱われていない。** あの段が引き受けたのは8つだけだ（残りには「仕組み化済み」「一部」「見送り」もあり、そちらは機械か既存の DR が扱っている）。
 
 ## 手順
 
