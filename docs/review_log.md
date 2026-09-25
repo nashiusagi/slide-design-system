@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-25（PR #72 レビュー 3周目）
+最終更新: 2026-09-25（PR #75 レビュー 3周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -32,11 +32,11 @@ git show <PR #72 のマージコミットの親>:docs/review_log.md
 
 | カテゴリID | 要約 | 累計 | 最終指摘 | 状態 |
 |---|---|---|---|---|
-| `writing/ambiguous-criterion` | 判断基準が曖昧で、契約として実行できない | 13 | PR #72 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
+| `writing/ambiguous-criterion` | 判断基準が曖昧で、契約として実行できない | 14 | PR #75 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
 | `writing/term-inconsistency` | 同じものが複数の呼び名を持ち、外延も揺れる | 18 | PR #72 | 未着手 |
 | `writing/notation-inconsistency` | 表記の不統一（DR 参照がリンクになっていない等） | 9 | PR #66 | 未着手 |
 | `phase/out-of-scope-addition` | フェーズのスコープ外、または DR に接続しないものが混入した | 8 | PR #57 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
-| `decisions/undocumented-decision` | DR に無い判断が、PR説明やIssueにだけ書かれている | 18 | PR #72 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
+| `decisions/undocumented-decision` | DR に無い判断が、PR説明やIssueにだけ書かれている | 19 | PR #75 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
 | `decisions/dr-restates-canonical-value` | DR が正本の値を本文に書き写した | 13 | PR #72 | 未着手 |
 | `contract/source-of-truth-ambiguous` | 「正本」がどのファイルを指すか一意でない | 10 | PR #66 | 未着手 |
 | `inspection/rule-id-mapping-incomplete` | ルールIDと実装の対応検査が一部の method しか覆っていない | 3 | PR #57 | 未着手 |
@@ -45,33 +45,33 @@ git show <PR #72 のマージコミットの親>:docs/review_log.md
 | `inspection/rule-has-bypass` | 検査ルールに抜け道があり、書き方を変えると素通りする | 21 | PR #72 | 仕組み化済み（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43） |
 | `inspection/rule-scope-inconsistent` | 同じルールIDの守備範囲が文書間で食い違う | 6 | PR #55 | 仕組み化済み（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43）。守備範囲の宣言を `design/rules.json` に一本化した |
 | `decisions/consequence-not-followed` | 既存 DR の帰結が、それを通る手順に反映されていない | 13 | PR #66 | 見送り（意味の問題で機械判定に向かない。レビューの観点が持つ。[DR-0054](./decisions/0054-decision-reference-checked-by-machine.md)） |
-| `contract/contract-structure-duplicated` | 正本の中身の一覧が、別の文書へ構造ごと複製された | 10 | PR #72 | 未着手 |
+| `contract/contract-structure-duplicated` | 正本の中身の一覧が、別の文書へ構造ごと複製された | 11 | PR #75 | 未着手 |
 | `contract/value-outside-source-of-truth` | 正本に置くと決めた値が、正本を参照できない場所にも必要になる | 6 | PR #66 | 未着手 |
 | `contract/design-data-duplicated` | デザインの値が正本以外へ複製された | 13 | PR #56 | 未着手 |
 | `writing/inaccurate-rationale` | 説明文が書いている理由付けが、実装の挙動と食い違う | 20 | PR #72 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
 | `inspection/invalid-case-untested` | 検査そのものに invalid ケースのテストが無い | 6 | PR #61 | 未着手 |
 | `code/test-cannot-detect-regression` | テストが、その名前が示す回帰をフィクスチャの都合で検出できない | 5 | PR #66 | 未着手 |
 | `inspection/rule-coverage-partial` | 判定対象の列挙に穴があり、基準を割った組み合わせを見逃す | 13 | PR #72 | 一部（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43）。`enumeration-tail` の軸で事例を要求するが、網羅性の証明ではない |
-| `phase/completion-criterion-not-verified-e2e` | Issue の完了条件が、単体テストのみで統合パスを通さず検証されている | 10 | PR #66 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
-| `writing/contradictory-instruction` | 同じ状況に対する指示が文書間で食い違う | 12 | PR #72 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
+| `phase/completion-criterion-not-verified-e2e` | Issue の完了条件が、単体テストのみで統合パスを通さず検証されている | 11 | PR #75 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
+| `writing/contradictory-instruction` | 同じ状況に対する指示が文書間で食い違う | 13 | PR #75 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
 | `writing/dangling-quote-reference` | 文書内の引用符付き参照が、書き換え後のどの語句・項目にも対応しなくなった | 9 | PR #72 | 未着手 |
 | `writing/test-title-ambiguous` | テストタイトルが、そのテストの固定する不変条件を示していない | 10 | PR #66 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
 | `code/dead-check-entry` | より強い条件に覆われ、単独では決して落ちない検査項目がある | 3 | PR #47 | 未着手 |
-| `contract/workflow-constant-duplicated` | 他が持つ取り決め（パス・上限値）が書き写された | 4 | PR #56 | 未着手 |
+| `contract/workflow-constant-duplicated` | 他が持つ取り決め（パス・上限値）が書き写された | 5 | PR #75 | 未着手 |
 | `decisions/citation-overclaims-source-scope` | 引用した DR・資料の実際の記述範囲より広い主張をしている | 8 | PR #72 | 未着手 |
 | `writing/subjectless-predicate` | 文の主語が省略され、何の話かが読み取りにくい | 4 | PR #66 | 未着手 |
 | `writing/incomplete-pr-description` | PR 本文が着手時のままで、完成度と残りが読み取れない | 8 | PR #66 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
 | `decisions/wrong-dr-citation` | 誤った DR 番号・決定番号を根拠として引用している | 6 | PR #66 | 一部（`decisions:check` が番号の実在とリンクの一致を見る。決定番号の誤りは人が読む。[DR-0054](./decisions/0054-decision-reference-checked-by-machine.md)） |
 | `decisions/one-sided-coupling` | 連動する2箇所のうち片方にしか結線が書かれておらず、逆向きに辿れない | 6 | PR #58 | 見送り（一方向の依存は正常な形。落とすべきは置き換えの関係だけで、状態欄の規則が扱う。[DR-0054](./decisions/0054-decision-reference-checked-by-machine.md)） |
 | `decisions/citation-points-to-wrong-file` | 正本・検査として引用したファイル・節が、実際にはその内容を持たない | 4 | PR #58 | 一部（`decisions:check` がリンク先の実在と番号の一致を見る。引用先の節がその内容を持つかは人が読む。[DR-0054](./decisions/0054-decision-reference-checked-by-machine.md)） |
-| `decisions/implementation-labeled-as-canonical` | DR が実装コードを「正本」として指定している | 3 | PR #61 | 一部（`decisions:check` が冒頭欄の拡張子を見る。本文中の「正本」表現とディレクトリ指定は人が読む。[DR-0054](./decisions/0054-decision-reference-checked-by-machine.md)） |
+| `decisions/implementation-labeled-as-canonical` | DR が実装コードを「正本」として指定している | 4 | PR #75 | 一部（`decisions:check` が冒頭欄の拡張子を見る。本文中の「正本」表現とディレクトリ指定は人が読む。[DR-0054](./decisions/0054-decision-reference-checked-by-machine.md)） |
 | `code/duplicate-resolve-readjson-helpers` | 同じ resolve/readJson ヘルパーが複数の scripts/*.mjs へ複製されている | 3 | PR #61 | 未着手 |
 | `decisions/index-section-mismatch` | DR の索引登録が、内容と合わない節に置かれた | 4 | PR #61 | 一部（`decisions:check` が網羅と昇順を見る。節の分類が内容と合うかは人が読む。[DR-0054](./decisions/0054-decision-reference-checked-by-machine.md)） |
 | `code/sibling-field-test-gap` | 同じ制約を個別に持つ複数対象のうち、一部にしか回帰テストが無い | 4 | PR #66 | 未着手 |
 | `code/test-duplicates-prior-assertion` | 追加したテストが既存ケースと同じ経路しか通らず、検出力を持たない | 4 | PR #57 | 未着手 |
 | `code/test-misses-core-path` | 実装が分岐を持つのに、テストが片側しか踏まない | 4 | PR #66 | 未着手 |
 | `decisions/cited-tally-not-reproducible` | 根拠として挙げた集計の数え方が一意に読めない | 4 | PR #72 | 未着手 |
-| `contract/format-requirement-duplicated-outside-format-file` | 書式の要求が、書式の正本の外へ散文で複製された | 3 | PR #72 | 未着手 |
+| `contract/format-requirement-duplicated-outside-format-file` | 書式の要求が、書式の正本の外へ散文で複製された | 4 | PR #75 | 未着手 |
 
 ## 全カテゴリ
 
@@ -80,22 +80,22 @@ git show <PR #72 のマージコミットの親>:docs/review_log.md
 | `contract/design-data-duplicated` | 設計契約 | デザインの値が正本以外へ複製された | 13 | PR #13 | PR #56 |
 | `contract/value-outside-source-of-truth` | 設計契約 | 正本に置くと決めた値が、正本を参照できない場所にも必要になる | 6 | PR #13 | PR #66 |
 | `contract/source-of-truth-ambiguous` | 設計契約 | 「正本」がどのファイルを指すか一意でない | 10 | PR #13 | PR #66 |
-| `contract/contract-structure-duplicated` | 設計契約 | 正本の中身の一覧が、別の文書へ構造ごと複製された | 10 | PR #13 | PR #72 |
+| `contract/contract-structure-duplicated` | 設計契約 | 正本の中身の一覧が、別の文書へ構造ごと複製された | 11 | PR #13 | PR #75 |
 | `inspection/rule-scope-inconsistent` | 検査 | 同じルールIDの守備範囲が文書間で食い違う | 6 | PR #13 | PR #55 |
 | `inspection/rule-id-mapping-incomplete` | 検査 | ルールIDと実装の対応検査が一部の系統しか覆っていない | 3 | PR #13 | PR #57 |
 | `inspection/measure-state-unspecified` | 検査 | measure がどの表示状態で測るか規定されていない | 2 | PR #13 | PR #19 |
 | `inspection/measure-viewport-unspecified` | 検査 | measure の測定条件が未規定で結果が再現しない | 1 | PR #13 | PR #13 |
 | `code/gitignore-hides-tracked-artifacts` | コード品質 | .gitignore が、追跡する方針の成果物を無言で除外する | 1 | PR #13 | PR #13 |
-| `writing/ambiguous-criterion` | 日本語 | 判断基準が曖昧で、契約として実行できない | 13 | PR #13 | PR #72 |
+| `writing/ambiguous-criterion` | 日本語 | 判断基準が曖昧で、契約として実行できない | 14 | PR #13 | PR #75 |
 | `writing/term-inconsistency` | 日本語 | 同じものが複数の呼び名を持ち、外延も揺れる | 18 | PR #13 | PR #72 |
 | `writing/notation-inconsistency` | 日本語 | 表記の不統一 | 9 | PR #13 | PR #66 |
 | `phase/out-of-scope-addition` | フェーズ | フェーズのスコープ外、または DR に接続しないものが混入した | 8 | PR #13 | PR #57 |
-| `decisions/undocumented-decision` | 決定記録 | DR に無い判断が、PR説明やIssueにだけ書かれている | 18 | PR #13 | PR #72 |
-| `contract/workflow-constant-duplicated` | 設計契約 | 他スキルが持つ取り決め（パス・上限値）が書き写された | 4 | PR #17 | PR #56 |
+| `decisions/undocumented-decision` | 決定記録 | DR に無い判断が、PR説明やIssueにだけ書かれている | 19 | PR #13 | PR #75 |
+| `contract/workflow-constant-duplicated` | 設計契約 | 他スキルが持つ取り決め（パス・上限値）が書き写された | 5 | PR #17 | PR #75 |
 | `code/review-loop-double-counts-log` | コード品質 | 同一 PR の再レビューが指摘ログを二重に計上する | 1 | PR #17 | PR #17 |
 | `code/review-artifact-handling-undefined` | コード品質 | レビュー成果物をコミットするかどうかが未定義 | 1 | PR #17 | PR #17 |
 | `code/undefined-command-input` | コード品質 | 手順のコマンドが要求する入力の用意が未定義 | 1 | PR #17 | PR #17 |
-| `writing/contradictory-instruction` | 日本語 | 同じ状況に対する指示が文書間で食い違う | 12 | PR #17 | PR #72 |
+| `writing/contradictory-instruction` | 日本語 | 同じ状況に対する指示が文書間で食い違う | 13 | PR #17 | PR #75 |
 | `decisions/dr-recording-bypass` | 決定記録 | DR の代わりに PR 本文へ書くことを手順が公認している | 1 | PR #17 | PR #17 |
 | `decisions/consequence-not-followed` | 決定記録 | 既存 DR の帰結が、それを通る手順に反映されていない | 13 | PR #17 | PR #66 |
 | `decisions/dr-restates-canonical-value` | 決定記録 | DR が正本の値を本文に書き写した | 13 | PR #17 | PR #72 |
@@ -120,12 +120,12 @@ git show <PR #72 のマージコミットの親>:docs/review_log.md
 | `code/sibling-field-test-gap` | コード品質 | 同じ制約を個別に持つ複数フィールドのうち、一部にしか回帰テストが無い | 4 | PR #23 | PR #66 |
 | `inspection/rule-has-bypass` | 検査 | 検査ルールに抜け道があり、書き方を変えると素通りする | 21 | PR #13 | PR #72 |
 | `decisions/wrong-dr-citation` | 決定記録 | 誤った DR 番号を根拠として引用している | 6 | PR #24 | PR #66 |
-| `decisions/implementation-labeled-as-canonical` | 決定記録 | DR が実装コードを「正本」として指定している | 3 | PR #24 | PR #61 |
+| `decisions/implementation-labeled-as-canonical` | 決定記録 | DR が実装コードを「正本」として指定している | 4 | PR #24 | PR #75 |
 | `code/test-duplicates-prior-assertion` | コード品質 | 追加したテストが直前のテストと完全に重複し、検出力を持たない | 4 | PR #20 | PR #57 |
 | `writing/inaccurate-rationale` | 日本語 | 説明文が書いている理由付けが、実装の挙動と食い違う | 20 | PR #23 | PR #72 |
 | `code/shadow-detection-misses-class-expression` | コード品質 | シャドーイング検出が class 式の代入パターンを見逃す | 1 | PR #24 | PR #24 |
 | `code/duplicate-hex-parsing-in-contrast-ratio` | コード品質 | 同じ変換ロジックが複数箇所に重複し、片方だけ直すと同期が崩れる | 1 | PR #25 | PR #25 |
-| `phase/completion-criterion-not-verified-e2e` | フェーズ | Issue の完了条件が、単体テストのみで統合パスを通さず検証されている | 10 | PR #25 | PR #66 |
+| `phase/completion-criterion-not-verified-e2e` | フェーズ | Issue の完了条件が、単体テストのみで統合パスを通さず検証されている | 11 | PR #25 | PR #75 |
 | `code/manifest-shape-not-validated` | コード品質 | manifest のフィールドが期待する型（配列等）であることを検証しておらず、誤った形を渡すと無関係なエラーになる | 1 | PR #26 | PR #26 |
 | `code/duplicate-resolve-readjson-helpers` | コード品質 | 同じ resolve/readJson ヘルパーが複数の scripts/*.mjs へ複製されている | 3 | PR #26 | PR #61 |
 | `code/generated-artifact-not-gitignored` | コード品質 | 新設した生成物が .gitignore に無く、実行のたびに untracked ファイルが残る | 1 | PR #26 | PR #26 |
@@ -205,7 +205,7 @@ git show <PR #72 のマージコミットの親>:docs/review_log.md
 | `code/duplicate-instruction-across-steps` | コード品質 | 同じ実行時の指示が複数の手順に重複し、片方だけが他 Skill の手順番号を名指ししている | 1 | PR #58 | PR #58 |
 | `code/relative-link-wrong-depth` | コード品質 | 相対リンクの階層が合わず、実在しないパスを指している | 1 | PR #60 | PR #60 |
 | `decisions/partial-supersession-not-in-status` | 決定記録 | 決定の一部が置き換わったのに、旧 DR の状態欄がそれを示していない | 1 | PR #60 | PR #60 |
-| `contract/format-requirement-duplicated-outside-format-file` | 設計契約 | 書式の必須規定と理由が、書式の正本の外へ書き写された | 3 | PR #60 | PR #72 |
+| `contract/format-requirement-duplicated-outside-format-file` | 設計契約 | 書式の必須規定と理由が、書式の正本の外へ書き写された | 4 | PR #60 | PR #75 |
 | `writing/scope-claim-mismatches-content` | 日本語 | 冒頭の範囲宣言が、その文書が実際に決めている内容より狭い | 2 | PR #60 | PR #61 |
 | `code/branch-unreachable-from-sole-caller` | コード品質 | 唯一の呼び出し元の固定した振る舞いにより、条件分岐が評価されなくなった | 1 | PR #60 | PR #60 |
 | `decisions/alternatives-cover-only-one-decision` | 決定記録 | 却下案が一部の決定しか覆わず、他の決定に代案の記録が無い | 2 | PR #60 | PR #72 |
@@ -230,11 +230,14 @@ git show <PR #72 のマージコミットの親>:docs/review_log.md
 | `contract/status-value-not-in-format-spec` | 設計契約 | 状態欄などに使う新しい値が、書式の正本の値一覧に登録されていない | 1 | PR #72 | PR #72 |
 | `decisions/exception-not-recorded-in-overridden-dr` | 決定記録 | 旧 DR を一部覆したのに、旧 DR の帰結・関連欄へ痕跡が無い | 1 | PR #72 | PR #72 |
 | `contract/format-structure-diverges-from-spec` | 設計契約 | 実ファイルの構造が、書式の正本のテンプレートと食い違う | 1 | PR #72 | PR #72 |
+| `code/verify-step-does-not-read-target` | コード品質 | 確認手順のコマンドが、確かめる対象のデータを取得していない | 1 | PR #75 | PR #75 |
+| `writing/ambiguous-antecedent` | 日本語 | 「前者／後者」などの指示語が、どれを指すか一意に読めない | 1 | PR #75 | PR #75 |
 
 ## レビュー履歴
 
 | PR | 日付 | blocker | should | consider | レビュー | セルフチェック |
 |---|---|---|---|---|---|---|
+| #75 | 2026-09-25 | 0 | 7 | 4 | [pr-75.md](./reviews/pr-75.md) | 済 |
 | #72 | 2026-09-25 | 2 | 24 | 6 | [pr-72.md](./reviews/pr-72.md) | 済 |
 | #66 | 2026-09-24 | 3 | 20 | 8 | [pr-66.md](./reviews/pr-66.md) | — |
 | #61 | 2026-09-24 | 8 | 26 | 11 | [pr-61.md](./reviews/pr-61.md) | — |
