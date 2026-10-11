@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-10-11（PR #79 レビュー 3周目）
+最終更新: 2026-10-11（PR #85 レビュー 1周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -51,19 +51,19 @@ grep '対象コミット' docs/reviews/pr-<PR番号>.md
 
 | カテゴリID | 要約 | 累計 | 最終指摘 | 状態 |
 |---|---|---|---|---|
-| `writing/ambiguous-criterion` | 判断基準が曖昧で、契約として実行できない | 16 | PR #79 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
-| `writing/term-inconsistency` | 同じものが複数の呼び名を持ち、外延も揺れる | 19 | PR #78 | 未着手 |
+| `writing/ambiguous-criterion` | 判断基準が曖昧で、契約として実行できない | 17 | PR #85 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
+| `writing/term-inconsistency` | 同じものが複数の呼び名を持ち、外延も揺れる | 20 | PR #85 | 未着手 |
 | `writing/notation-inconsistency` | 表記の不統一（DR 参照がリンクになっていない等） | 9 | PR #66 | 未着手 |
 | `phase/out-of-scope-addition` | フェーズのスコープ外、または DR に接続しないものが混入した | 8 | PR #57 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
-| `decisions/undocumented-decision` | DR に無い判断が、PR説明やIssueにだけ書かれている | 20 | PR #79 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
+| `decisions/undocumented-decision` | DR に無い判断が、PR説明やIssueにだけ書かれている | 21 | PR #85 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
 | `decisions/dr-restates-canonical-value` | DR が正本の値を本文に書き写した | 13 | PR #72 | 未着手 |
 | `contract/source-of-truth-ambiguous` | 「正本」がどのファイルを指すか一意でない | 10 | PR #66 | 未着手 |
 | `inspection/rule-id-mapping-incomplete` | ルールIDと実装の対応検査が一部の method しか覆っていない | 3 | PR #57 | 未着手 |
 | `code/fix-lacks-regression-test` | 指摘を受けた修正に、それを守る回帰テストが無い | 4 | PR #61 | 未着手 |
 | `inspection/bundle-boundary-unchecked` | 分離すると決めたビルドエントリ間の参照境界を保証する検査が無い | 3 | PR #57 | 未着手 |
-| `inspection/rule-has-bypass` | 検査ルールに抜け道があり、書き方を変えると素通りする | 22 | PR #79 | 仕組み化済み（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43） |
+| `inspection/rule-has-bypass` | 検査ルールに抜け道があり、書き方を変えると素通りする | 23 | PR #85 | 仕組み化済み（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43） |
 | `inspection/rule-scope-inconsistent` | 同じルールIDの守備範囲が文書間で食い違う | 6 | PR #55 | 仕組み化済み（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43）。守備範囲の宣言を `design/rules.json` に一本化した |
-| `decisions/consequence-not-followed` | 既存 DR の帰結が、それを通る手順に反映されていない | 13 | PR #66 | 見送り（意味の問題で機械判定に向かない。レビューの観点が持つ。[DR-0054](./decisions/0054-decision-reference-checked-by-machine.md)） |
+| `decisions/consequence-not-followed` | 既存 DR の帰結が、それを通る手順に反映されていない | 14 | PR #85 | 見送り（意味の問題で機械判定に向かない。レビューの観点が持つ。[DR-0054](./decisions/0054-decision-reference-checked-by-machine.md)） |
 | `contract/contract-structure-duplicated` | 正本の中身の一覧が、別の文書へ構造ごと複製された | 11 | PR #75 | 未着手 |
 | `contract/value-outside-source-of-truth` | 正本に置くと決めた値が、正本を参照できない場所にも必要になる | 6 | PR #66 | 未着手 |
 | `contract/design-data-duplicated` | デザインの値が正本以外へ複製された | 13 | PR #56 | 未着手 |
@@ -89,9 +89,10 @@ grep '対象コミット' docs/reviews/pr-<PR番号>.md
 | `code/sibling-field-test-gap` | 同じ制約を個別に持つ複数対象のうち、一部にしか回帰テストが無い | 4 | PR #66 | 未着手 |
 | `code/test-duplicates-prior-assertion` | 追加したテストが既存ケースと同じ経路しか通らず、検出力を持たない | 4 | PR #57 | 未着手 |
 | `code/test-misses-core-path` | 実装が分岐を持つのに、テストが片側しか踏まない | 5 | PR #79 | 未着手 |
-| `decisions/cited-tally-not-reproducible` | 根拠として挙げた集計の数え方が一意に読めない | 4 | PR #72 | 未着手 |
+| `decisions/cited-tally-not-reproducible` | 根拠として挙げた集計の数え方が一意に読めない | 5 | PR #85 | 未着手 |
 | `contract/format-requirement-duplicated-outside-format-file` | 書式の要求が、書式の正本の外へ散文で複製された | 4 | PR #75 | 未着手 |
 | `writing/ungrammatical-sentence` | 述語が欠けた文があり、意味が確定しない | 3 | PR #78 | 未着手 |
+| `decisions/decision-lacks-recorded-basis` | 決定のひとつに、文脈・理由・却下案のどこにも根拠が無い | 3 | PR #85 | 未着手 |
 
 ## 全カテゴリ
 
@@ -106,18 +107,18 @@ grep '対象コミット' docs/reviews/pr-<PR番号>.md
 | `inspection/measure-state-unspecified` | 検査 | measure がどの表示状態で測るか規定されていない | 2 | PR #13 | PR #19 |
 | `inspection/measure-viewport-unspecified` | 検査 | measure の測定条件が未規定で結果が再現しない | 1 | PR #13 | PR #13 |
 | `code/gitignore-hides-tracked-artifacts` | コード品質 | .gitignore が、追跡する方針の成果物を無言で除外する | 1 | PR #13 | PR #13 |
-| `writing/ambiguous-criterion` | 日本語 | 判断基準が曖昧で、契約として実行できない | 16 | PR #13 | PR #79 |
-| `writing/term-inconsistency` | 日本語 | 同じものが複数の呼び名を持ち、外延も揺れる | 19 | PR #13 | PR #78 |
+| `writing/ambiguous-criterion` | 日本語 | 判断基準が曖昧で、契約として実行できない | 17 | PR #13 | PR #85 |
+| `writing/term-inconsistency` | 日本語 | 同じものが複数の呼び名を持ち、外延も揺れる | 20 | PR #13 | PR #85 |
 | `writing/notation-inconsistency` | 日本語 | 表記の不統一 | 9 | PR #13 | PR #66 |
 | `phase/out-of-scope-addition` | フェーズ | フェーズのスコープ外、または DR に接続しないものが混入した | 8 | PR #13 | PR #57 |
-| `decisions/undocumented-decision` | 決定記録 | DR に無い判断が、PR説明やIssueにだけ書かれている | 20 | PR #13 | PR #79 |
+| `decisions/undocumented-decision` | 決定記録 | DR に無い判断が、PR説明やIssueにだけ書かれている | 21 | PR #13 | PR #85 |
 | `contract/workflow-constant-duplicated` | 設計契約 | 他スキルが持つ取り決め（パス・上限値）が書き写された | 6 | PR #17 | PR #79 |
 | `code/review-loop-double-counts-log` | コード品質 | 同一 PR の再レビューが指摘ログを二重に計上する | 1 | PR #17 | PR #17 |
 | `code/review-artifact-handling-undefined` | コード品質 | レビュー成果物をコミットするかどうかが未定義 | 1 | PR #17 | PR #17 |
 | `code/undefined-command-input` | コード品質 | 手順のコマンドが要求する入力の用意が未定義 | 1 | PR #17 | PR #17 |
 | `writing/contradictory-instruction` | 日本語 | 同じ状況に対する指示が文書間で食い違う | 14 | PR #17 | PR #78 |
 | `decisions/dr-recording-bypass` | 決定記録 | DR の代わりに PR 本文へ書くことを手順が公認している | 1 | PR #17 | PR #17 |
-| `decisions/consequence-not-followed` | 決定記録 | 既存 DR の帰結が、それを通る手順に反映されていない | 13 | PR #17 | PR #66 |
+| `decisions/consequence-not-followed` | 決定記録 | 既存 DR の帰結が、それを通る手順に反映されていない | 14 | PR #17 | PR #85 |
 | `decisions/dr-restates-canonical-value` | 決定記録 | DR が正本の値を本文に書き写した | 13 | PR #17 | PR #72 |
 | `decisions/index-section-mismatch` | 決定記録 | DR の索引登録が、内容と合わない節に置かれた | 4 | PR #17 | PR #61 |
 | `code/rereview-overwrites-prior-review` | コード品質 | 再レビューが前周のレビュー記録を上書きする | 1 | PR #17 | PR #17 |
@@ -138,7 +139,7 @@ grep '対象コミット' docs/reviews/pr-<PR番号>.md
 | `code/redundant-type-only-devdependency` | コード品質 | 型を同梱するパッケージに、別系統の型パッケージを重ねて入れた | 1 | PR #23 | PR #23 |
 | `writing/test-title-ambiguous` | 日本語 | テストタイトルが、そのテストの固定する不変条件を示していない | 10 | PR #23 | PR #66 |
 | `code/sibling-field-test-gap` | コード品質 | 同じ制約を個別に持つ複数フィールドのうち、一部にしか回帰テストが無い | 4 | PR #23 | PR #66 |
-| `inspection/rule-has-bypass` | 検査 | 検査ルールに抜け道があり、書き方を変えると素通りする | 22 | PR #13 | PR #79 |
+| `inspection/rule-has-bypass` | 検査 | 検査ルールに抜け道があり、書き方を変えると素通りする | 23 | PR #13 | PR #85 |
 | `decisions/wrong-dr-citation` | 決定記録 | 誤った DR 番号を根拠として引用している | 6 | PR #24 | PR #66 |
 | `decisions/implementation-labeled-as-canonical` | 決定記録 | DR が実装コードを「正本」として指定している | 4 | PR #24 | PR #75 |
 | `code/test-duplicates-prior-assertion` | コード品質 | 追加したテストが直前のテストと完全に重複し、検出力を持たない | 4 | PR #20 | PR #57 |
@@ -187,7 +188,7 @@ grep '対象コミット' docs/reviews/pr-<PR番号>.md
 | `inspection/false-positive-forces-allowlist` | 検査 | 誤検出が例外登録を招き、その例外がそのファイルの検査を丸ごと黙らせる | 1 | PR #52 | PR #52 |
 | `code/pattern-matches-across-code-span-boundary` | コード品質 | 照合パターンがコードスパンの境界を跨いで一致する | 1 | PR #52 | PR #52 |
 | `phase/scope-statement-weakened` | フェーズ | 重複を避ける書き換えで、フェーズ境界の宣言が自己言及になった | 1 | PR #52 | PR #52 |
-| `decisions/cited-tally-not-reproducible` | 決定記録 | 根拠として挙げた集計の数え方が一意に読めない | 4 | PR #52 | PR #72 |
+| `decisions/cited-tally-not-reproducible` | 決定記録 | 根拠として挙げた集計の数え方が一意に読めない | 5 | PR #52 | PR #85 |
 | `code/enumeration-line-pattern-too-broad` | コード品質 | 行の種類を判定するパターンが広すぎ、無関係な地の文を拾う | 1 | PR #52 | PR #52 |
 
 | `inspection/bypass-case-trivially-satisfiable` | 検査 | 通ることを固定する事例に下限が無く、中身が空でも宣言を「埋めた」ことになる | 1 | PR #47 | PR #47 |
@@ -213,7 +214,7 @@ grep '対象コミット' docs/reviews/pr-<PR番号>.md
 | `inspection/exit-condition-mismatches-state` | 検査 | 抜け条件に当てはまる状態と、そこで出す書式が想定する状態が食い違う | 1 | PR #58 | PR #58 |
 | `inspection/exit-decision-unverifiable` | 検査 | 抜け方の判定に使う入力が記録されず、第三者が再現できない | 2 | PR #58 | PR #78 |
 | `contract/record-written-by-non-owning-skill` | 設計契約 | 記録ファイルへの書き込みを、その書式を持たない側の Skill が指示している | 1 | PR #58 | PR #58 |
-| `decisions/decision-lacks-recorded-basis` | 決定記録 | 決定のひとつに、文脈・理由・却下案のどこにも根拠が無い | 2 | PR #58 | PR #61 |
+| `decisions/decision-lacks-recorded-basis` | 決定記録 | 決定のひとつに、文脈・理由・却下案のどこにも根拠が無い | 3 | PR #58 | PR #85 |
 | `contract/canonical-value-scattered-within-source` | 設計契約 | 正本と決めた節の中で、同じ値が複数の記述に散っている | 1 | PR #58 | PR #58 |
 | `decisions/index-entry-out-of-order` | 決定記録 | 索引の行が、節の中の並び規則（番号の昇順）に従っていない | 1 | PR #58 | PR #58 |
 | `inspection/retry-loop-unbounded-on-self-declared-failure` | 検査 | 自己申告の失敗でやり直せる回数に上限が無く、強制退出の条件へ到達しない | 1 | PR #58 | PR #58 |
@@ -254,11 +255,13 @@ grep '対象コミット' docs/reviews/pr-<PR番号>.md
 | `writing/ambiguous-antecedent` | 日本語 | 「前者／後者」などの指示語が、どれを指すか一意に読めない | 2 | PR #75 | PR #78 |
 | `decisions/principle-scope-unstated` | 決定記録 | 原則の適用範囲が書かれず、同じ DR の中で確かめられない前提の扱いが2通りに見える | 1 | PR #78 | PR #78 |
 | `inspection/commit-time-proxy-for-push-order` | 検査 | 順序の判定にコミット時刻を使い、push・イベントの実際の順序を見ていない | 1 | PR #79 | PR #79 |
+| `contract/canonical-missing-from-source-table` | 設計契約 | 正本と呼んだファイルが、README の正本表に載らない | 1 | PR #85 | PR #85 |
 
 ## レビュー履歴
 
 | PR | 日付 | blocker | should | consider | レビュー | セルフチェック |
 |---|---|---|---|---|---|---|
+| #85 | 2026-10-11 | 0 | 5 | 4 | [pr-85.md](./reviews/pr-85.md) | 済 |
 | #79 | 2026-10-11 | 0 | 3 | 7 | [pr-79.md](./reviews/pr-79.md) | 済 |
 | #78 | 2026-10-11 | 0 | 6 | 7 | [pr-78.md](./reviews/pr-78.md) | 済 |
 | #75 | 2026-09-25 | 0 | 7 | 4 | [pr-75.md](./reviews/pr-75.md) | 済 |
