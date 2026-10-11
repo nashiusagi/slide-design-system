@@ -88,6 +88,8 @@ Ready 化の直前に読み返し、結果を PR へコメントする。**書�
 
 ## この段を通した PR の数え方
 
+**`済` の定義はこの節だけが持つ**（[DR-0060](../../../../docs/decisions/0060-self-check-measurement-aligned.md) 決定1）。`docs/review_log.md` のレビュー履歴表の「セルフチェック」列と、`pr-review/references/review-log-format.md` の更新の手順は、ここを参照する。条件も意味もあちらへ書き写さない。
+
 **`gh pr ready` より前に投稿されたこのコメントがある PR を、通した PR と数える。** 時刻はタイムラインで確かめる。
 
 ```bash
@@ -107,4 +109,13 @@ gh api repos/{owner}/{repo}/issues/<PR番号>/comments --jq '.[] | {created_at, 
 
 `updated_at` が `created_at` と異なるコメントは、その `updated_at` も Ready 化イベントより前であることを確かめる。
 
-通さずに Ready にしたこと自体は止めない。ただし**通していない PR は、効果を測る母数（[DR-0057](../../../../docs/decisions/0057-self-check-before-ready.md) 決定7）に入らない。**
+上の条件をすべて満たす PR を `済`、満たさない PR を `—` と記録する。
+
+**`済` が保証するのは、Ready 化の時点の差分について、この手続きを踏んだことだけだ**（[DR-0059](../../../../docs/decisions/0059-self-check-done-covers-ready-diff.md) 決定2）。
+
+- **書かれた内容が正しいことは保証しない。** 正しさはレビューが判定し、その指摘を効果の測定が数える
+- **Ready 化より後の差分は対象外。** review-fix の差分に追加のセルフチェックは求めない
+
+**内容が誤っていたと後から分かっても、`済` のまま記録する**（同 決定5）。`—` へ戻さず、除外する印も付けない。誤りを見逃した分は1周目の指摘に現れ、段が効かなかった1本として測定に出る。それがこの段の効果として測るべきものだ。
+
+通さずに Ready にしたこと自体は止めない。ただし**通していない PR は、効果を測る母数（[DR-0057](../../../../docs/decisions/0057-self-check-before-ready.md) 決定7）に入らない。** `済` でも、1周目に観点が欠けた PR は母数から除く（DR-0059 決定3）。測り方とコマンドは `docs/review_log.md` の候補表前書きが持つ。

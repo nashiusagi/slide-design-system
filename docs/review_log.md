@@ -20,15 +20,34 @@
 
 **「セルフチェックで扱う」の意味は、`.claude/skills/pr-review/references/review-log-format.md` の「状態の値」が持つ**（[DR-0057](./decisions/0057-self-check-before-ready.md)）。どのカテゴリがどの項目で潰されるかの対応は `.claude/skills/issue-workflow/references/self-check.md` の表が持つ。
 
-**導入時点の基準値（この段の効果を測る物差し）。1 PR あたり 3.4 回。**
+**レビュー履歴表の「セルフチェック」列の `済` / `—` は、`.claude/skills/issue-workflow/references/self-check.md` の「この段を通した PR の数え方」だけが定義する**（[DR-0060](./decisions/0060-self-check-measurement-aligned.md)）。
 
-これは [PR #72](https://github.com/nashiusagi/slide-design-system/pull/72) のマージ**前**に測ったスナップショットで、**この表を今数えても再現しない**——PR #72 自身の指摘が累計へ入っているからだ。測り直すときは、その時点のファイルから数える。
+**導入時点の基準値（この段の効果を測る物差し）。1 PR あたり 3.04 回**——[PR #72](https://github.com/nashiusagi/slide-design-system/pull/72) のマージ直前（`2a71753`）の履歴表28本について、**1周目の指摘だけ**で対象カテゴリを数えた値（計上85回 ÷ 28本）。
 
 ```bash
-git show <PR #72 のマージコミットの親>:docs/review_log.md
+node scripts/count-first-round-findings.mjs --at=2a71753
 ```
 
-測り直す時期と母数の取り方は DR-0057 決定7 が持つ。
+対象カテゴリは、いまのこの表で状態が `セルフチェックで扱う` のものを読む。**対象カテゴリが増減したら基準値も数え直す**——比べる相手と同じカテゴリで数えるためだ。
+
+全周の累計で数えた旧値（3.4 回）は、比較に使わない。段が見ていない差分の指摘が混ざっている（[DR-0059](./decisions/0059-self-check-done-covers-ready-diff.md) 決定4）。
+
+**測るときは、`済` の PR を PR #72 の次から古い順に渡す。** 1周目に観点が欠けた PR はスクリプトが母数から除くので、「母数 5 本」になるまで足す。
+
+```bash
+node scripts/count-first-round-findings.mjs <PR番号>...
+```
+
+基準値を下回ったときは、母数の各 PR について、Ready 化から1周目までにコミットが足されていないかを確かめる（DR-0059 帰結）。レビュー記録の冒頭欄の `対象コミット` のコミット時刻が、Ready 化イベントより前なら足されていない。
+
+```bash
+gh api repos/{owner}/{repo}/issues/<PR番号>/timeline --jq '.[] | select(.event=="ready_for_review") | .created_at'
+git log -1 --format=%cI <対象コミット>
+```
+
+`対象コミット` 欄の無い記録（欄を足した PR #79 より前）は、履歴だけでは1周目が見た地点を決められない（[DR-0060](./decisions/0060-self-check-measurement-aligned.md) の「検討した他の選択肢」）。Ready 化イベントより後、1周目の記録のコミットより前のコミットを `git log` で並べ、それぞれが1周目の指摘への修正かどうかを、指摘と差分を突き合わせて読む。
+
+測り直す時期と母数の取り方は DR-0057 決定7 と DR-0059 が持つ。
 
 | カテゴリID | 要約 | 累計 | 最終指摘 | 状態 |
 |---|---|---|---|---|
