@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-09-25（PR #75 レビュー 3周目）
+最終更新: 2026-10-11（PR #78 レビュー 3周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -32,8 +32,8 @@ git show <PR #72 のマージコミットの親>:docs/review_log.md
 
 | カテゴリID | 要約 | 累計 | 最終指摘 | 状態 |
 |---|---|---|---|---|
-| `writing/ambiguous-criterion` | 判断基準が曖昧で、契約として実行できない | 14 | PR #75 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
-| `writing/term-inconsistency` | 同じものが複数の呼び名を持ち、外延も揺れる | 18 | PR #72 | 未着手 |
+| `writing/ambiguous-criterion` | 判断基準が曖昧で、契約として実行できない | 15 | PR #78 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
+| `writing/term-inconsistency` | 同じものが複数の呼び名を持ち、外延も揺れる | 19 | PR #78 | 未着手 |
 | `writing/notation-inconsistency` | 表記の不統一（DR 参照がリンクになっていない等） | 9 | PR #66 | 未着手 |
 | `phase/out-of-scope-addition` | フェーズのスコープ外、または DR に接続しないものが混入した | 8 | PR #57 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
 | `decisions/undocumented-decision` | DR に無い判断が、PR説明やIssueにだけ書かれている | 19 | PR #75 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
@@ -53,7 +53,7 @@ git show <PR #72 のマージコミットの親>:docs/review_log.md
 | `code/test-cannot-detect-regression` | テストが、その名前が示す回帰をフィクスチャの都合で検出できない | 5 | PR #66 | 未着手 |
 | `inspection/rule-coverage-partial` | 判定対象の列挙に穴があり、基準を割った組み合わせを見逃す | 13 | PR #72 | 一部（[DR-0044](./decisions/0044-bypass-fixtures-required.md) / #43）。`enumeration-tail` の軸で事例を要求するが、網羅性の証明ではない |
 | `phase/completion-criterion-not-verified-e2e` | Issue の完了条件が、単体テストのみで統合パスを通さず検証されている | 11 | PR #75 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
-| `writing/contradictory-instruction` | 同じ状況に対する指示が文書間で食い違う | 13 | PR #75 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
+| `writing/contradictory-instruction` | 同じ状況に対する指示が文書間で食い違う | 14 | PR #78 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
 | `writing/dangling-quote-reference` | 文書内の引用符付き参照が、書き換え後のどの語句・項目にも対応しなくなった | 9 | PR #72 | 未着手 |
 | `writing/test-title-ambiguous` | テストタイトルが、そのテストの固定する不変条件を示していない | 10 | PR #66 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
 | `code/dead-check-entry` | より強い条件に覆われ、単独では決して落ちない検査項目がある | 3 | PR #47 | 未着手 |
@@ -72,6 +72,7 @@ git show <PR #72 のマージコミットの親>:docs/review_log.md
 | `code/test-misses-core-path` | 実装が分岐を持つのに、テストが片側しか踏まない | 4 | PR #66 | 未着手 |
 | `decisions/cited-tally-not-reproducible` | 根拠として挙げた集計の数え方が一意に読めない | 4 | PR #72 | 未着手 |
 | `contract/format-requirement-duplicated-outside-format-file` | 書式の要求が、書式の正本の外へ散文で複製された | 4 | PR #75 | 未着手 |
+| `writing/ungrammatical-sentence` | 述語が欠けた文があり、意味が確定しない | 3 | PR #78 | 未着手 |
 
 ## 全カテゴリ
 
@@ -86,8 +87,8 @@ git show <PR #72 のマージコミットの親>:docs/review_log.md
 | `inspection/measure-state-unspecified` | 検査 | measure がどの表示状態で測るか規定されていない | 2 | PR #13 | PR #19 |
 | `inspection/measure-viewport-unspecified` | 検査 | measure の測定条件が未規定で結果が再現しない | 1 | PR #13 | PR #13 |
 | `code/gitignore-hides-tracked-artifacts` | コード品質 | .gitignore が、追跡する方針の成果物を無言で除外する | 1 | PR #13 | PR #13 |
-| `writing/ambiguous-criterion` | 日本語 | 判断基準が曖昧で、契約として実行できない | 14 | PR #13 | PR #75 |
-| `writing/term-inconsistency` | 日本語 | 同じものが複数の呼び名を持ち、外延も揺れる | 18 | PR #13 | PR #72 |
+| `writing/ambiguous-criterion` | 日本語 | 判断基準が曖昧で、契約として実行できない | 15 | PR #13 | PR #78 |
+| `writing/term-inconsistency` | 日本語 | 同じものが複数の呼び名を持ち、外延も揺れる | 19 | PR #13 | PR #78 |
 | `writing/notation-inconsistency` | 日本語 | 表記の不統一 | 9 | PR #13 | PR #66 |
 | `phase/out-of-scope-addition` | フェーズ | フェーズのスコープ外、または DR に接続しないものが混入した | 8 | PR #13 | PR #57 |
 | `decisions/undocumented-decision` | 決定記録 | DR に無い判断が、PR説明やIssueにだけ書かれている | 19 | PR #13 | PR #75 |
@@ -95,7 +96,7 @@ git show <PR #72 のマージコミットの親>:docs/review_log.md
 | `code/review-loop-double-counts-log` | コード品質 | 同一 PR の再レビューが指摘ログを二重に計上する | 1 | PR #17 | PR #17 |
 | `code/review-artifact-handling-undefined` | コード品質 | レビュー成果物をコミットするかどうかが未定義 | 1 | PR #17 | PR #17 |
 | `code/undefined-command-input` | コード品質 | 手順のコマンドが要求する入力の用意が未定義 | 1 | PR #17 | PR #17 |
-| `writing/contradictory-instruction` | 日本語 | 同じ状況に対する指示が文書間で食い違う | 13 | PR #17 | PR #75 |
+| `writing/contradictory-instruction` | 日本語 | 同じ状況に対する指示が文書間で食い違う | 14 | PR #17 | PR #78 |
 | `decisions/dr-recording-bypass` | 決定記録 | DR の代わりに PR 本文へ書くことを手順が公認している | 1 | PR #17 | PR #17 |
 | `decisions/consequence-not-followed` | 決定記録 | 既存 DR の帰結が、それを通る手順に反映されていない | 13 | PR #17 | PR #66 |
 | `decisions/dr-restates-canonical-value` | 決定記録 | DR が正本の値を本文に書き写した | 13 | PR #17 | PR #72 |
@@ -153,7 +154,7 @@ git show <PR #72 のマージコミットの親>:docs/review_log.md
 | `inspection/bundle-boundary-unchecked` | 検査 | 分離すると決めたビルドエントリ間の参照境界を保証する検査が無い | 3 | PR #40 | PR #57 |
 | `code/unreachable-defensive-branch` | コード品質 | 到達しない防御分岐と、型の事実と食い違う根拠コメントが残る | 2 | PR #40 | PR #57 |
 | `code/unvalidated-id-format` | コード品質 | 識別子が許容書式に収まることを型でもテストでも保証していない | 1 | PR #40 | PR #40 |
-| `writing/ungrammatical-sentence` | 日本語 | 述語が欠けた文があり、意味が確定しない | 2 | PR #40 | PR #55 |
+| `writing/ungrammatical-sentence` | 日本語 | 述語が欠けた文があり、意味が確定しない | 3 | PR #40 | PR #78 |
 | `writing/incomplete-pr-description` | 日本語 | PR 本文が着手時のままで、完成度と残りが読み取れない | 8 | PR #40 | PR #66 |
 | `code/test-cannot-detect-regression` | コード品質 | テストが、その名前が示す回帰をフィクスチャの都合で検出できない | 5 | PR #40 | PR #66 |
 | `code/duplicate-test-case` | コード品質 | 追加したテストが既存ケースと同一のアサーションになっている | 1 | PR #40 | PR #40 |
@@ -191,7 +192,7 @@ git show <PR #72 のマージコミットの親>:docs/review_log.md
 | `decisions/citation-missing-governing-decision` | 決定記録 | 実装が従っている決定のうち、片方の決定番号しか引用していない | 1 | PR #57 | PR #57 |
 
 | `inspection/exit-condition-mismatches-state` | 検査 | 抜け条件に当てはまる状態と、そこで出す書式が想定する状態が食い違う | 1 | PR #58 | PR #58 |
-| `inspection/exit-decision-unverifiable` | 検査 | 抜け方の判定に使う入力が記録されず、第三者が再現できない | 1 | PR #58 | PR #58 |
+| `inspection/exit-decision-unverifiable` | 検査 | 抜け方の判定に使う入力が記録されず、第三者が再現できない | 2 | PR #58 | PR #78 |
 | `contract/record-written-by-non-owning-skill` | 設計契約 | 記録ファイルへの書き込みを、その書式を持たない側の Skill が指示している | 1 | PR #58 | PR #58 |
 | `decisions/decision-lacks-recorded-basis` | 決定記録 | 決定のひとつに、文脈・理由・却下案のどこにも根拠が無い | 2 | PR #58 | PR #61 |
 | `contract/canonical-value-scattered-within-source` | 設計契約 | 正本と決めた節の中で、同じ値が複数の記述に散っている | 1 | PR #58 | PR #58 |
@@ -218,7 +219,7 @@ git show <PR #72 のマージコミットの親>:docs/review_log.md
 | `decisions/consequence-omits-decision` | 決定記録 | 決定のひとつに対応する帰結が無く、他の決定との書き分けが非対称 | 1 | PR #61 | PR #61 |
 | `decisions/dr-contradicts-own-decision` | 決定記録 | DR の却下案・帰結が、同じ DR の決定と正面から矛盾する | 1 | PR #61 | PR #61 |
 | `writing/attributed-rationale-not-at-source` | 日本語 | 「根拠は◯◯にある」と書いた先に、その根拠が無い | 1 | PR #61 | PR #61 |
-| `phase/scope-rationale-contradicts-issue-text` | フェーズ | スコープ外と却下した根拠が、Issue 本文の記述と食い違う | 1 | PR #61 | PR #61 |
+| `phase/scope-rationale-contradicts-issue-text` | フェーズ | スコープ外と却下した根拠が、Issue 本文の記述と食い違う | 2 | PR #61 | PR #78 |
 | `inspection/canonical-value-unmatchable` | 検査 | 正本の値そのものが、正規化処理で照合不能になる | 1 | PR #66 | PR #66 |
 | `contract/recorded-value-not-what-was-passed` | 設計契約 | 記録する値を、記録時点で変化した対象から測り直している | 1 | PR #66 | PR #66 |
 | `decisions/dr-missing-required-section` | 決定記録 | DR が README の定める節構成を満たしていない | 1 | PR #66 | PR #66 |
@@ -231,12 +232,14 @@ git show <PR #72 のマージコミットの親>:docs/review_log.md
 | `decisions/exception-not-recorded-in-overridden-dr` | 決定記録 | 旧 DR を一部覆したのに、旧 DR の帰結・関連欄へ痕跡が無い | 1 | PR #72 | PR #72 |
 | `contract/format-structure-diverges-from-spec` | 設計契約 | 実ファイルの構造が、書式の正本のテンプレートと食い違う | 1 | PR #72 | PR #72 |
 | `code/verify-step-does-not-read-target` | コード品質 | 確認手順のコマンドが、確かめる対象のデータを取得していない | 1 | PR #75 | PR #75 |
-| `writing/ambiguous-antecedent` | 日本語 | 「前者／後者」などの指示語が、どれを指すか一意に読めない | 1 | PR #75 | PR #75 |
+| `writing/ambiguous-antecedent` | 日本語 | 「前者／後者」などの指示語が、どれを指すか一意に読めない | 2 | PR #75 | PR #78 |
+| `decisions/principle-scope-unstated` | 決定記録 | 原則の適用範囲が書かれず、同じ DR の中で確かめられない前提の扱いが2通りに見える | 1 | PR #78 | PR #78 |
 
 ## レビュー履歴
 
 | PR | 日付 | blocker | should | consider | レビュー | セルフチェック |
 |---|---|---|---|---|---|---|
+| #78 | 2026-10-11 | 0 | 6 | 7 | [pr-78.md](./reviews/pr-78.md) | 済 |
 | #75 | 2026-09-25 | 0 | 7 | 4 | [pr-75.md](./reviews/pr-75.md) | 済 |
 | #72 | 2026-09-25 | 2 | 24 | 6 | [pr-72.md](./reviews/pr-72.md) | 済 |
 | #66 | 2026-09-24 | 3 | 20 | 8 | [pr-66.md](./reviews/pr-66.md) | — |
