@@ -102,6 +102,7 @@
 | # | 決定 |
 |---|---|
 | [0024](./0024-decision-records-not-adr.md) | 決定記録は `docs/decisions/` に置き、「DR」と呼ぶ |
+| [0061](./0061-repository-language-lexicon-semantics-pragmatics.md) | このリポジトリの言語は語彙・意味・語用を `docs/glossary.json` に持ち、統語は既存の正本へ委ねる |
 
 ## 新しい決定を追加するとき
 
