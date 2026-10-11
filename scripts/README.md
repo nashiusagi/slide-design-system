@@ -14,6 +14,7 @@
 | `evaluate-run.mjs` | 生成結果を Run として取り込み（`save`）、保存済み Run を lint / measure で採点する（`score`）。AI は起動しない（DR-0020） |
 | `compare-runs.mjs` | 複数の Run の採点結果（`scoring.json`）を比較表にする（DR-0020） |
 | `sanitize-run-artifacts.mjs` | 保存 Run から端末の絶対パスと OS ユーザー名を機械的に置換する（DR-0023） |
+| `count-first-round-findings.mjs` | レビュー記録の1周目から、セルフチェックが扱うカテゴリの計上回数を数える（DR-0060）。`--at=<commit>` でその時点の履歴表の全 PR（基準値）、PR 番号を渡すとその PR（測定）。1周目に観点が欠けた PR は測定の母数から除く |
 | `audit-public-data.mjs` | 公開データに既知の漏洩パターン（絶対パス・API キー/token らしき文字列）が残っていないか検査する。公開の承認ではない（DR-0023、`docs/PUBLICATION_POLICY.md`） |
 | `measure-bypass.test.mjs` | measure ルールの bypass フィクスチャを実行する（DR-0044）。ブラウザは要らない |
 | `lib/` | 色の変換とコントラストの算出（`color.mjs`）、deck.md を JSON へ正規化するパーサ（`deck.mjs`、DR-0016）、ディレクトリ配下のファイル列挙（`fs-walk.mjs`）、bypass フィクスチャの置き場所と読み込み（`bypass-fixtures.mjs`、DR-0044）、measure ルールの bypass フィクスチャ本体（`measure-bypass/`） |
