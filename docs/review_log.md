@@ -11,7 +11,7 @@
 「そのカテゴリが問題として浮上した回数」だから。箇所の数で数えると、
 1回のレビューで閾値に到達してしまい、ルール化の判断材料にならない。
 
-最終更新: 2026-10-11（PR #78 レビュー 2周目）
+最終更新: 2026-10-11（PR #78 レビュー 3周目）
 
 ## ルール化候補（累計3回以上）
 
@@ -33,7 +33,7 @@ git show <PR #72 のマージコミットの親>:docs/review_log.md
 | カテゴリID | 要約 | 累計 | 最終指摘 | 状態 |
 |---|---|---|---|---|
 | `writing/ambiguous-criterion` | 判断基準が曖昧で、契約として実行できない | 15 | PR #78 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
-| `writing/term-inconsistency` | 同じものが複数の呼び名を持ち、外延も揺れる | 18 | PR #72 | 未着手 |
+| `writing/term-inconsistency` | 同じものが複数の呼び名を持ち、外延も揺れる | 19 | PR #78 | 未着手 |
 | `writing/notation-inconsistency` | 表記の不統一（DR 参照がリンクになっていない等） | 9 | PR #66 | 未着手 |
 | `phase/out-of-scope-addition` | フェーズのスコープ外、または DR に接続しないものが混入した | 8 | PR #57 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
 | `decisions/undocumented-decision` | DR に無い判断が、PR説明やIssueにだけ書かれている | 19 | PR #75 | セルフチェックで扱う（[DR-0057](./decisions/0057-self-check-before-ready.md)） |
@@ -88,7 +88,7 @@ git show <PR #72 のマージコミットの親>:docs/review_log.md
 | `inspection/measure-viewport-unspecified` | 検査 | measure の測定条件が未規定で結果が再現しない | 1 | PR #13 | PR #13 |
 | `code/gitignore-hides-tracked-artifacts` | コード品質 | .gitignore が、追跡する方針の成果物を無言で除外する | 1 | PR #13 | PR #13 |
 | `writing/ambiguous-criterion` | 日本語 | 判断基準が曖昧で、契約として実行できない | 15 | PR #13 | PR #78 |
-| `writing/term-inconsistency` | 日本語 | 同じものが複数の呼び名を持ち、外延も揺れる | 18 | PR #13 | PR #72 |
+| `writing/term-inconsistency` | 日本語 | 同じものが複数の呼び名を持ち、外延も揺れる | 19 | PR #13 | PR #78 |
 | `writing/notation-inconsistency` | 日本語 | 表記の不統一 | 9 | PR #13 | PR #66 |
 | `phase/out-of-scope-addition` | フェーズ | フェーズのスコープ外、または DR に接続しないものが混入した | 8 | PR #13 | PR #57 |
 | `decisions/undocumented-decision` | 決定記録 | DR に無い判断が、PR説明やIssueにだけ書かれている | 19 | PR #13 | PR #75 |
@@ -239,7 +239,7 @@ git show <PR #72 のマージコミットの親>:docs/review_log.md
 
 | PR | 日付 | blocker | should | consider | レビュー | セルフチェック |
 |---|---|---|---|---|---|---|
-| #78 | 2026-10-11 | 0 | 5 | 5 | [pr-78.md](./reviews/pr-78.md) | 済 |
+| #78 | 2026-10-11 | 0 | 6 | 7 | [pr-78.md](./reviews/pr-78.md) | 済 |
 | #75 | 2026-09-25 | 0 | 7 | 4 | [pr-75.md](./reviews/pr-75.md) | 済 |
 | #72 | 2026-09-25 | 2 | 24 | 6 | [pr-72.md](./reviews/pr-72.md) | 済 |
 | #66 | 2026-09-24 | 3 | 20 | 8 | [pr-66.md](./reviews/pr-66.md) | — |
