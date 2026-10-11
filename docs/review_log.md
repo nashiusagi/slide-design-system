@@ -38,14 +38,14 @@ node scripts/count-first-round-findings.mjs --at=2a71753
 node scripts/count-first-round-findings.mjs <PR番号>...
 ```
 
-基準値を下回ったときは、母数の各 PR について、Ready 化から1周目までにコミットが足されていないかを確かめる（DR-0059 帰結）。レビュー記録の冒頭欄の `対象コミット` のコミット時刻が、Ready 化イベントより前なら足されていない。
+基準値を下回ったときは、母数の各 PR について、1周目がセルフチェックと同じ差分を見たかを確かめる（DR-0059 帰結）。セルフチェックのコメントの `読み返した head` と、レビュー記録の冒頭欄の `対象コミット` が同じ SHA なら、同じ差分を見ている。
 
 ```bash
-gh api repos/{owner}/{repo}/issues/<PR番号>/timeline --jq '.[] | select(.event=="ready_for_review") | .created_at'
-git log -1 --format=%cI <対象コミット>
+gh pr view <PR番号> --comments          # セルフチェックの「読み返した head」
+grep '対象コミット' docs/reviews/pr-<PR番号>.md
 ```
 
-`対象コミット` 欄の無い記録（欄を足した PR #79 より前）は、履歴だけでは1周目が見た地点を決められない（[DR-0060](./decisions/0060-self-check-measurement-aligned.md) の「検討した他の選択肢」）。Ready 化イベントより後、1周目の記録のコミットより前のコミットを `git log` で並べ、それぞれが1周目の指摘への修正かどうかを、指摘と差分を突き合わせて読む。
+どちらかの欄が無い記録（PR #79 以前）は、履歴だけでは1周目が見た地点を決められない（[DR-0060](./decisions/0060-self-check-measurement-aligned.md) の「検討した他の選択肢」）。Ready 化イベントより後、1周目の記録のコミットより前のコミットを `git log` で並べ、それぞれが1周目の指摘への修正かどうかを、指摘と差分を突き合わせて読む。
 
 測り直す時期と母数の取り方は DR-0057 決定7 と DR-0059 が持つ。
 

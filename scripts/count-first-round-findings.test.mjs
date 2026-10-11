@@ -8,6 +8,7 @@ import {
   loadHistoryPrs,
   loadTargetCategories,
   readCoverage,
+  tally,
 } from './count-first-round-findings.mjs'
 
 const SEVERITIES = ['blocker', 'should', 'consider']
@@ -72,7 +73,7 @@ describe('countFirstRound', () => {
 
 describe('readCoverage', () => {
   it('観点表のすべてが立ち、どれも結果を返していれば全とする（括弧を含む観点名も照合する）', () => {
-    expect(readCoverage(review(''), PERSPECTIVES)).toEqual({ status: 'full', missing: [], noResult: [] })
+    expect(readCoverage(review(''), PERSPECTIVES)).toEqual({ status: 'full', missing: [], noResult: [], unreadable: [] })
   })
 
   it('立たなかった観点があれば欠けとする', () => {
@@ -81,6 +82,7 @@ describe('readCoverage', () => {
       status: 'lacking',
       missing: ['決定記録（DR）との整合'],
       noResult: [],
+      unreadable: [],
     })
   })
 
@@ -90,11 +92,54 @@ describe('readCoverage', () => {
       status: 'lacking',
       missing: [],
       noResult: ['決定記録（DR）との整合'],
+      unreadable: [],
     })
+  })
+
+  it.each([
+    ['半角括弧の注記', '決定記録（DR）との整合(結果なし)'],
+    ['理由を書き足した注記', '決定記録（DR）との整合（結果なし：タイムアウト）'],
+    ['別の言葉の注記', '決定記録（DR）との整合（途中で失敗）'],
+  ])('書式外の注記（%s）は剥がして照合せず、読めないものとして欠けに倒す', (_label, element) => {
+    const markdown = `- **立った観点**: 設計契約との整合 / ${element} / 日本語ドキュメント\n`
+    const coverage = readCoverage(markdown, PERSPECTIVES)
+
+    expect(coverage.status).toBe('lacking')
+    expect(coverage.unreadable).toEqual([element])
+  })
+
+  it('観点表の全観点が並んでいても、表に無い要素が混ざれば欠けに倒す', () => {
+    const markdown = '- **立った観点**: 設計契約との整合 / 決定記録（DR）との整合 / 日本語ドキュメント / 全観点\n'
+    expect(readCoverage(markdown, PERSPECTIVES)).toMatchObject({ status: 'lacking', missing: [], unreadable: ['全観点'] })
   })
 
   it('欄が無い記録は、確かめられないので全とはしない', () => {
     expect(readCoverage('# PR #1 レビュー\n', PERSPECTIVES).status).toBe('unrecorded')
+  })
+})
+
+describe('tally', () => {
+  /** @param {number} pr @param {'full' | 'lacking' | 'unrecorded'} status @param {number} count */
+  const record = (pr, status, count) => ({
+    pr,
+    categories: Array.from({ length: count }, (_, i) => `writing/c${i}`),
+    unparsed: 0,
+    coverage: { status, missing: [], noResult: [], unreadable: [] },
+  })
+  const records = [record(1, 'full', 3), record(2, 'lacking', 1), record(3, 'unrecorded', 2)]
+
+  it('測定では、観点が欠けた PR と欄の無い PR を母数からも計上回数からも除く', () => {
+    const result = tally(records, { baseline: false })
+    expect({ total: result.total, counted: result.counted }).toEqual({ total: 3, counted: 1 })
+  })
+
+  it('基準値では、観点の欠けで母数を除かない', () => {
+    const result = tally(records, { baseline: true })
+    expect({ total: result.total, counted: result.counted }).toEqual({ total: 6, counted: 3 })
+  })
+
+  it('母数が 0 本なら平均を出さない（0 回と区別する）', () => {
+    expect(tally([record(1, 'lacking', 2)], { baseline: false }).average).toBeNull()
   })
 })
 

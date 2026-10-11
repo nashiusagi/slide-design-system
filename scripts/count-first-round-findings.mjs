@@ -8,8 +8,8 @@
  * （DR-0059 決定3・決定4）。全周の累計を持つ `docs/review_log.md` からは出せないので、
  * レビュー記録（`docs/reviews/pr-<N>.md`）を読む。
  *
- * 判定はしない。数えるだけだ。どの PR を母数に入れるか（`済` かどうか）は
- * `issue-workflow/references/self-check.md` の数え方で人が決める。
+ * **`済` かどうかは判定しない。** 渡す PR を選ぶのは人で、`issue-workflow/references/self-check.md`
+ * の数え方に従う。判定するのは、1周目に観点が欠けたかどうかだけだ（DR-0060 決定4）。
  *
  * - **1周目**は、記録の先頭から最初の `## <N>周目` 見出しまで（`review-file-format.md`）
  * - **数え方**は `docs/review_log.md` と同じ。1つのカテゴリは1つの PR につき1回
@@ -26,7 +26,6 @@ import { fileURLToPath } from 'node:url'
 import {
   countUnparsedHeadings,
   loadPerspectiveMap,
-  normalizePerspectiveName,
   parseFindings,
 } from './select-review-findings.mjs'
 
@@ -95,25 +94,43 @@ export function loadHistoryPrs(reviewLog) {
 /**
  * 1周目に観点が欠けたかを、`立った観点` 欄から読む（DR-0053 / DR-0059 決定3）。
  *
- * 欄が無い記録は `unrecorded`。確かめられないので、欠けた側として扱う。
+ * **各要素は、観点表の名前そのものか、名前 + `（結果なし）` のどちらかに完全一致しなければ
+ * 読めないものとして扱う。** 括弧を剥がして照合すると、`（結果なし：タイムアウト）` のような
+ * 書式外の注記が剥がれて「立った」と数えられ、欠けた PR が黙って母数に入る。書式を外れた
+ * 記録ほど安全側（欠け）に倒す。
+ *
+ * 欄が無い記録は `unrecorded`。確かめられないので、これも欠けた側として扱う。
  *
  * @param {string} firstRound
  * @param {string[]} perspectives 観点表の観点名
- * @returns {{ status: 'full' | 'lacking' | 'unrecorded', missing: string[], noResult: string[] }}
+ * @returns {{ status: 'full' | 'lacking' | 'unrecorded', missing: string[], noResult: string[], unreadable: string[] }}
  */
 export function readCoverage(firstRound, perspectives) {
   const field = COVERAGE_FIELD.exec(firstRound)
 
   if (field === null) {
-    return { status: 'unrecorded', missing: [], noResult: [] }
+    return { status: 'unrecorded', missing: [], noResult: [], unreadable: [] }
   }
 
   const stood = field[1].split('/').map((part) => part.trim())
-  const noResult = stood.filter((name) => name.endsWith(NO_RESULT)).map((name) => name.slice(0, -NO_RESULT.length))
-  const stoodKeys = new Set(stood.map((name) => normalizePerspectiveName(name.replace(NO_RESULT, ''))))
-  const missing = perspectives.filter((name) => !stoodKeys.has(normalizePerspectiveName(name)))
+  /** @type {string[]} */
+  const returned = []
+  /** @type {string[]} */
+  const noResult = []
+  /** @type {string[]} */
+  const unreadable = []
 
-  return { status: missing.length === 0 && noResult.length === 0 ? 'full' : 'lacking', missing, noResult }
+  for (const element of stood) {
+    if (perspectives.includes(element)) returned.push(element)
+    else if (element.endsWith(NO_RESULT) && perspectives.includes(element.slice(0, -NO_RESULT.length)))
+      noResult.push(element.slice(0, -NO_RESULT.length))
+    else unreadable.push(element)
+  }
+
+  const missing = perspectives.filter((name) => !returned.includes(name) && !noResult.includes(name))
+  const full = missing.length === 0 && noResult.length === 0 && unreadable.length === 0
+
+  return { status: full ? 'full' : 'lacking', missing, noResult, unreadable }
 }
 
 /**
@@ -166,6 +183,53 @@ function parseArgs(argv) {
   return { at, prs }
 }
 
+/**
+ * @typedef {{
+ *   pr: number,
+ *   categories: string[],
+ *   coverage: ReturnType<typeof readCoverage>,
+ *   unparsed: number,
+ * }} PrRecord
+ */
+
+/**
+ * PR ごとの結果を母数と計上回数へまとめる。
+ *
+ * **観点が欠けた PR を除くのは測定のときだけ。** 基準値の側には当てはめない（DR-0059 決定4）。
+ * 基準値の母集団は `立った観点` 欄が入る前の記録で、当てはめると全部が除かれる。
+ *
+ * @param {PrRecord[]} records
+ * @param {{ baseline: boolean }} options
+ */
+export function tally(records, { baseline }) {
+  const rows = records.map((record) => ({ ...record, excluded: !baseline && record.coverage.status !== 'full' }))
+  const counted = rows.filter((row) => !row.excluded)
+  const total = counted.reduce((sum, row) => sum + row.categories.length, 0)
+
+  return {
+    rows,
+    total,
+    counted: counted.length,
+    average: counted.length === 0 ? null : total / counted.length,
+    broken: rows.some((row) => row.unparsed > 0),
+  }
+}
+
+/** @param {ReturnType<typeof tally>['rows'][number]} row */
+function describeRow(row) {
+  const { coverage } = row
+  return [
+    coverage.status === 'full' ? '観点: 全' : coverage.status === 'unrecorded' ? '観点: 記録なし' : '観点: 欠け',
+    ...coverage.missing.map((name) => `立たず ${name}`),
+    ...coverage.noResult.map((name) => `結果なし ${name}`),
+    ...coverage.unreadable.map((name) => `読めない「${name}」`),
+    row.excluded ? '→ 母数から除く' : '',
+    row.unparsed > 0 ? `NG 取りこぼし ${row.unparsed} 件` : '',
+  ]
+    .filter((part) => part.length > 0)
+    .join(' / ')
+}
+
 function main() {
   const { at, prs } = parseArgs(process.argv.slice(2))
   const baseline = at !== null
@@ -176,40 +240,27 @@ function main() {
   console.log(`対象カテゴリ ${targets.length} 件: ${targets.join(' / ')}`)
   console.log(baseline ? `基準値: ${at} 時点の履歴表 ${population.length} 本\n` : `測定: ${population.length} 本\n`)
 
-  let total = 0
-  let counted = 0
-  let broken = false
+  const result = tally(
+    population.map((pr) => {
+      const { firstRound, categories, unparsed } = countFirstRound(readAt(at, `docs/reviews/pr-${pr}.md`), targets)
+      return { pr, categories, unparsed, coverage: readCoverage(firstRound, perspectives) }
+    }),
+    { baseline },
+  )
 
-  for (const pr of population) {
-    const markdown = readAt(at, `docs/reviews/pr-${pr}.md`)
-    const { firstRound, categories, unparsed } = countFirstRound(markdown, targets)
-    const coverage = readCoverage(firstRound, perspectives)
-    // 観点が欠けた PR は測定の母数から除く。基準値の側には当てはめない（DR-0059 決定4）。
-    const excluded = !baseline && coverage.status !== 'full'
-
-    if (unparsed > 0) broken = true
-    if (!excluded) {
-      total += categories.length
-      counted += 1
-    }
-
-    const note = [
-      coverage.status === 'full' ? '観点: 全' : coverage.status === 'unrecorded' ? '観点: 記録なし' : '観点: 欠け',
-      ...coverage.missing.map((name) => `立たず ${name}`),
-      ...coverage.noResult.map((name) => `結果なし ${name}`),
-      excluded ? '→ 母数から除く' : '',
-      unparsed > 0 ? `NG 取りこぼし ${unparsed} 件` : '',
-    ]
-      .filter((part) => part.length > 0)
-      .join(' / ')
-
-    console.log(`  #${pr}  ${categories.length}  ${categories.join(' ') || '-'}  （${note}）`)
+  for (const row of result.rows) {
+    console.log(`  #${row.pr}  ${row.categories.length}  ${row.categories.join(' ') || '-'}  （${describeRow(row)}）`)
   }
 
-  const average = counted === 0 ? 0 : total / counted
-  console.log(`\n計上 ${total} 回 / 母数 ${counted} 本 = 1 PR あたり ${average.toFixed(2)} 回`)
+  if (result.average === null) {
+    console.log('\nNG  母数が 0 本。比べる値が無い。')
+    process.exitCode = 1
+    return
+  }
 
-  if (broken) {
+  console.log(`\n計上 ${result.total} 回 / 母数 ${result.counted} 本 = 1 PR あたり ${result.average.toFixed(2)} 回`)
+
+  if (result.broken) {
     console.log('\nNG  カテゴリID形の見出しを指摘として読めなかった記録がある。数は信用できない。書式を確かめること。')
     process.exitCode = 1
   }
