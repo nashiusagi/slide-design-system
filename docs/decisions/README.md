@@ -95,6 +95,7 @@
 | [0057](./0057-self-check-before-ready.md) | Ready 化の前に自分の差分を読み返し、検証可能な材料を残す |
 | [0058](./0058-issue-refine-skill.md) | 大きい Issue は `issue-refine` で現状把握・分割・4節への書き直しを行い、承認後に反映する |
 | [0059](./0059-self-check-done-covers-ready-diff.md) | セルフチェックの `済` は Ready 化時点の差分だけを保証し、効果は1周目の指摘で測る |
+| [0060](./0060-self-check-measurement-aligned.md) | `済` の定義は `self-check.md` だけが持ち、1周目の計上はレビュー記録からスクリプトで数える |
 
 ### メタ
 
